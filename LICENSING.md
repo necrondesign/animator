@@ -60,10 +60,10 @@
    и не создаём впечатление, что форк официальный. Допустима формулировка
    «based on Haiku Animator by Haiku Systems Inc.». При ребрендинге меняем имя
    продукта, иконки и UI-тексты, но **не трогаем** строки копирайта Haiku Systems.
-9. **Тестовые фикстуры с чужими правами.** `packages/haiku-glass/test/projects/Apr91`
-   помечен как «Copyright (c) 2018 matthew2. All rights reserved.» Такие файлы
-   не распространяем отдельно, не включаем в сборки и не используем как примеры
-   или демо. Лучше заменить их на свои фикстуры.
+9. **Тестовые фикстуры с чужими правами.** Проект `Apr91` («Copyright (c) 2018 matthew2.
+   All rights reserved.») удалён из `haiku-glass/test/projects` и `@haiku/core/demo`.
+   Новые фикстуры и демо — только свои или под совместимой лицензией; чужие файлы
+   с «All rights reserved» в репозиторий не добавляем.
 10. **Облачные сервисы Haiku мертвы.** Эндпоинты из `.env.example` (`HAIKU_API`,
     `HAIKU_SHARE` и т.д.) и бакеты Haiku (например, `haiku-secrets` в
     `scripts/distro-download-secrets.js`) нам не принадлежат. Не обращаться к ним,
