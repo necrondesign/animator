@@ -23,7 +23,7 @@ export default function getWindowsBrowser (window) {
       rv = parseFloat(RegExp.$1);
     }
   } else if (window.navigator.appName === 'Netscape') {
-    rv = (window.navigator.appVersion.indexOf('Trident') === -1) ? 12 : 11;
+    rv = ((window.navigator.appVersion || '').indexOf('Trident') === -1) ? 12 : 11;
   }
   return rv;
 }

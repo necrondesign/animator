@@ -156,21 +156,15 @@ Interactive:
 
 ## Tracking / Analytics
 
-By default, Haiku tracks usage of published components by transmitting metadata to Haiku's Mixpanel account when components are initialized on the page. We send only public information: your component's name, its Haiku account username, the software version it was built with, and its share identifier.
-
-To disable this, set the `mixpanel` option to `false`:
-
-    // ...
-    const factory = AnimatorCore(definition);
-    const component = factory(document.getElementById("mount"), {
-      mixpanel: false // Or the string of your own Mixpanel API token
-    })
+The runtime sends no telemetry. Built-in Mixpanel tracking and the branded right-click
+menu were removed in this fork; the `mixpanel` and `contextMenu` options are still
+accepted for backward compatibility but are ignored.
 
 <br>
 
 ## Bugs / Feature Requests / Troubleshooting
 
-Please use [GitHub Issues](https://github.com/HaikuTeam/core/issues).
+Please use [GitHub Issues](https://github.com/necrondesign/animator/issues).
 
 <br>
 

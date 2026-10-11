@@ -376,8 +376,8 @@ export interface BytecodeOptions {
   // preserve-3d mode in DOM environments. [UNUSED]
   preserve3d?: string;
 
-  // Whether or not the Haiku context menu should display when the
-  // component is right-clicked; may be 'enabled' or 'disabled'.
+  // @deprecated Ignored. The branded Haiku right-click menu has been removed;
+  // kept only so that existing projects passing this option keep compiling.
   contextMenu?: string;
 
   // CSS position setting for the root of the component in DOM;
@@ -395,8 +395,8 @@ export interface BytecodeOptions {
   // CSS overflow setting for the component. Use this OR overflowX/overflowY
   overflow?: string;
 
-  // If provided, a Mixpanel tracking instance will be created using this
-  // string as the API token. The default token is Haiku's production token.
+  // @deprecated Ignored. Built-in Mixpanel tracking has been removed and the
+  // runtime sends no telemetry; kept only so that existing projects keep compiling.
   mixpanel?: string|false;
 
   // Control how this instance handles interaction, e.g. preview mode

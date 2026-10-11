@@ -27,7 +27,6 @@ export declare interface AdaptedDocument extends Document {
 export declare interface AdaptedWindow extends Window {
   HaikuResolve?: (playerVersion: string) => DOMAdapter|undefined;
   HaikuCore?: {[key in string]: DOMAdapter};
-  mixpanel?: any;
   screen: AdaptedScreen;
   document: AdaptedDocument;
 }

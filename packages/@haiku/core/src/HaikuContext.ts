@@ -108,28 +108,6 @@ export default class HaikuContext extends HaikuBase implements IHaikuContext {
       this.container,
     );
 
-    // If configured, bootstrap the Haiku right-click context menu
-    if (this.mount && this.renderer.menuize && this.config.contextMenu !== 'disabled') {
-      this.renderer.menuize(this.component);
-    }
-
-    // By default, Haiku tracks usage by transmitting component metadata to Mixpanel when initialized.
-    // Developers can disable this by setting the `mixpanel` option to a falsy value.
-    // To transmit metadata to your own Mixpanel account, set the `mixpanel` option to your Mixpanel API token.
-    // Don't set up Mixpanel if we're running on localhost since we don't want test data to be tracked
-    if (
-      this.mount &&
-      this.platform &&
-      this.platform.location &&
-      this.platform.location.hostname !== 'localhost' &&
-      this.platform.location.hostname !== '0.0.0.0'
-    ) {
-      // If configured, initialize Mixpanel with the given API token
-      if (this.renderer.mixpanel && this.config.mixpanel) {
-        this.renderer.mixpanel(this.config.mixpanel, this.component);
-      }
-    }
-
     // Just a counter for the number of clock ticks that have occurred; used to determine first-frame for mounting
     this.ticks = 0;
 

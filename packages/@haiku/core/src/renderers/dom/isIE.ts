@@ -14,6 +14,6 @@ export default function isIE (window) {
   }
   return (
     window.navigator.userAgent.indexOf('MSIE') !== -1 ||
-    navigator.appVersion.indexOf('Trident') > 0
+    (window.navigator.appVersion || '').indexOf('Trident') > 0
   );
 }
