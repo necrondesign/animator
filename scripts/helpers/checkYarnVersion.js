@@ -2,16 +2,21 @@ const cp = require('child_process');
 
 const log = require('./log');
 
-const YARN_VERSION = '1.13.0';
+// Keep in sync with "packageManager" in package.json.
+const YARN_VERSION = require('../../package.json').packageManager.replace(/^yarn@/, '');
 
 module.exports = () => {
-  const yarnVersion = cp.execSync('yarn --version').toString().trim();
+  let yarnVersion = null;
+  try {
+    yarnVersion = cp.execSync('yarn --version').toString().trim();
+  } catch (exception) {
+    log.warn('WARNING: yarn was not found. Enable it with `corepack enable` (ships with Node).');
+    return;
+  }
   if (yarnVersion !== YARN_VERSION) {
-    log.warn(`WARNING: you are using yarn version ${yarnVersion}. We recommend version ${YARN_VERSION}.`);
-    log.warn('Get it via:');
-    log.warn(`  curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version ${YARN_VERSION}`);
-    log.warn('You have been warned!\n');
+    log.warn(`WARNING: you are using yarn ${yarnVersion}. This repo expects yarn ${YARN_VERSION}.`);
+    log.warn('  corepack enable   (picks up the version from "packageManager" in package.json)');
   } else {
-    log.hat(`Using recommended version of yarn (${YARN_VERSION})!`);
+    log.hat(`Using yarn ${YARN_VERSION}`);
   }
 };

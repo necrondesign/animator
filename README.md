@@ -25,87 +25,41 @@ Some features:
 
 # Installation
 
-👉 Install the latest build from here:  https://github.com/HaikuTeam/animator/releases/ 👈
- 
-💻 Or run from source by following the `Development` instructions below. 💻
+There are no prebuilt releases of this fork yet; they will come with the Electron upgrade.
+Until then, run from source by following the `Development` instructions below.
 
 
 # Development
 
-## 1. Install OS dependencies
+## 1. Install prerequisites
 
-It's important to use precise minor version numbers where specified.  `nodegit`/`node-gyp` build errors are expected if you ignore this.
+* **Node.js 24 LTS** (see `.nvmrc`), e.g. `nvm install && nvm use`
+* **Yarn 1.22.22** via corepack, which ships with Node: `corepack enable`
+* **git**
 
-### Mac OS dependencies
-1.) nvm:
+No Python, node-gyp toolchain or native libraries are required: the project no longer has native Node modules.
 
-    $ curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
-
-2.) node 8.15.1:
-
-    $ nvm install 8.15.1 && nvm alias default 8.15.1 && nvm use 8.15.1
-
-3.) yarn 1.13.0:
-
-    $ curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.13.0
-
-4.) python 2.7.16 (if you need multiple Python environments on your machine, we recommend [pyenv](https://github.com/pyenv/pyenv))
-
-5.) libgcrypt (required for nodegit native bindings)
-    $ brew install libgcrypt
-
-### Windows OS dependencies
-
-Assuming a clean Windows 10, open a PowerShell with admin rights:
-
-```
-# Install Chocolatey package manager
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-# Install git
-choco install git python2 -y 
-
-# Install nodejs 
-choco install nodejs-lts -y --version 8.15.1
-
-# Ignore dependencies to force using specified node version 
-choco install yarn -y --version 1.13.0  --ignore-dependencies
-
-# Update PowerShell environment vars
-refreshenv
-
-# Install windows build tools (to compile native electron modules, e.g. nodegit)
-npm install -g windows-build-tools@2.3.0
-```
-
-In Windows is not possible to login in Figma while running Animator in development. In order to connect with Figma, is needed to set an environment variable called `FIGMA_TOKEN` with a Figma token as value.
-
-If the app fails to start because of wrong precompiled binaries, try re-building them (can take some time)
-
-```
-yarn electron-rebuild
-```
-
-
-### Linux OS dependencies
-
-* Install a desktop environment like Gnome, XFCE, or KDE if machine does not already have one
-* Install dependences from system repositories: `apt install git curl python2 build-essential libgcrypt20 libcurl4-openssl-dev libssl-dev libgtk-3-0 libgconf-2-4 libnss3`
-* Install nvm: `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash`
-* Install node 8.15.1: `nvm install 8.15.1 && nvm alias default 8.15.1 && nvm use 8.15.1`
-* Install yarn 1.13.0: `curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.13.0`
-
+> **Apple Silicon:** the app still runs on Electron 2, which has no arm64 build. Until the Electron upgrade, install
+> the x64 Electron binary (it runs under Rosetta): `npm_config_arch=x64 yarn install`.
 
 ## 2. Install project dependencies
 
-After you clone the repository, simply run:
+After you clone the repository, run:
 
-    $ yarn install && yarn setup
+    $ yarn install
 
+Check your toolchain at any time with `yarn doctor`.
 
-## 3. Start development server
+## 3. Build and test
 
-Assuming you've done the initial setup, you can start all the dev servers with:
+    $ yarn compile-all    # compile all TypeScript packages
+    $ yarn test-all       # run every package's tests; exits non-zero if any package fails
+
+Tests run with `HOME` pointed at a throwaway directory, so they never touch your real `~/.haiku`.
+
+## 4. Start the app
+
+You can start all the dev servers with:
 
     $ yarn start
 

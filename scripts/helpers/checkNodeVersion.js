@@ -1,19 +1,14 @@
-const cp = require('child_process');
-
 const log = require('./log');
 
-const NODE_VERSION = '8.15.1';
+// Keep in sync with .nvmrc and "engines" in package.json.
+const MIN_NODE_MAJOR = 24;
 
 module.exports = () => {
-  const nodeVersion = cp.execSync('node --version').toString().trim();
-  if (nodeVersion !== `v${NODE_VERSION}`) {
-    log.warn(`WARNING: you are using node version ${nodeVersion}. We recommend version v${NODE_VERSION}.`);
-    log.warn('Get it via:');
-    log.warn(`  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash`);
-    log.warn(`  nvm install ${NODE_VERSION}`);
-    log.warn(`  nvm alias default ${NODE_VERSION}`);
-    log.warn('You have been warned!\n');
+  const nodeMajor = Number(process.versions.node.split('.')[0]);
+  if (nodeMajor < MIN_NODE_MAJOR) {
+    log.warn(`WARNING: you are using Node ${process.version}. Node ${MIN_NODE_MAJOR} LTS or newer is required.`);
+    log.warn(`  nvm install ${MIN_NODE_MAJOR} && nvm use ${MIN_NODE_MAJOR}   (or see .nvmrc)`);
   } else {
-    log.hat(`Using recommended version of Node (${NODE_VERSION})!`);
+    log.hat(`Using Node ${process.version}`);
   }
 };
