@@ -140,14 +140,6 @@ export default class TopMenu {
             this.sender.send('global-menu:close-dev-tools');
           },
         },
-        {
-          label: 'Carbonite Snapshot',
-          accelerator: 'CmdOrCtrl+Option+Shift+C',
-          enabled: true,
-          click: () => {
-            this.sender.send('global-menu:carbonite-snapshot');
-          },
-        },
       );
     }
 

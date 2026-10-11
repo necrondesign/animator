@@ -46,11 +46,7 @@ export class UserHandler extends EnvoyHandler {
   protected registry = new Registry(FILE_PATHS.HAIKU_HOME);
 
   reportActivity () {
-    const authToken = sdkClient.config.getAuthToken();
-    // Faked query string to keep squirrel happy.  as this is not genuinely an 'update' check, this shouldn't matter.
-    return inkstone.updates.check(authToken, '?platform=mac&environment=production&branch=master', () => {
-      // Noop.
-    });
+    // Activity pings to Haiku servers are disabled; nothing is sent.
   }
 
   getUser (): MaybeAsync<inkstone.user.User> {

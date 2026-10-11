@@ -261,30 +261,6 @@ export default class Creator extends React.Component {
       });
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
-    ipcRenderer.on('global-menu:carbonite-snapshot', lodash.debounce(() => {
-      if (global.sentryReporter && this.error) {
-        this.error.clearLastUploadTime().then(() => {
-          // Call Carbonite in the BLL.
-          const finalUrl = global.sentryReporter.freezeInCarbonite(Raven.getContext(), false);
-
-          if (finalUrl) {
-            this.createNotice({
-              title: 'Done',
-              type: 'info',
-              message: 'Project snapshot processing. Check console log for URL.',
-            });
-            console.info(`Carbonite URL: ${finalUrl}.`);
-          } else {
-            this.createNotice({
-              title: 'Unable to freeze!',
-              type: 'warning',
-              message: 'We were not able to freeze your project. Check logs for details.',
-            });
-          }
-        });
-      }
-    }, 1000, {leading: true, trailing: false}));
-
     ipcRenderer.on('global-menu:open-finder', lodash.debounce(() => {
       logger.info(`[creator] global-menu:open-finder`);
       this.openFinder();

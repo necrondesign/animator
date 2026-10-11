@@ -1,16 +1,12 @@
 import {shouldEmitErrors} from 'haiku-common/lib/environments';
-// @ts-ignore
-import {HOMEDIR_CRASH_REPORTS_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
-import {basename, join} from 'path';
+import {basename} from 'path';
 import {crashReportFork} from '../dal/Carbonite';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
-import generateUUIDv4 from '../utils/generateUUIDv4';
 
 export const ERROR_CHANNEL = 'error';
 
 const UPLOAD_INTERVAL = 10;
-const AWS_S3_HOST = 'http://support.haiku.ai.s3-us-west-2.amazonaws.com';
 
 export interface CrashMetadata {
   zipPath: string;
@@ -52,31 +48,13 @@ export class SentryReporter {
   envoy?: ErrorHandler;
 
   /**
-   * Attaches carbonite data to an SentryExtraData payload and freezes the data.
+   * Project snapshots for crash reports are disabled; only the local error notice is emitted.
    */
-  freezeInCarbonite (data: SentryCallbackData, emit = true) {
-    const {organizationName, projectName, projectPath} = data.extra;
-    if (organizationName && projectName && projectPath) {
-      const timestamp = generateUUIDv4();
-      const zipName = `${projectName}-${timestamp}.zip`;
-      const zipPath = join(HOMEDIR_CRASH_REPORTS_PATH, zipName);
-      const uniqueId = `${organizationName}/${projectName}-${timestamp}`;
-      const finalUrl = `${AWS_S3_HOST}/${organizationName}/${zipName}`;
-      data.extra.carbonite = finalUrl;
-      Promise.resolve(
-        this.envoy.crashReport(
-          emit,
-          data,
-          projectPath,
-          zipName,
-          zipPath,
-          uniqueId,
-          finalUrl,
-        ),
-      );
-
-      return finalUrl;
+  freezeInCarbonite (data: SentryCallbackData, emit = true): string|undefined {
+    if (this.envoy) {
+      Promise.resolve(this.envoy.crashReport(emit, data));
     }
+    return undefined;
   }
 
   /**
