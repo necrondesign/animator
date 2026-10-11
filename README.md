@@ -1,5 +1,13 @@
 # Haiku Animator
 
+> **This is an independent community fork** of
+> [HaikuTeam/animator](https://github.com/HaikuTeam/animator), maintained by
+> [necrondesign](https://github.com/necrondesign). It is not affiliated with or
+> endorsed by Haiku Systems Inc. The original code is © Haiku Systems Inc. and is
+> distributed under the AGPL-3.0 (runtime `@haiku/core`: MIT); all changes in this
+> fork are released under the same licenses. See [LICENSING.md](LICENSING.md) and
+> [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 Haiku Animator is a design tool for creating Lottie animations and interactive web components. It's popular among enterprise motion design teams, digital creative studios, and animation classrooms.
 
 Some features:

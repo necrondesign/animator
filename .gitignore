@@ -9,5 +9,13 @@ packages/**/.last-compile
 config.js
 !packages/**/.storybook/config.js
 .env
+.env.*
+!.env*.example
+*.pem
+*.p12
+*.key
+*.cer
+*.mobileprovision
 .vs/
+.idea/
 syndicate.sh
