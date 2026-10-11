@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "yarn test:all",
-    "test:all": "cross-env NODE_ENV=test tape \"test/**/**/*.test.js\" | tap-spec || true",
-    "test:utils": "cross-env NODE_ENV=test tape \"test/utils/**/*.test.js\" | tap-spec || true",
-    "test:bll": "cross-env NODE_ENV=test tape \"test/bll/**/*.test.js\" | tap-spec || true",
-    "test-report": "cross-env NODE_ENV=test tape \"test/**/**/*.test.js\" > test-result.tap",
+    "test:all": "cross-env NODE_ENV=test tape -r haiku-testing/isolate-home \"test/**/**/*.test.js\" | tap-spec",
+    "test:utils": "cross-env NODE_ENV=test tape -r haiku-testing/isolate-home \"test/utils/**/*.test.js\" | tap-spec",
+    "test:bll": "cross-env NODE_ENV=test tape -r haiku-testing/isolate-home \"test/bll/**/*.test.js\" | tap-spec",
+    "test-report": "cross-env NODE_ENV=test tape -r haiku-testing/isolate-home \"test/**/**/*.test.js\" > test-result.tap",
     "lint": "tslint 'src/**/*.js' -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix"

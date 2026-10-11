@@ -46,7 +46,7 @@
     "lint": "tslint -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "ts": "cross-env NODE_ENV=test ts-node -r haiku-testing/isolate-home -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' 'test/**/*.test.js' > test-result.tap",
     "compile": "tsc",

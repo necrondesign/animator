@@ -25,7 +25,7 @@
     "lint": "tslint --exclude 'src/vendor/**' -p tsconfig.all.json -t stylish",
     "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
     "fix": "yarn lint --fix",
-    "ts": "cross-env NODE_ENV=test ts-node -r tsconfig-paths/register -P tsconfig.all.json",
+    "ts": "cross-env NODE_ENV=test ts-node -r haiku-testing/isolate-home -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
     "compile": "tsc",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@angular/core": "^6.0.9",
     "async": "^2.5.0",
-    "chokidar": "^1.7.0",
+    "chokidar": "^3.6.0",
     "cross-env": "^5.1.6",
     "depcheck": "^0.6.7",
     "express": "4.14.1",

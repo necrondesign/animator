@@ -535,83 +535,28 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   ensureBranch (cb) {
-    return Git.open(this.folder, (err, repository) => {
-      if (err) {
-        return cb(err);
-      }
-      return this.safeSetupBranch(repository, this.folderState.branchName, this.folderState.headCommitId, cb);
-    });
+    return this.safeSetupBranch(this.folderState.branchName, this.folderState.headCommitId, cb);
   }
 
-  safeSetupBranch (repository, branchName = DEFAULT_BRANCH_NAME, commitId, cb) {
-    const refSpec = `refs/heads/${branchName}`;
+  safeSetupBranch (branchName = DEFAULT_BRANCH_NAME, commitId, cb) {
+    logger.info('[master-git] creating branch', branchName);
 
-    logger.info('[master-git] remote refs: creating branch', branchName);
-
-    return repository.createBranch(branchName, commitId.toString()).then(() => {
-      return cb();
-    }, (branchErr) => {
-      // The remote already exists; there was no need to create it. Go ahead and skip
-      if (branchErr.message && branchErr.message.match(/reference with that name already exists/) && branchErr.message.split(refSpec).length > 1) {
-        logger.info('[master-git] remote refs: branch already exists; proceeding');
+    return Git.createBranch(this.folder, branchName, commitId, (branchErr) => {
+      // The branch already exists; there was no need to create it. Go ahead and skip
+      if (branchErr && branchErr.code === 'AlreadyExistsError') {
+        logger.info('[master-git] branch already exists; proceeding');
         return cb(null, branchName);
       }
-      return cb(branchErr);
+      if (branchErr) {
+        return cb(branchErr);
+      }
+      return cb(null, branchName);
     });
   }
 
   ensureRemoteRefs (cb) {
-    logger.info('[master-git] remote refs: ensuring');
-
-    return Git.open(this.folder, (err, repository) => {
-      if (err) {
-        return cb(err);
-      }
-
-      logger.info('[master-git] remote refs: setting up base content');
-
-      return fse.outputFile(path.join(this.folder, 'README.md'), '', (err) => {
-        if (err) {
-          return cb(err);
-        }
-
-        logger.info('[master-git] remote refs: making base commit');
-
-        return Git.addAllPathsToIndex(this.folder, (err, oid) => {
-          if (err) {
-            return cb(err);
-          }
-
-          return Git.buildCommit(this.folder, this.folderState.authorName, null, `Base commit (via Haiku)`, oid, null, null, (err, commitId) => {
-            if (err) {
-              return cb(err);
-            }
-
-            return this.safeSetupBranch(repository, this.folderState.branchName, commitId, (err, branchName) => {
-              if (err) {
-                return cb(err);
-              } // Should only be present if error is NOT about branch already existing
-
-              const refSpecToPush = `refs/heads/${branchName}`;
-
-              return Git.lookupRemote(this.folder, this.folderState.projectName, (err, mainRemote) => {
-                if (err) {
-                  return cb(err);
-                }
-
-                const remoteRefspecs = [refSpecToPush];
-
-                logger.info('[master-git] remote refs: pushing refspecs', remoteRefspecs, 'over https');
-
-                return mainRemote.push(remoteRefspecs, Git.globalPushOpts).then(() => {
-                  return cb();
-                }, cb);
-              });
-            });
-          });
-        });
-      });
-    });
+    // Remote refs lived on Haiku's git servers; remote synchronization is not supported.
+    return cb(new Error('[master-git] remote synchronization is not supported'));
   }
 
   copyContentsFromTemp (cb) {
@@ -845,7 +790,7 @@ export default class MasterGitProject extends EventEmitter {
 
           // No status means no changes.
           // 0 is UNMODIFIED, everything else is a change
-          // See http://www.nodegit.org/api/diff/#getDelta
+          // num follows libgit2 delta codes (see Git.DELTA)
           if (err || !status || !status.num || status.num < 1) {
             return finish(err);
           }

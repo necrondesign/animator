@@ -9,7 +9,11 @@
   "description": "Haiku Animator",
   "main": "index.js",
   "author": "Haiku Systems Inc.",
-  "license": "AGPL",
+  "license": "AGPL-3.0-or-later",
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "add-experiment": "node ./scripts/add-experiment.js",
     "demos": "node ./scripts/demos.js",
@@ -69,7 +73,6 @@
     "moment": "2.18.1",
     "node-gyp": "^3.6.3",
     "semver": "^5.4.1",
-    "spectron": "^3.7.2",
     "tap-spec": "^4.1.2",
     "tape": "^4.9.0",
     "tsc-watch": "^1.0.27",
@@ -135,7 +138,7 @@
     "extraResources": [
       "app/index.js",
       {
-        "from": "node_modules/ffmpeg-static/bin/${platform}/${arch}/ffmpeg",
+        "from": "node_modules/ffmpeg-static/ffmpeg",
         "to": ""
       },
       {

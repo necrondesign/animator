@@ -12,13 +12,20 @@ import {join} from 'path';
  * directory where our actual code lives. For numerous reasons, electron-builder's asarUnpack option turned out not
  * to be suitable for this purpose.
  */
-try {
-  // @ts-ignore
-  // tslint:disable-next-line:no-var-requires
-  fluentFfmpeg.setFfmpegPath(require('ffmpeg-static').path);
-} catch (error) {
-  // @ts-ignore
-  fluentFfmpeg.setFfmpegPath(join(require.resolve('haiku-formats').split('app.asar')[0], 'ffmpeg'));
-}
+const resolveFfmpegPath = (): string => {
+  try {
+    // ffmpeg-static exports the absolute path of its downloaded binary (or null on unsupported platforms).
+    // tslint:disable-next-line:no-var-requires
+    const staticPath: string|null = require('ffmpeg-static');
+    if (staticPath) {
+      return staticPath;
+    }
+  } catch (error) {
+    // Not available in packaged builds; fall through to the binary shipped next to app.asar.
+  }
+  return join(require.resolve('haiku-formats').split('app.asar')[0], 'ffmpeg');
+};
+
+fluentFfmpeg.setFfmpegPath(resolveFfmpegPath());
 
 export const newFfmpegCommand = (): fluentFfmpeg.FfmpegCommand => fluentFfmpeg();

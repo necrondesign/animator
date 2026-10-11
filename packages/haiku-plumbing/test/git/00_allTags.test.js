@@ -12,7 +12,7 @@ tape('Watcher', (t) => {
 
     const nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     nums.forEach((n) => {
-      fse.writeFileSync(path.join(folder, `foobar-${n}`));
+      fse.writeFileSync(path.join(folder, `foobar-${n}`), '');
       cp.execSync('git add . && git commit -m "foobar"', {cwd: folder, stdio: 'inherit'});
       cp.execSync(`git tag -a v0.0.${n} -m "foobar"`, {cwd: folder, stdio: 'inherit'});
     });
