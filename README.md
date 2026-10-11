@@ -7,7 +7,7 @@
 > distributed under the AGPL-3.0 (runtime `@haiku/core`: MIT); all changes in this
 > fork are released under the same licenses. See [LICENSING.md](LICENSING.md) and
 > [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Project audit and roadmap:
-> [docs/](docs/README.md).
+> [docs/](docs/README.md) (current status: [docs/STATUS.md](docs/STATUS.md)).
 
 Haiku Animator is a design tool for creating Lottie animations and interactive web components. It's popular among enterprise motion design teams, digital creative studios, and animation classrooms.
 
