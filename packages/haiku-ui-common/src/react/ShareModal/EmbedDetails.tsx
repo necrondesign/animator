@@ -28,7 +28,7 @@ export class EmbedDetails extends React.PureComponent<EmbedDetailsProps> {
     }
 
     // tslint:disable-next-line:variable-name
-    const Template = ShareTemplates[this.props.entry.template];
+    const Template = ShareTemplates[this.props.entry.template as keyof typeof ShareTemplates];
 
     return (
       <div style={STYLES.wrapper}>

@@ -5,7 +5,7 @@ export type EnvoyLogLevel = 'info' | 'log' | 'warn' | 'error';
 
 export default class EnvoyLogger implements Console {
   // tslint:disable-next-line:variable-name
-  Console: NodeJS.ConsoleConstructor;
+  Console: console.ConsoleConstructor;
   memory: any;
 
   constructor (private readonly logLevel: EnvoyLogLevel, private readonly logger?: any) {

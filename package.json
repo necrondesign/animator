@@ -27,6 +27,7 @@
     "compile-all": "node ./scripts/compile-all.js",
     "lint-all": "node ./scripts/lint-all.js",
     "test-all": "node ./scripts/test-all.js",
+    "typecheck-all": "node ./scripts/typecheck-all.js",
     "watch-all": "node ./scripts/watch-all.js",
     "lint-report": "node ./scripts/lint-report.js",
     "test-report": "node ./scripts/test-report.js"
@@ -34,7 +35,7 @@
   "resolutions": {
     "@haiku/core": "^5.0.0",
     "**/@types/react": "15.6.11",
-    "@types/node": "10.12.30"
+    "@types/node": "24.19.0"
   },
   "dependencies": {
     "@haiku/cli": "5.1.2",
@@ -76,9 +77,8 @@
     "tap-spec": "^4.1.2",
     "tape": "^4.9.0",
     "tsc-watch": "^1.0.27",
-    "typescript": "^3.0.3",
+    "typescript": "5.9.3",
     "uglify-js": "^3.1.4",
-    "webpack": "^4.16.0",
     "yargs": "^6.6.0"
   },
   "standard": {

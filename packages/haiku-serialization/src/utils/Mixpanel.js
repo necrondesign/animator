@@ -1,6 +1,7 @@
 // Analytics are disabled: this fork sends no telemetry. The module keeps the
 // API of the former Mixpanel wrapper so existing call sites keep working.
-const noop = () => {};
+// eslint-disable-next-line no-unused-vars
+const noop = (...args) => {};
 
 module.exports = {
   token: null,

@@ -59,8 +59,8 @@ export const evaluateInjectedFunctionInExportContext = (
       if (param === '$helpers') {
         return helpers;
       }
-      return (global[param] || states.hasOwnProperty(param))
-        ? (global[param] || states[param].value)
+      return ((global as unknown as {[key: string]: unknown})[param] || states.hasOwnProperty(param))
+        ? ((global as unknown as {[key: string]: unknown})[param] || states[param].value)
         : defaultStub;
     },
   );

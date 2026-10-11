@@ -27,6 +27,9 @@ export interface SentryCallbackData {
     values?: {
       value?: string;
     }[];
+    [index: number]: {
+      value?: string;
+    };
   };
   culprit?: string;
 }

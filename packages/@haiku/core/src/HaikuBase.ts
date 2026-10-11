@@ -45,7 +45,6 @@ export default class HaikuBase {
 
   $id: number;
   config; // Implemented by subclass
-  parent; // Implemented by subclass
   protected cache: {[key in string]: any} = {};
 
   constructor () {

@@ -9,14 +9,10 @@
     "preserveConstEnums": true,
     "rootDir": "src",
     "sourceMap": true,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "ESNext",
     "skipLibCheck": true,
     "types": [
       "node"
-    ],
-    "typeRoots": [
-      "node_modules/@types/"
     ]
   },
   "include": [

@@ -27,7 +27,7 @@ export class TimelineHandler implements Timeline {
     this.timelineRegistry = {};
   }
 
-  private timelineRegistry: {};
+  private timelineRegistry: {[key: string]: TimelineData};
 
   private getTimelineDataById (timelineId: string) {
     if (this.timelineRegistry[timelineId]) {

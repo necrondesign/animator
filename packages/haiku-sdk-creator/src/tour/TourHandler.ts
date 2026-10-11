@@ -116,7 +116,7 @@ export class TourHandler implements Tour {
 
   private shouldRenderAgain: boolean;
 
-  private webviewData: object = {};
+  private webviewData: {[key: string]: ClientBoundingRect} = {};
 
   // platformStates maps currentStep to platformState and it is set on
   // constructor according to current platform (atm, mac or window/linux)
@@ -191,8 +191,8 @@ export class TourHandler implements Tour {
     const state = this.getPlatformState();
     const fallbackPosition = {top: 0, left: 0};
     const origin = this.webviewData[webview] || fallbackPosition;
-    const top = origin.top + position.top;
-    const left =  origin.left + position.left;
+    const top = (origin.top as number) + (position.top as number);
+    const left =  (origin.left as number) + (position.left as number);
     const {width, height} = position;
 
     this.requestShowStep(state, {top, left, width, height});

@@ -46,7 +46,7 @@ tape(
 
       // Pass loop at root level
       const component = haikuComponentFactory(
-        this.mount,
+        undefined, // no mount: only option passing is under test (`this.mount` was always undefined here)
         {
           states: {
             bux: {

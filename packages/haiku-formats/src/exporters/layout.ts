@@ -46,13 +46,13 @@ const supportedMultiplicativeLayoutProperties = [
 const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, element: {layout: LayoutSpec}) => {
   supportedAdditiveLayoutProperties.forEach((property) => {
     if (timeline.hasOwnProperty(property)) {
-      LAYOUT_3D_VANITIES[property](null, element, initialValueOr(timeline, property, 0));
+      LAYOUT_3D_VANITIES[property as keyof typeof LAYOUT_3D_VANITIES](null, element, initialValueOr(timeline, property, 0));
     }
   });
 
   supportedMultiplicativeLayoutProperties.forEach((property) => {
     if (timeline.hasOwnProperty(property)) {
-      LAYOUT_3D_VANITIES[property](null, element, initialValueOr(timeline, property, 1));
+      LAYOUT_3D_VANITIES[property as keyof typeof LAYOUT_3D_VANITIES](null, element, initialValueOr(timeline, property, 1));
     }
   });
 };
@@ -133,17 +133,17 @@ export const composeTimelines = (
   Object.assign(composedTimeline, {
     ...supportedAdditiveLayoutProperties.reduce(
       (properties, property) => {
-        properties[property] = {0: {value: composition[property] || 0}};
+        properties[property] = {0: {value: composition[property as keyof ComposedTransformSpec] || 0}};
         return properties;
       },
-      {},
+      {} as BytecodeTimelineProperties,
     ),
     ...supportedMultiplicativeLayoutProperties.reduce(
       (properties, property) => {
-        properties[property] = {0: {value: composition[property] || 1}};
+        properties[property] = {0: {value: composition[property as keyof ComposedTransformSpec] || 1}};
         return properties;
       },
-      {},
+      {} as BytecodeTimelineProperties,
     ),
   });
 

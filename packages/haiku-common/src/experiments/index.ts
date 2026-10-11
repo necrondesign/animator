@@ -57,7 +57,7 @@ const experimentCache = {} as ExperimentCache;
 export const clearExperimentCache = () => {
   experimentConfig = null;
   Object.keys(experimentCache).forEach((experimentId) => {
-    delete experimentCache[experimentId];
+    delete experimentCache[experimentId as Experiment];
   });
 };
 

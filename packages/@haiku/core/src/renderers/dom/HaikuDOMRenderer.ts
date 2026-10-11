@@ -45,7 +45,7 @@ const connectTarget = (virtualNode, domElement) => {
 // tslint:disable:variable-name
 export default class HaikuDOMRenderer extends HaikuBase implements IRenderer {
   mount;
-  config;
+  declare config;
   user;
   shouldCreateContainer;
 

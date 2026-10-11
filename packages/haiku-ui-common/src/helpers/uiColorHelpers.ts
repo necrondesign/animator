@@ -14,7 +14,7 @@ export function derivateDisplayValueFromColorString (colorString: string) {
 
   return colorString.charAt(0) === '#'
     ? DisplayValues.HEX
-    : DisplayValues[get(colorString).model.toUpperCase()] || DisplayValues.HEX;
+    : DisplayValues[get(colorString).model.toUpperCase() as keyof typeof DisplayValues] || DisplayValues.HEX;
 }
 
 export function derivateStringFromColorResult (result: ColorResult & { source: string }) {
@@ -23,7 +23,7 @@ export function derivateStringFromColorResult (result: ColorResult & { source: s
   ? [roundValue(result.hsl.h), roundValue(result.hsl.s * 100), roundValue(result.hsl.l * 100), result.hsl.a]
   : [result.rgb.r, result.rgb.g, result.rgb.b, result.hsl.a];
 
-  return to(DisplayValues[result.source].toLowerCase(), values);
+  return to(DisplayValues[result.source as unknown as number].toLowerCase(), values);
 }
 
 function roundValue (value: number) {

@@ -4,7 +4,7 @@
  * Note: this and all related work should be moved out of @haiku/core in conjunction with xmlToMana and friends.
  */
 
-import {LayoutSpec} from '@haiku/core/lib/api';
+import {LayoutSpec, ThreeDimensionalLayoutProperty} from '@haiku/core/lib/api';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import mat4Decompose, {DecomposedMat4} from 'haiku-vendor-legacy/lib/mat4-decompose';
 
@@ -66,13 +66,13 @@ const normalizeRotationsInQuadrants = (out: ComposedTransformSpec, normalizer: L
   ['x', 'y', 'z'].forEach((axis) => {
     // We have to do this because the ComposedTransformSpec uses keys like "rotation.x" and the layout spec addresses
     // layout property groups in the expected way.
-    const rotationProperty = `rotation.${axis}`;
+    const rotationProperty = `rotation.${axis}` as keyof ComposedTransformSpec;
     // out[rotationProperty] is falsey if the property is not set OR if it's 0 (which we might care about).
     if (!out.hasOwnProperty(rotationProperty)) {
       return;
     }
 
-    const originalQuadrant = Math.floor(2 * normalizer.rotation[axis] / Math.PI);
+    const originalQuadrant = Math.floor(2 * normalizer.rotation[axis as keyof ThreeDimensionalLayoutProperty] / Math.PI);
     const quadrantOut = Math.floor(2 * out[rotationProperty] / Math.PI);
     if (Math.abs(originalQuadrant - quadrantOut) < 3) {
       // We're within a half "tick" of the original normalizer, so there isn't an obvious way to normalize, so let's

@@ -19,3 +19,5 @@ config.js
 .vs/
 .idea/
 syndicate.sh
+packages/@haiku/core/demo/webpack/
+packages/haiku-formats/demos/webpack/

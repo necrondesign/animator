@@ -177,7 +177,7 @@ export default class EnvoyServer {
     if (data.intent === DatagramIntent.REQUEST) {
       const handler = this.handlerRegistry.get(data.channel);
       if (handler) {
-        const method = handler.instance[data.method];
+        const method = (handler.instance as unknown as {[key: string]: unknown})[data.method];
         if (method && typeof method === 'function') {
           const returnValue = method.apply(handler.instance, data.params);
 
@@ -274,13 +274,13 @@ export default class EnvoyServer {
    * populates into a schema object.
    */
   private discoverSchemaOfHandlerPrototype (handlerTuple: HandlerTuple): {} {
-    const ret = {};
+    const ret: {[key: string]: string} = {};
     const proto = handlerTuple.proto;
     const instance = handlerTuple.instance;
     // Note how we append getConfig and setConfig from the parent.
     Object.getOwnPropertyNames(proto).concat(['getConfig', 'setConfig']).forEach((name) => {
       // TODO: handle nested objects & non-method members?
-      if (typeof instance[name] === 'function') {
+      if (typeof (instance as unknown as {[key: string]: unknown})[name] === 'function') {
         ret[name] = 'function';
       }
     });

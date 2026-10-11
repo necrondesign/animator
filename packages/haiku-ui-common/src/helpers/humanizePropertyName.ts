@@ -1,6 +1,6 @@
 import * as decamelize from 'decamelize';
 
-const HUMANIZED_PROP_NAMES = {
+const HUMANIZED_PROP_NAMES: {[key: string]: string} = {
   'rotation.z': 'Rotation Z', // Change me if we enable other types of rotation again
   'rotation.y': 'Rotation Y',
   'rotation.x': 'Rotation X',

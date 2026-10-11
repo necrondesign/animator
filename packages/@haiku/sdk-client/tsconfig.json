@@ -1,6 +1,7 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
+    "skipLibCheck": true,
     "allowJs": false,
     "declaration": true,
     "declarationDir": "lib",
@@ -12,13 +13,9 @@
     "preserveConstEnums": true,
     "rootDir": "src",
     "sourceMap": true,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "ES5",
     "types": [
       "node"
-    ],
-    "typeRoots": [
-      "node_modules/@types/"
     ]
   },
   "include": [

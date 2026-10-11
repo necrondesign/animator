@@ -109,7 +109,7 @@ export function createProjectFiles (
 
       // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
       // We need to change this subroutine any time we make a change to the project content structure
-      const filesToMove = {
+      const filesToMove: {[key: string]: string} = {
           // Core code files
         'bytecode.js': 'code/main/code.js',
 

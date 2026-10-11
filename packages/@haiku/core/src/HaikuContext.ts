@@ -32,7 +32,7 @@ export interface ComponentFactory {
 export default class HaikuContext extends HaikuBase implements IHaikuContext {
   clock: IHaikuClock;
   component: HaikuComponent;
-  config;
+  declare config;
   container;
   CORE_VERSION;
   mount;

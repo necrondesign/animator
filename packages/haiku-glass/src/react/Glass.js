@@ -575,29 +575,32 @@ export class Glass extends React.Component {
           }
           break;
 
-        case 'global-menu:zoom-in':
+        case 'global-menu:zoom-in': {
           mixpanel.haikuTrack('creator:glass:zoom-in');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
           }
           break;
+        }
 
-        case 'global-menu:zoom-out':
+        case 'global-menu:zoom-out': {
           mixpanel.haikuTrack('creator:glass:zoom-out');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
           }
           break;
+        }
 
-        case 'global-menu:reset-viewport':
+        case 'global-menu:reset-viewport': {
           mixpanel.haikuTrack('creator:glass:reset-viewport');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().resetZoomPan();
           }
           break;
+        }
 
         case 'global-menu:set-active-component':
           this.project.setCurrentActiveComponent(message.data, {from: 'glass'}, () => {});
@@ -611,19 +614,21 @@ export class Glass extends React.Component {
           this.handleUngroupDebounced();
           break;
 
-        case 'global-menu:cut':
+        case 'global-menu:cut': {
           const proxy = this.fetchProxyElementForSelection();
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCutDebounced();
           }
           break;
+        }
 
-        case 'global-menu:copy':
+        case 'global-menu:copy': {
           const proxy = this.fetchProxyElementForSelection();
           if (proxy && proxy.hasAnythingInSelectionButNotArtboard()) {
             this.handleCopyDebounced();
           }
           break;
+        }
 
         case 'global-menu:paste':
           this.handlePasteDebounced();

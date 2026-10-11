@@ -6,11 +6,11 @@ import * as childProcess from 'child_process';
 import * as opn from 'opn';
 
 const processOptions = {
-  stdio: 'inherit',
+  stdio: 'inherit' as const,
   cwd: global.process.cwd(),
 };
 childProcess.exec(
-  'yarn webpack --config=demo/webpack.config.js --progress --colors',
+  'yarn webpack --config=demo/webpack.config.js --progress',
   processOptions,
 );
 childProcess.spawn(

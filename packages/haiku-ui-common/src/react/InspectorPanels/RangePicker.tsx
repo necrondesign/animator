@@ -60,7 +60,7 @@ export default class RangePicker extends React.PureComponent<RangePickerProps> {
     // to ignore those false positives.
     const val = Number(event.target.value);
     const step = Number(this.props.step);
-    if (val < this.props.max) {
+    if (val < (this.props.max as number)) {
       if (val + step === this.props.max) {
         this.props.onValueChange(val + step);
       } else {

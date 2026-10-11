@@ -17,6 +17,8 @@ tape('git.pkill', (t) => {
         'tsconfig.all.json',
         PROC_FILE,
       ],
+      // Start a fresh ts-node: don't inherit the parent's ts-node execArgv.
+      {execArgv: []},
     );
     proc.on('exit', (code) => {
       console.log(`subproc exited with ${code}`);

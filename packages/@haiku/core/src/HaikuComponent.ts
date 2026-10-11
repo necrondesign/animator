@@ -153,7 +153,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
    * @deprecated
    */
   _bytecode;
-  config;
+  declare config;
   container;
   context: IHaikuContext;
   CORE_VERSION;

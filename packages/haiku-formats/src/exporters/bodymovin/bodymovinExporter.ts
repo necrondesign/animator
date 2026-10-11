@@ -117,7 +117,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
   /**
    * The definition transclusions we should use for ID interpolation.
    */
-  private transclusions = {};
+  private transclusions: {[key: string]: BytecodeNode} = {};
 
   /**
    * The Haiku IDs we should elide due to their association with definitions.
@@ -276,7 +276,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
     const keyframes: number[] = keyframesFromTimelineProperty(timelineProperty as BytecodeTimelineProperty);
     if (keyframes.length === 1) {
-      const property = timelineProperty[keyframes[0]].value;
+      const property = (timelineProperty as BytecodeTimelineProperty)[keyframes[0]].value;
       return {
         [PropertyKey.Animated]: 0,
         [PropertyKey.Value]: maybeApplyMutatorToProperty(property, mutator, disableRecursion),
@@ -353,7 +353,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @returns {[key in TransformKey]: any}
    */
   private transformsForLayerTimeline (timeline: BytecodeTimelineProperties, widthOffset = 0, heightOffset = 0) {
-    const transforms = {};
+    const transforms: Partial<BodymovinTransform> = {};
     transforms[TransformKey.OuterRadius] = getFixedPropertyValue([0, 0, 0]);
 
     const sizeX = this.currentNodeSize.x;
@@ -414,7 +414,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @returns {[key in TransformKey]: {}}
    */
   private transformsForShapeTimeline (timeline: BytecodeTimelineProperties) {
-    const transforms = {
+    const transforms: BodymovinTransform = {
       [TransformKey.TransformOrigin]: getFixedPropertyValue([0, 0]),
     };
 
@@ -791,7 +791,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     }
 
     // TODO: Verify these hyphenated attributes
-    const stroke = {
+    const stroke: BodymovinShape = {
       [ShapeKey.Type]: ShapeType.Stroke,
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'strokeOpacity', 100, opacityTransformer),
       [TransformKey.Color]: this.getValue(timeline.stroke, colorTransformer),
@@ -823,7 +823,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
    * @param gradient
    * @param probablyStops
    */
-  private decorateGradientStops (gradient: ShapeType, probablyStops: BytecodeNode[]) {
+  private decorateGradientStops (gradient: BodymovinFill, probablyStops: BytecodeNode[]) {
     const stops: object[] = [];
     probablyStops.forEach((node) => {
       if (node.elementName !== 'stop') {
@@ -877,7 +877,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     switch (node.elementName) {
       case SvgTag.LinearGradient:
         fill[ShapeKey.Type] = ShapeType.GradientFill;
-        this.decorateGradientStops(fill, node.children);
+        this.decorateGradientStops(fill, node.children as BytecodeNode[]);
         fill[TransformKey.GradientType] = GradientType.Linear;
 
         // Normalize the gradient in and out-points relative to the overall dimensions of the shape. Per the spec,
@@ -897,7 +897,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
         break;
       case SvgTag.RadialGradient:
         fill[ShapeKey.Type] = ShapeType.GradientFill;
-        this.decorateGradientStops(fill, node.children);
+        this.decorateGradientStops(fill, node.children as BytecodeNode[]);
         fill[TransformKey.GradientType] = GradientType.Radial;
         const cx = alwaysAbsolute(initialValueOr(timeline, 'cx', '50%'), width);
         const cy = alwaysAbsolute(initialValueOr(timeline, 'cy', '50%'), height);
@@ -930,7 +930,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       };
     }
 
-    const fill = {
+    const fill: BodymovinFill = {
       [TransformKey.Opacity]: this.getValueOrDefaultFromTimeline(timeline, 'fillOpacity', 100, opacityTransformer),
       [TransformKey.FillRule]: fillruleTransformer(initialValueOrNull(timeline, 'fillRule')),
       // Important: we will fill the unknown fill type later, so ensure the resulting fill object is lottie-android
@@ -1048,7 +1048,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
     const groupItems: any[] = [];
 
     // Important: all shapes use the `ShapeKey.Type` key, so require lottie-android safe JSON-ification.
-    const shape = {
+    const shape: BodymovinShape = {
       toJSON: lottieAndroidStreamSafeToJson,
     };
 

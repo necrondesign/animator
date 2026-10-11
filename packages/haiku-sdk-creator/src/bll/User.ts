@@ -31,11 +31,16 @@ export const enum OrganizationPrivilege {
   EnableOfflineFeatures = 'P1',
 }
 
+type OrganizationPrivileges = {
+  [OrganizationPrivilege.PrivateProjectLimit]?: number;
+  [OrganizationPrivilege.EnableOfflineFeatures]?: boolean;
+};
+
 /**
  * Deliberately obscure private method for getting the current date.
  */
 const nowDate = () =>
-  global[String.fromCharCode(0x44, 0x61, 0x74, 0x65)][String.fromCharCode(0b1101110, 0b1101111, 0b1110111)]();
+  (global as unknown as {[key: string]: {[key: string]: () => number}})[String.fromCharCode(0x44, 0x61, 0x74, 0x65)][String.fromCharCode(0b1101110, 0b1101111, 0b1110111)]();
 
 export class UserHandler extends EnvoyHandler {
   private readonly identity: HaikuIdentity = {};
@@ -85,7 +90,7 @@ export class UserHandler extends EnvoyHandler {
       return false;
     }
 
-    return this.getTrialDaysRemaining() <= 0;
+    return (this.getTrialDaysRemaining() as number) <= 0;
   }
 
   private storeOnlineUser () {
@@ -109,7 +114,9 @@ export class UserHandler extends EnvoyHandler {
         this.identity.organization.PlanExpirationDate &&
         this.identity.organization.PlanExpirationDate < nowDate() / 1e3
       ) {
-        this.identity.organization[OrganizationPrivilege.EnableOfflineFeatures] = false;
+        (this.identity.organization as inkstone.organization.Organization & OrganizationPrivileges)[
+          OrganizationPrivilege.EnableOfflineFeatures
+        ] = false;
         this.setConfigObfuscated<HaikuIdentity>(
           UserSettings.Identity,
           this.identity,
@@ -176,7 +183,8 @@ export class UserHandler extends EnvoyHandler {
   }
 
   getPrivilege (privilege: OrganizationPrivilege): MaybeAsync<any> {
-    return this.identity.organization && this.identity.organization[privilege];
+    return this.identity.organization &&
+      (this.identity.organization as inkstone.organization.Organization & OrganizationPrivileges)[privilege];
   }
 
   checkOfflinePrivileges (): MaybeAsync<boolean> {

@@ -28,6 +28,8 @@ export type BodymovinFill = any;
 
 export type BodymovinTransform = {
   [key in TransformKey.TransformOrigin]: BodymovinProperty;
+} & {
+  [key in TransformKey]?: unknown;
 };
 
 export interface BezierSpec {x: number[]; y: number[]; }

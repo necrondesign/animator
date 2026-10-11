@@ -14,6 +14,10 @@ const BYTECODE_DIRECTORY = path.join(GOLDENS_DIRECTORY, 'bytecode');
 const BODYMOVIN_DIRECTORY = path.join(GOLDENS_DIRECTORY, 'bodymovin');
 
 const app = express();
+// Serve lottie-web's prebuilt player under the path the demo template expects.
+app.get('/webpack/LottieWeb.js', (req, res) => {
+  res.sendFile(require.resolve('lottie-web/build/player/lottie.js'));
+});
 app.use(express.static(__dirname));
 app.use('/static', express.static(path.join(__dirname, '..', 'test')));
 

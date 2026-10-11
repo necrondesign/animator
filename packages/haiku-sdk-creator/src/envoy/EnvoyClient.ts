@@ -54,7 +54,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
       return Promise.resolve(mockMe);
     }
 
-    return this.getRemoteSchema(channel).then((schema: {}) => {
+    return this.getRemoteSchema(channel).then((schema: {[key: string]: string}) => {
       const returnMe = {} as T;
 
       for (const key in schema) {
@@ -63,7 +63,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
         // can implement deserialization/handling logic here
         if (schema[key] === 'function') {
           // Set the new function behavior.
-          returnMe[property] = ((prop) => {
+          (returnMe as unknown as {[key: string]: (...args: any[]) => Promise<any>})[property] = ((prop) => {
             return (...args: any[]) => {
 
               // Ask server for a response.
@@ -92,7 +92,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
    * @description Returns the option of the given key
    */
   getOption (key: string): any {
-    return this.options[key];
+    return this.options[key as keyof EnvoyOptions];
   }
 
   /**
@@ -166,7 +166,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
 
     this.logger.info('[haiku envoy client] connecting to websocket server %s', url);
 
-    this.connectingPromise = new Promise((accept) => {
+    this.connectingPromise = new Promise<void>((accept) => {
       this.socket = new this.websocket(url);
 
       this.socket.addEventListener('open', () => {
@@ -219,7 +219,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
    * each datagram in the order enqueued
    */
   private flushQueue () {
-    return new Promise((accept) => {
+    return new Promise<void>((accept) => {
       // this.logger.info('[haiku envoy client] flushing queue');
       while (this.datagramQueue.length) {
         const datagram = this.datagramQueue.shift();
@@ -297,7 +297,7 @@ export default class EnvoyClient<T extends EnvoyHandler> {
         );
       }
 
-      accept();
+      accept(undefined);
     });
   }
 
