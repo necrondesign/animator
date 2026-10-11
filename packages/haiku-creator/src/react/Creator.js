@@ -1,4 +1,5 @@
-import {remote, shell, ipcRenderer, clipboard, webFrame} from 'electron';
+import {shell, ipcRenderer, clipboard, webFrame} from 'electron';
+import * as remote from '@electron/remote';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {StyleRoot} from 'radium';
@@ -22,7 +23,6 @@ import Timeline from './components/Timeline';
 import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import {DASH_STYLES} from './styles/dashShared';
-import AutoUpdater from './components/AutoUpdater';
 import ProjectLoader from './components/ProjectLoader';
 import ProxyHelpScreen from './components/ProxyHelpScreen';
 import ProxySettingsScreen from './components/ProxySettingsScreen';
@@ -51,7 +51,6 @@ import {FailWhale} from './components/Popups/FailWhale';
 import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
 import {inkstone} from '@haiku/sdk-inkstone';
-import {isMac, isWindows} from 'haiku-common/lib/environments/os';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
@@ -67,12 +66,8 @@ const isNumeric = (n) => {
 };
 
 if (webFrame) {
-  if (webFrame.setZoomLevelLimits) {
-    webFrame.setZoomLevelLimits(1, 1);
-  }
-  if (webFrame.setLayoutZoomLevelLimits) {
-    webFrame.setLayoutZoomLevelLimits(0, 0);
-  }
+  // Disable pinch-to-zoom of the whole UI.
+  webFrame.setVisualZoomLevelLimits(1, 1);
 }
 
 const MENU_ACTION_DEBOUNCE_TIME = 100;
@@ -94,7 +89,6 @@ export default class Creator extends React.Component {
     this.renderNotice = this.renderNotice.bind(this);
     this.handleFindElementCoordinates = this.handleFindElementCoordinates.bind(this);
     this.handleFindWebviewCoordinates = this.handleFindWebviewCoordinates.bind(this);
-    this.onAutoUpdateCheckComplete = this.onAutoUpdateCheckComplete.bind(this);
     this.onTimelineMounted = this.onTimelineMounted.bind(this);
     this.onTimelineUnmounted = this.onTimelineUnmounted.bind(this);
     this.onNavigateToDashboard = this.onNavigateToDashboard.bind(this);
@@ -141,11 +135,6 @@ export default class Creator extends React.Component {
       didPlumbingNoticeCrash: false,
       activeNav: 'library',
       projectsList: [],
-      updater: {
-        shouldCheck: true,
-        shouldRunOnBackground: true,
-        shouldSkipOptIn: true,
-      },
       doShowProjectLoader: false,
       projectLaunching: false,
       tearingDown: false,
@@ -228,7 +217,7 @@ export default class Creator extends React.Component {
     });
 
     ipcRenderer.on('global-menu:open-dev-tools', lodash.debounce(() => {
-      remote.getCurrentWindow().openDevTools();
+      remote.getCurrentWebContents().openDevTools();
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -244,8 +233,8 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:close-dev-tools', lodash.debounce(() => {
-      if (remote.getCurrentWindow().isDevToolsFocused()) {
-        remote.getCurrentWindow().closeDevTools();
+      if (remote.getCurrentWebContents().isDevToolsFocused()) {
+        remote.getCurrentWebContents().closeDevTools();
       }
       this.props.websocket.send({
         type: 'relay',
@@ -274,23 +263,6 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:open-text-editor', lodash.debounce(() => {
       logger.info(`[creator] global-menu:open-text-editor`);
       this.openTextEditor();
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
-
-    ipcRenderer.on('global-menu:check-updates', lodash.debounce(() => {
-      logger.info(`[creator] global-menu:check-updates`);
-      if (isMac()) {
-        this.setState({
-          updater: {
-            shouldCheck: true,
-            shouldRunOnBackground: false,
-            shouldSkipOptIn: true,
-          },
-        });
-      }
-
-      if (isWindows()) {
-        ipcRenderer.send('app:check-updates');
-      }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
@@ -583,7 +555,7 @@ export default class Creator extends React.Component {
   openFinder () {
     if (this.state.projectModel) {
       try {
-        logger.info('[creator] finder opening', shell.openItem(this.state.projectModel.getFolder()));
+        logger.info('[creator] finder opening', shell.openPath(this.state.projectModel.getFolder()));
       } catch (exception) {
         logger.error(exception);
       }
@@ -818,21 +790,19 @@ export default class Creator extends React.Component {
             break;
         }
 
-        dialog.showSaveDialog(undefined, {
-          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : null,
+        dialog.showSaveDialog({
+          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : undefined,
           filters: [{
             name: request.format, extensions: [extension],
           }],
-        },
-          (filename) => {
-            if (!filename) {
-              return;
-            }
+        }).then(({canceled, filePath}) => {
+          if (canceled || !filePath) {
+            return;
+          }
 
-            request.filename = filename;
-            exporterChannel.save(request);
-          },
-        );
+          request.filename = filePath;
+          exporterChannel.save(request);
+        });
       });
     });
 
@@ -1560,27 +1530,10 @@ export default class Creator extends React.Component {
     this.setState({assetDragging: asset});
   }
 
-  onAutoUpdateCheckComplete () {
-    this.setState({
-      updater: {
-        ...this.state.updater,
-        shouldCheck: false,
-      },
-    });
-  }
-
-  onActivityReport (userWasActive, shouldSkipOptIn = false) {
+  onActivityReport (userWasActive) {
     if (userWasActive && this.user) {
       this.user.reportActivity();
     }
-
-    this.setState({
-      updater: {
-        shouldCheck: true,
-        shouldRunOnBackground: true,
-        shouldSkipOptIn,
-      },
-    });
   }
 
   onTimelineMounted () {
@@ -2046,13 +1999,6 @@ export default class Creator extends React.Component {
             projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
             startTourOnMount={true}
-          />
-        }
-        {isMac() && <AutoUpdater
-            onComplete={this.onAutoUpdateCheckComplete}
-            check={this.state.updater.shouldCheck}
-            skipOptIn={this.state.updater.shouldSkipOptIn}
-            runOnBackground={this.state.updater.shouldRunOnBackground}
           />
         }
         {this.state.dashboardVisible && this.envoyClient && this.envoyProject && this.state.username && <ProjectBrowser

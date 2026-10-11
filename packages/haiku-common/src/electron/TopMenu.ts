@@ -154,12 +154,6 @@ export default class TopMenu {
         },
       },
       {
-        label: 'Check for Updates',
-        click: () => {
-          this.sender.send('global-menu:check-updates');
-        },
-      },
-      {
         type: 'separator',
       },
     );

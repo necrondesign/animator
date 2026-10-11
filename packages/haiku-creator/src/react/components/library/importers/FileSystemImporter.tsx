@@ -1,4 +1,4 @@
-import {remote} from 'electron';
+import * as remote from '@electron/remote';
 import {isMac} from 'haiku-common/lib/environments/os';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as React from 'react';
@@ -30,15 +30,14 @@ class FileSystemImporter extends React.PureComponent<FileSystemImporterProps> {
       validExtensions.push('sketch');
     }
 
-    remote.dialog.showOpenDialog(
-      null,
-      {
-        title: 'Import to Library',
-        filters: [{name: 'Valid Files', extensions: validExtensions}],
-        properties: ['multiSelections', 'openFile'],
-      },
-      this.props.onFileDrop,
-    );
+    remote.dialog.showOpenDialog({
+      title: 'Import to Library',
+      filters: [{name: 'Valid Files', extensions: validExtensions}],
+      properties: ['multiSelections', 'openFile'],
+    }).then(({canceled, filePaths}) => {
+      // Electron 2's callback received `undefined` on cancel; keep that contract for onFileDrop.
+      this.props.onFileDrop(canceled ? undefined : filePaths);
+    });
   };
 
   render () {

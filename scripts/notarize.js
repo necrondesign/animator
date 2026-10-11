@@ -1,26 +1,25 @@
-const {notarize} = require('electron-notarize');
+// electron-builder afterSign hook: notarizes macOS builds when Apple credentials are provided, otherwise skips.
+// Set APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID (and a signing identity for electron-builder,
+// e.g. CSC_LINK / CSC_KEY_PASSWORD) to produce signed, notarized builds. Unsigned builds still work locally.
+const {notarize} = require('@electron/notarize');
 
-if (!process.env.APPLE_NOTARIZATION_APPLE_ID) {
-  throw new Error('env var missing');
-}
-
-if (!process.env.APPLE_NOTARIZATION_PASSWORD) {
-  throw new Error('env var missing');
-}
-
-exports.default = function notarizing(context) {
+exports.default = async function notarizing (context) {
   const {electronPlatformName, appOutDir} = context;
-
   if (electronPlatformName !== 'darwin') {
     return;
   }
 
-  const appName = context.packager.appInfo.productFilename;
+  const {APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID} = process.env;
+  if (!APPLE_ID || !APPLE_APP_SPECIFIC_PASSWORD || !APPLE_TEAM_ID) {
+    console.log('[notarize] Apple credentials not set; skipping notarization');
+    return;
+  }
 
-  return notarize({
-    appBundleId: 'com.Haiku.HaikuForDesignersAndEngineers',
+  const appName = context.packager.appInfo.productFilename;
+  await notarize({
     appPath: `${appOutDir}/${appName}.app`,
-    appleId: process.env.APPLE_NOTARIZATION_APPLE_ID,
-    appleIdPassword: process.env.APPLE_NOTARIZATION_PASSWORD
+    appleId: APPLE_ID,
+    appleIdPassword: APPLE_APP_SPECIFIC_PASSWORD,
+    teamId: APPLE_TEAM_ID,
   });
 };

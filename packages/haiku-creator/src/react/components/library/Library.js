@@ -21,7 +21,7 @@ import {basename, extname} from 'path';
 import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
 const openWithDefaultProgram = (asset) => {
-  shell.openItem(asset.getAbspath());
+  shell.openPath(asset.getAbspath());
 };
 
 const STYLES = {

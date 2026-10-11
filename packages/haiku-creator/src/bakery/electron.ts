@@ -2,7 +2,7 @@ import {ErrorCallback, queue} from 'async';
 import {BrowserWindow, ipcMain} from 'electron';
 import {existsSync, mkdirpSync, removeSync, writeFile} from 'fs-extra';
 // @ts-ignore
-import LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
+import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 import * as path from 'path';
 
 let browserWindow: BrowserWindow;
@@ -72,6 +72,14 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
         frame: false,
         show: false,
         backgroundColor: 'transparent',
+        webPreferences: {
+          // oven.html uses Node integration and ipcRenderer directly.
+          nodeIntegration: true,
+          contextIsolation: false,
+          sandbox: false,
+          // The window is never shown; keep it rendering at full rate so captures aren't empty.
+          backgroundThrottling: false,
+        },
       });
     }
 
@@ -91,7 +99,7 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
         return finish();
       }
 
-      browserWindow.capturePage((image) => {
+      browserWindow.capturePage().then((image) => {
         const data = image.toPNG();
         if (data.byteLength === 0) {
           // Try again…within reason.
@@ -121,6 +129,9 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
             sender.send('bakery', {type: 'tick'});
           },
         );
+      }, (error) => {
+        LoggerInstance.warn(error);
+        finish();
       });
     };
 
@@ -130,6 +141,9 @@ const bakeryQueue = queue<QueuedRecipe, Error>(
           snap(sender, payload, 0);
           break;
         case 'closeShop':
+          if (payload.error) {
+            LoggerInstance.warn(`[bakery] unable to render ${abspath}: ${payload.error}`);
+          }
           finish();
           break;
       }

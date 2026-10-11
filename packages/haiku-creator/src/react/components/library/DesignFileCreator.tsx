@@ -51,7 +51,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
 
         sketchUtils.checkIfInstalled().then((isSketchInstalled: boolean) => {
           if (isSketchInstalled) {
-            shell.openItem(path.join(projectPath, primaryAssetPath));
+            shell.openPath(path.join(projectPath, primaryAssetPath));
           }
         });
       },

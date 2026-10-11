@@ -43,13 +43,17 @@ import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUtils';
 import Globals from 'haiku-ui-common/lib/Globals';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import {clipboard, shell, remote, ipcRenderer} from 'electron';
+import {clipboard, shell, ipcRenderer} from 'electron';
 
 import * as fse from 'haiku-fs-extra';
 import * as moment from 'moment';
 import {HOMEDIR_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
+
+// @electron/remote only works inside an Electron renderer (it throws on require in plain Node, e.g. unit tests
+// under JSDOM), so load it when it's actually used.
+const getRemote = () => require('@electron/remote');
 
 // #FIXME: Why is this the responsibility of Glass???
 fse.mkdirpSync(HOMEDIR_PATH);
@@ -105,7 +109,7 @@ const writeHtmlSnapshot = (html, react) => {
     if (err) {
       return void (0);
     }
-    shell.openItem(filepath);
+    shell.openPath(filepath);
   });
 };
 
@@ -566,12 +570,12 @@ export class Glass extends React.Component {
 
       switch (message.name) {
         case 'global-menu:open-dev-tools':
-          remote.getCurrentWebContents().openDevTools();
+          getRemote().getCurrentWebContents().openDevTools();
           break;
 
         case 'global-menu:close-dev-tools':
-          if (remote.getCurrentWebContents().isDevToolsFocused()) {
-            remote.getCurrentWebContents().closeDevTools();
+          if (getRemote().getCurrentWebContents().isDevToolsFocused()) {
+            getRemote().getCurrentWebContents().closeDevTools();
           }
           break;
 
@@ -3405,7 +3409,7 @@ overlays.push({
       enabled: proxy.isSelectionFinderOpenable(),
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:open-in-finder');
-        shell.openItem(proxy.getAbspath());
+        shell.openPath(proxy.getAbspath());
       },
     });
 
@@ -3416,7 +3420,7 @@ overlays.push({
         enabled: proxy.isSelectionSketchEditable(),
         onClick: () => {
           mixpanel.haikuTrack('creator:glass:edit-in-sketch');
-          shell.openItem(path.join(this.props.folder, proxy.getSketchAssetPath()));
+          shell.openPath(path.join(this.props.folder, proxy.getSketchAssetPath()));
         },
       });
     }
@@ -3435,7 +3439,7 @@ overlays.push({
       enabled: proxy.isSelectionIllustratorEditable(),
       onClick: () => {
         mixpanel.haikuTrack('creator:glass:edit-in-illustrator');
-        shell.openItem(path.join(this.props.folder, proxy.getIllustratorAssetPath()));
+        shell.openPath(path.join(this.props.folder, proxy.getIllustratorAssetPath()));
       },
     });
 

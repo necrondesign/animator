@@ -27,10 +27,23 @@ const query = qs.stringify(params);
 
 url = `${url}?${query}`;
 
+const remoteMain = require('@electron/remote/main');
+remoteMain.initialize();
+
 let mainWindow;
 
 function createWindow () {
-  mainWindow = new BrowserWindow({width: 1200, height: 800});
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      // Legacy renderer semantics (Node integration, no isolation); see index.js in the repo root.
+      nodeIntegration: true,
+      contextIsolation: false,
+      sandbox: false,
+    },
+  });
+  remoteMain.enable(mainWindow.webContents);
   mainWindow.loadURL(url);
 
   if (process.env.DEV === '1' || process.env.DEV === 'glass') {

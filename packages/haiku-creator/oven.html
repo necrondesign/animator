@@ -59,7 +59,7 @@
       };
       ipcRenderer.on('bakery', bakeryHandler);
     } catch (error) {
-      ipcRenderer.send('bakery', {type: 'closeShop'});
+      ipcRenderer.send('bakery', {type: 'closeShop', error: String((error && error.stack) || error)});
     }
   </script>
 </body>

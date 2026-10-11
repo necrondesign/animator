@@ -5,7 +5,7 @@ import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Creator from './react/Creator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
-const remote = require('electron').remote;
+const remote = require('@electron/remote');
 
 function _fixPlumbingUrl (url) {
   return url.replace(/^http/, 'ws');

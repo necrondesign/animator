@@ -1,4 +1,4 @@
-import {remote} from 'electron';
+import * as remote from '@electron/remote';
 import {copyFile, exists} from 'fs-extra';
 import {join} from 'path';
 import * as React from 'react';
@@ -26,28 +26,24 @@ export default class Lottie extends React.PureComponent<LottieProps> {
     // Bit of a hack—until we can actually pass down Envoy Exporter listeners the right way.
     // #FIXME
     const originalPath = join(this.props.folder, 'code', 'main', 'lottie.json');
-    dialog.showSaveDialog(
-      undefined,
-      {
-        defaultPath: 'lottie.json',
-        filters: [{
-          name: 'Lottie', extensions: ['json'],
-        }],
-      },
-      (filename) => {
-        if (!filename) {
+    dialog.showSaveDialog({
+      defaultPath: 'lottie.json',
+      filters: [{
+        name: 'Lottie', extensions: ['json'],
+      }],
+    }).then(({canceled, filePath}) => {
+      if (canceled || !filePath) {
+        return;
+      }
+
+      exists(originalPath, (fileExists) => {
+        if (!fileExists) {
           return;
         }
 
-        exists(originalPath, (fileExists) => {
-          if (!fileExists) {
-            return;
-          }
-
-          copyFile(originalPath, filename, () => {});
-        });
-      },
-    );
+        copyFile(originalPath, filePath, () => {});
+      });
+    });
   };
 
   render () {

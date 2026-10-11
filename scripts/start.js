@@ -233,7 +233,6 @@ function setup () {
     global.process.env.DEV = (inputs.dev) ? '0' : undefined;
   }
 
-  global.process.env.HAIKU_SKIP_AUTOUPDATE = '1';
   global.process.env.HAIKU_PLUMBING_PORT = '1024';
 
   // These are just stubbed out for completeness' sake
@@ -242,7 +241,6 @@ function setup () {
   global.process.env.HAIKU_RELEASE_PLATFORM = getReleasePlatform();
   global.process.env.HAIKU_RELEASE_ARCHITECTURE = getReleaseArchitecture();
   global.process.env.HAIKU_RELEASE_VERSION = require('./../package.json').version;
-  global.process.env.HAIKU_AUTOUPDATE_SERVER = 'http://localhost:3002';
 
   if (inputs.devChoice === 'everything') {
     global.process.env.HAIKU_PLUMBING_URL = 'http://0.0.0.0:1024';

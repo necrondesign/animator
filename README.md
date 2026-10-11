@@ -25,8 +25,8 @@ Some features:
 
 # Installation
 
-There are no prebuilt releases of this fork yet; they will come with the Electron upgrade.
-Until then, run from source by following the `Development` instructions below.
+Prebuilt releases of this fork are not published yet. Run from source by following the `Development`
+instructions below, or build an installer yourself (see "Build installers").
 
 
 # Development
@@ -38,9 +38,6 @@ Until then, run from source by following the `Development` instructions below.
 * **git**
 
 No Python, node-gyp toolchain or native libraries are required: the project no longer has native Node modules.
-
-> **Apple Silicon:** the app still runs on Electron 2, which has no arm64 build. Until the Electron upgrade, install
-> the x64 Electron binary (it runs under Rosetta): `npm_config_arch=x64 yarn install`.
 
 ## 2. Install project dependencies
 
@@ -57,6 +54,8 @@ Check your toolchain at any time with `yarn doctor`.
 
 Tests run with `HOME` pointed at a throwaway directory, so they never touch your real `~/.haiku`.
 
+    $ yarn smoke          # launch the real app on a test project and check that the editor comes up
+
 ## 4. Start the app
 
 You can start all the dev servers with:
@@ -68,6 +67,16 @@ You can also skip the interactive prompt and start with good defaults with:
     $ yarn go
 
 You can also set some overriding environment variables (e.g. `HAIKU_API`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
+
+### Build installers
+
+    $ yarn compile-all
+    $ yarn dist           # installers for the current OS into dist/ (yarn dist:dir for an unpacked app)
+
+Builds are unsigned by default. To sign and notarize macOS builds, provide a signing identity for electron-builder
+(`CSC_LINK`, `CSC_KEY_PASSWORD`) and `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
+Pushing a `v*` tag runs `.github/workflows/release.yml`, which builds for macOS, Windows and Linux and attaches the
+installers to a draft GitHub Release.
 
 ### Watching changes
 

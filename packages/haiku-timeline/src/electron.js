@@ -28,6 +28,9 @@ const query = qs.stringify(params);
 
 const url = `file://${path.join(__dirname, '..', 'index.html')}?${query}`;
 
+const remoteMain = require('@electron/remote/main');
+remoteMain.initialize();
+
 let mainWindow = null;
 
 app.on('window-all-closed', () => {
@@ -37,11 +40,16 @@ app.on('window-all-closed', () => {
 function createWindow () {
   mainWindow = new BrowserWindow({
     webPreferences: {
+      // Legacy renderer semantics (Node integration, no isolation); see index.js in the repo root.
+      nodeIntegration: true,
+      contextIsolation: false,
+      sandbox: false,
       webSecurity: false,
     },
   });
 
   mainWindow.maximize();
+  remoteMain.enable(mainWindow.webContents);
   mainWindow.loadURL(url);
 
   if (process.env.DEV === '1' || process.env.DEV === 'timeline') {

@@ -172,7 +172,7 @@ class AssetItem extends React.Component {
   }
 
   handleOpenAsset () {
-    shell.openItem(this.props.asset.getAbspath());
+    shell.openPath(this.props.asset.getAbspath());
     this.endDragInCaseItWasStartedInadvertently();
   }
 

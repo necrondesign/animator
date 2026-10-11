@@ -170,7 +170,7 @@ export class ProjectShareDetails extends React.PureComponent<ProjectShareDetails
   };
 
   private openInFinder = () => {
-    shell.openItem(this.props.folder);
+    shell.openPath(this.props.folder);
   };
 
   private showTooltip = () => {

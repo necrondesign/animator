@@ -1,4 +1,4 @@
-import {remote, ipcRenderer} from 'electron';
+import {ipcRenderer} from 'electron';
 import * as React from 'react';
 import * as lodash from 'lodash';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
@@ -36,17 +36,17 @@ import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
 import Globals from 'haiku-ui-common/lib/Globals';
 
+// @electron/remote only works inside an Electron renderer (it throws on require in plain Node, e.g. unit tests
+// under JSDOM), so load it when it's actually used.
+const getRemote = () => require('@electron/remote');
+
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'timeline';
 
 const {webFrame} = require('electron');
 if (webFrame) {
-  if (webFrame.setZoomLevelLimits) {
-    webFrame.setZoomLevelLimits(1, 1);
-  }
-  if (webFrame.setLayoutZoomLevelLimits) {
-    webFrame.setLayoutZoomLevelLimits(0, 0);
-  }
+  // Disable pinch-to-zoom of the whole UI.
+  webFrame.setVisualZoomLevelLimits(1, 1);
 }
 
 const DEFAULTS = {
@@ -364,12 +364,12 @@ class Timeline extends React.Component {
 
       switch (message.name) {
         case 'global-menu:open-dev-tools':
-          remote.getCurrentWebContents().openDevTools();
+          getRemote().getCurrentWebContents().openDevTools();
           break;
 
         case 'global-menu:close-dev-tools':
-          if (remote.getCurrentWebContents().isDevToolsFocused()) {
-            remote.getCurrentWebContents().closeDevTools();
+          if (getRemote().getCurrentWebContents().isDevToolsFocused()) {
+            getRemote().getCurrentWebContents().closeDevTools();
           }
           break;
 

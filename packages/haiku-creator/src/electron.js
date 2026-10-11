@@ -1,12 +1,9 @@
 import * as EventEmitter from 'events';
-import * as http from 'http';
-import * as https from 'https';
 import * as path from 'path';
-import {parse} from 'url';
+import {parse, pathToFileURL} from 'url';
 import {inherits} from 'util';
 
-import {BrowserWindow, app, ipcMain, protocol, systemPreferences, session} from 'electron';
-import * as ElectronProxyAgent from 'electron-proxy-agent';
+import {BrowserWindow, app, ipcMain, net, protocol, systemPreferences, session} from 'electron';
 import * as qs from 'qs';
 
 import * as fs from 'fs';
@@ -16,7 +13,7 @@ import TopMenu from 'haiku-common/lib/electron/TopMenu';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {isMac, isWindows} from 'haiku-common/lib/environments/os';
+import {isMac} from 'haiku-common/lib/environments/os';
 import _ from 'lodash';
 import { writeJSON } from 'fs-extra';
 
@@ -29,70 +26,69 @@ app.setAsDefaultProtocolClient('haiku');
 
 const {dialog} = require('electron');
 
-//////////
-//BEGIN HACK:  take over the electron process, patch user through a sequence of dialogs to
-//////         select the active folder; pass the selected folder directly into plumbing.
-///            This bypasses all network hooks and was a relatively easy way to prepare this for open-sourcing.
+const PROJECT_PROTOCOL = 'web+haikuroot';
 
-//You enter a dimly lit room.  Ahead are three options:
-let activeFolder = "";
-let mode = dialog.showMessageBox({
-  message: "Welcome to Haiku Animator!",
-  type: "question",
-  buttons: ["New project...", "Open project...", "Exit"]
-});
-
-if(mode === 0){ //You choose to create a new project.  You take a deep breath, then:
-
-  let folderIsEmpty = false;
-  let folder = "";
-  while(!folderIsEmpty) {
-    dialog.showMessageBox({
-      message: "On the coming screen, select an empty directory for this project.",
-      type: "info",
-      buttons: ["OK"],
-    });
-    
-    let files = dialog.showOpenDialog({properties: ["openDirectory", "showHiddenFiles", "createDirectory"] });
-
-    //User canceled! Game over.
-    if(!files || !files.length){
-      process.kill(0);
-    }
-
-    folder = files[0];
-
-    folderIsEmpty = fs.readdirSync(folder).length === 0;
+/**
+ * Asks the user to create or open a project folder, unless one was given via HAIKU_PROJECT_FOLDER (as `yarn start`
+ * scenarios and automated tests do). Returns the chosen absolute path; exits the app if the user cancels.
+ * Must run after the app is ready.
+ *
+ * Interim start flow kept from the open-source release: plumbing special-cases a preselected folder and bypasses
+ * all network hooks. A proper start screen will replace these dialogs.
+ */
+function chooseProjectFolder () {
+  if (global.process.env.HAIKU_PROJECT_FOLDER) {
+    return global.process.env.HAIKU_PROJECT_FOLDER;
   }
 
-  //with an assurance that folderIsEmpty, we can proceed to mount a new project to `folder`
-  activeFolder = folder
+  const exitApp = () => {
+    app.exit(0);
+  };
 
-
-}else if(mode === 1) { //You are sure that Open is the way to go.  Without hesitation, you charge ahead:
-  dialog.showMessageBox({
-    message: "On the coming screen, select a directory containing a Haiku Animator project. \r\n\r\nFor legacy commercial projects, check ~/.haiku/projects",
-    type: "info",
-    buttons: ["OK"],
+  const mode = dialog.showMessageBoxSync({
+    message: 'Welcome to Haiku Animator!',
+    type: 'question',
+    buttons: ['New project...', 'Open project...', 'Exit'],
   });
 
-  let files = dialog.showOpenDialog({properties: ["openDirectory", "showHiddenFiles"] });
+  if (mode === 0) {
+    // New project: insist on an empty directory.
+    while (true) {
+      dialog.showMessageBoxSync({
+        message: 'On the coming screen, select an empty directory for this project.',
+        type: 'info',
+        buttons: ['OK'],
+      });
 
-  //User canceled!  Game over.
-  if(!files || !files.length){
-    process.kill(0);
+      const files = dialog.showOpenDialogSync({properties: ['openDirectory', 'showHiddenFiles', 'createDirectory']});
+      if (!files || !files.length) {
+        return exitApp();
+      }
+
+      if (fs.readdirSync(files[0]).length === 0) {
+        return files[0];
+      }
+    }
   }
 
-  //payload
-  activeFolder = files[0]
+  if (mode === 1) {
+    dialog.showMessageBoxSync({
+      message: 'On the coming screen, select a directory containing a Haiku Animator project. \r\n\r\n' +
+        'For legacy commercial projects, check ~/.haiku/projects',
+      type: 'info',
+      buttons: ['OK'],
+    });
 
-}else { //You turn around and head back from whence you came.  
-  process.kill(0);
+    const files = dialog.showOpenDialogSync({properties: ['openDirectory', 'showHiddenFiles']});
+    if (!files || !files.length) {
+      return exitApp();
+    }
+
+    return files[0];
+  }
+
+  return exitApp();
 }
-
-//////////
-//END HACK (hard-coded folder)
-/////
 
 // Haiku main window
 let browserWindow = null;
@@ -141,21 +137,6 @@ const haiku = global.process.env.HAIKU_ENV
 
 
 
-//////////
-//BEGIN HACK:  (part 2)
-//////         
-///
-
-//hook up folder selected by dialog GUI above.
-//plumbing special-cases the situation where `haiku.folder` is
-//specified and bypasses all network hooks
-haiku.folder = activeFolder;
-
-//////////
-//END HACK (part 2)
-/////
-
-
 app.on('window-all-closed', () => {
   app.quit();
 });
@@ -174,34 +155,10 @@ if (!haiku.plumbing.url) {
 }
 
 function createWindow () {
-
-  // Before doing anything, ensure we are not in a second instance of the app, if we are, let's short-cirtuit
-  // and let the open instance handle the request.
-  if (!isMac()) {
-    const isSecondInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
-      logger.info(`[creator] Received command line on second instance ${commandLine}`);
-
-      // Handle haiku:// protocol on second instance
-      for (const arg of commandLine) {
-        if (arg.startsWith('haiku://')) {
-          handleUrl(arg);
-          break;
-        }
-      }
-
-      // Someone tried to run a second instance, we should focus our window.
-      if (browserWindow) {
-        if (browserWindow.isMinimized()) {
-          browserWindow.restore();
-        }
-        browserWindow.focus();
-      }
-    });
-
-    if (isSecondInstance) {
-      app.quit();
-      return;
-    }
+  // The folder selected at startup is handed to plumbing through the 'haiku' message (see did-finish-load).
+  haiku.folder = chooseProjectFolder();
+  if (!haiku.folder) {
+    return;
   }
 
   logger.view = 'main';
@@ -214,6 +171,14 @@ function createWindow () {
     minWidth: 700,
     minHeight: 650,
     backgroundColor: '#343f41',
+    webPreferences: {
+      // Legacy renderer semantics; see LEGACY_RENDERER_PREFERENCES in index.js.
+      nodeIntegration: true,
+      contextIsolation: false,
+      sandbox: false,
+      // Glass (stage) and Timeline are hosted as <webview>s inside the Creator window.
+      webviewTag: true,
+    },
   });
 
   const topmenu = new TopMenu(browserWindow.webContents);
@@ -240,14 +205,20 @@ function createWindow () {
   // Emitted by Creator during project bootstrapping, this ensures image URLs like web+haikuroot://assets/designs/…
   // display correctly in thumbnails.
   ipcMain.on('protocol:register', (_, projectPath) => {
-    protocol.registerFileProtocol('web+haikuroot', (request, cb) => {
-      cb(ensureTrailingSlash(projectPath) + request.url.substr(16));
+    if (protocol.isProtocolHandled(PROJECT_PROTOCOL)) {
+      protocol.unhandle(PROJECT_PROTOCOL);
+    }
+    protocol.handle(PROJECT_PROTOCOL, (request) => {
+      const relpath = decodeURIComponent(request.url.substr(`${PROJECT_PROTOCOL}://`.length).split(/[?#]/)[0]);
+      return net.fetch(pathToFileURL(ensureTrailingSlash(projectPath) + relpath).toString());
     });
   });
 
   // We also need to be able to tear down the protocol when a project is shut down.
   ipcMain.on('protocol:unregister', () => {
-    protocol.unregisterProtocol('web+haikuroot');
+    if (protocol.isProtocolHandled(PROJECT_PROTOCOL)) {
+      protocol.unhandle(PROJECT_PROTOCOL);
+    }
   });
 
   browserWindow.setTitle('Haiku Animator');
@@ -255,16 +226,13 @@ function createWindow () {
   browserWindow.loadURL(appUrl);
 
   if (process.env.DEV === '1' || process.env.DEV === 'creator') {
-    browserWindow.openDevTools();
+    browserWindow.webContents.openDevTools();
   }
 
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
-    const ses = session.fromPartition('persist:name');
-    https.globalAgent = http.globalAgent = new ElectronProxyAgent(session.defaultSession);
-
-    ses.resolveProxy(haiku.plumbing.url, (proxy) => {
+    session.fromPartition('persist:name').resolveProxy(haiku.plumbing.url).then((proxy) => {
       haiku.proxy = {
         // Proxy URL will come through in PAC syntax, e.g. `PROXY secure.megacorp.com:3128`
         // @see {@link https://en.wikipedia.org/wiki/Proxy_auto-config}
@@ -287,52 +255,6 @@ function createWindow () {
   browserWindow.on('ready-to-show', () => {
     browserWindow.show();
   });
-
-  if (isWindows()) {
-    ipcMain.on('app:check-updates', () => {
-      windowsCheckForUpdates();
-    });
-
-    setInterval(() => {
-      windowsCheckForUpdates();
-    }, 1000 * 60 * 60);
-
-    windowsCheckForUpdates();
-  }
-}
-
-function windowsCheckForUpdates () {
-  if (!isWindows()) {
-    return;
-  }
-
-  const {autoUpdater} = require('electron-updater');
-  autoUpdater.setFeedURL('https://releases.haiku.ai/releases/');
-  autoUpdater.checkForUpdates().then(({downloadPromise}) => {
-    if (downloadPromise == null) {
-      return;
-    }
-
-    downloadPromise
-      .then(() => {
-        const dialog = require('electron').dialog;
-        const userResponse = dialog.showMessageBox({
-          type: 'none',
-          message:
-            'Haiku will be automatically updated next time you start the app. Would you like to restart Haiku now?',
-          buttons: ['No', 'Yes'],
-          defaultId: 1,
-        });
-
-        if (userResponse === 1) {
-          autoUpdater.quitAndInstall();
-          return;
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  });
 }
 
 // Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
@@ -341,10 +263,31 @@ app.on('open-url', (event, url) => {
   handleUrl(url);
 });
 
-if (app.isReady()) {
-  createWindow();
+// On Windows and Linux only one instance may run at a time; a second launch focuses the first one and forwards
+// haiku:// URLs. (macOS keeps apps single-instance itself and delivers URLs through 'open-url'.)
+if (!isMac() && !app.requestSingleInstanceLock()) {
+  app.quit();
 } else {
-  app.on('ready', createWindow);
+  app.on('second-instance', (event, commandLine) => {
+    logger.info(`[creator] Received command line on second instance ${commandLine}`);
+
+    // Handle haiku:// protocol on second instance (Windows and Linux pass it as an argument)
+    for (const arg of commandLine) {
+      if (arg.startsWith('haiku://')) {
+        handleUrl(arg);
+        break;
+      }
+    }
+
+    if (browserWindow) {
+      if (browserWindow.isMinimized()) {
+        browserWindow.restore();
+      }
+      browserWindow.focus();
+    }
+  });
+
+  app.whenReady().then(createWindow);
 }
 
 // Hacky: When plumbing launches inside an Electron process it expects an EventEmitter-like
