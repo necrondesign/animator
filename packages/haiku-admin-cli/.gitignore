@@ -1,8 +1,0 @@
-node_modules
-.DS_Store
-*.log
-lib/
-.nyc_output/
-coverage/
-checkstyle-result.xml
-test-result.tap

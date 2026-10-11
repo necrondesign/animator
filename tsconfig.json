@@ -10,7 +10,6 @@
     "noImplicitAny": true,
     "outDir": "lib",
     "paths": {
-      "@admin-cli/*": ["packages/haiku-admin-cli/src/*"],
       "@cli/*": ["packages/@haiku/cli/src/*"],
       "@common/*": ["packages/haiku-common/src/*"],
       "@core/*": ["packages/@haiku/core/src/*"],

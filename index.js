@@ -9,7 +9,14 @@ if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production'
   if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
     process.env.HAIKU_APP_SKIP_LOG = '1';
   }
-  require('./config');
+  try {
+    // Optional release-time configuration (env defaults); absent in source checkouts.
+    require('./config');
+  } catch (exception) {
+    if (exception.code !== 'MODULE_NOT_FOUND') {
+      throw exception;
+    }
+  }
 }
 
 // On Windows and Linux, custom protocol handler is passed as argument
