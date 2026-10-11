@@ -2,6 +2,41 @@
 
 Журнал ключевых решений: что выбрали и почему. Новые записи добавляются сверху.
 
+## 2026-10-11 — Итоги Фазы 1 (чтобы собиралось)
+
+Результат: чистый `yarn install` со всеми скриптами проходит на macOS arm64 / Node 24 без
+Python и node-gyp; `compile-all`, `typecheck-all`, `test-all` зелёные (14 пакетов, 1112 тестов).
+
+Что сделано:
+1. **Нативные модули убраны.** `nodegit` → `isomorphic-git` (чистый JS, MIT): локальные
+   init/status/add/commit/теги/reset работают как раньше, облачные clone/fetch/push/merge
+   (серверы Haiku) явно возвращают «не поддерживается». `@ronomon/base64` → `Buffer`,
+   `chokidar` 1 → 3, `ffmpeg-static` 2 → 5 (есть arm64), webpack 4 → 5 и nodemon 1 → 3 (ушёл
+   последний `fsevents` 1.x).
+2. **Инструменты:** Node 24 LTS (`.nvmrc`, `engines`), yarn 1.22.22 через `packageManager`
+   (corepack), TypeScript 5.9.3 + ts-node 10 + tsconfig-paths 4, `@types/node` 24.
+3. **Тесты честные и изолированные:** `test-all` падает при любой ошибке; убран `|| true`;
+   тесты больше не пишут в реальную `~/.haiku` (preload `haiku-testing/isolate-home`);
+   типы тестов проверяет отдельный `typecheck-all`. Spectron (мёртв) удалён.
+4. **CI:** GitHub Actions на macOS arm64 и Linux (`.github/workflows/ci.yml`).
+
+### Почему TypeScript 5.9, а не 7
+TypeScript 7 — новый компилятор на Go без JS API: с ним не работают ts-node и ts-loader,
+на которых сейчас держатся тесты и демо. Переход — после ухода с ts-node (Фаза 4).
+
+### tslint оставлен до Фазы 4
+tslint устарел, но работает с TS 5.9 (только предупреждения о стиле). Миграция на ESLint
+затрагивает стиль всего кода — сделаем её вместе с модернизацией, а не ради сборки.
+
+### Временная мера: x64 Electron на Apple Silicon
+Electron 2.0.8 не имеет arm64-сборки, поэтому на Apple Silicon ставится x64-бинарник
+(`npm_config_arch=x64 yarn install`), который работает через Rosetta. Уберём в Фазе 2.
+
+### Найдено по пути
+- Тесты раньше писали в реальную `~/.haiku` разработчика (registry.json, auth).
+- `Error.ts`: метаданные ошибки читаются как `data.exception[0]`, а у Sentry формат
+  `exception.values[0]` — сообщение всегда «Unknown». Уйдёт вместе с Raven в Фазе 3.
+
 ## 2026-10-11 — Итоги Фазы 0 (гигиена)
 
 Сделано (каждый шаг — отдельный коммит, после каждого — сборка всех пакетов и тесты):
