@@ -10,6 +10,7 @@ import * as fs from 'fs';
 
 import {isProxied, ProxyType} from 'haiku-common/lib/proxies';
 import TopMenu from 'haiku-common/lib/electron/TopMenu';
+import {PRODUCT_NAME, PRODUCT_PROTOCOL} from 'haiku-common/lib/branding';
 import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -21,8 +22,8 @@ if (!app) {
   throw new Error('You can only run electron.js from an electron process');
 }
 
-app.setName('Haiku Animator');
-app.setAsDefaultProtocolClient('haiku');
+app.setName(PRODUCT_NAME);
+app.setAsDefaultProtocolClient(PRODUCT_PROTOCOL);
 
 const {dialog} = require('electron');
 
@@ -46,7 +47,7 @@ function chooseProjectFolder () {
   };
 
   const mode = dialog.showMessageBoxSync({
-    message: 'Welcome to Haiku Animator!',
+    message: `Welcome to ${PRODUCT_NAME}!`,
     type: 'question',
     buttons: ['New project...', 'Open project...', 'Exit'],
   });
@@ -73,8 +74,8 @@ function chooseProjectFolder () {
 
   if (mode === 1) {
     dialog.showMessageBoxSync({
-      message: 'On the coming screen, select a directory containing a Haiku Animator project. \r\n\r\n' +
-        'For legacy commercial projects, check ~/.haiku/projects',
+      message: `On the coming screen, select a directory containing a ${PRODUCT_NAME} or Haiku Animator project. ` +
+        '\r\n\r\nFor legacy commercial Haiku projects, check ~/.haiku/projects',
       type: 'info',
       buttons: ['OK'],
     });
@@ -165,7 +166,7 @@ function createWindow () {
   mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({
-    title: 'Haiku Animator',
+    title: PRODUCT_NAME,
     show: false, // Don't show the window until we are ready-to-show (see below)
     titleBarStyle: 'hiddenInset',
     minWidth: 700,
@@ -221,7 +222,7 @@ function createWindow () {
     }
   });
 
-  browserWindow.setTitle('Haiku Animator');
+  browserWindow.setTitle(PRODUCT_NAME);
   browserWindow.maximize();
   browserWindow.loadURL(appUrl);
 
@@ -257,23 +258,23 @@ function createWindow () {
   });
 }
 
-// Transmit haiku://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
+// Transmit motion-side://foo/bar?baz=bat as the "open-url:foo" event with arguments [_, "/bar", {"baz": "bat"}]
 app.on('open-url', (event, url) => {
   event.preventDefault();
   handleUrl(url);
 });
 
 // On Windows and Linux only one instance may run at a time; a second launch focuses the first one and forwards
-// haiku:// URLs. (macOS keeps apps single-instance itself and delivers URLs through 'open-url'.)
+// PRODUCT_PROTOCOL:// URLs. (macOS keeps apps single-instance itself and delivers URLs through 'open-url'.)
 if (!isMac() && !app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', (event, commandLine) => {
     logger.info(`[creator] Received command line on second instance ${commandLine}`);
 
-    // Handle haiku:// protocol on second instance (Windows and Linux pass it as an argument)
+    // Handle the custom protocol on second instance (Windows and Linux pass it as an argument)
     for (const arg of commandLine) {
-      if (arg.startsWith('haiku://')) {
+      if (arg.startsWith(`${PRODUCT_PROTOCOL}://`)) {
         handleUrl(arg);
         break;
       }

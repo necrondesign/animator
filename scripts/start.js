@@ -94,11 +94,11 @@ if (argv.default === true) {
 }
 
 // Support:
-//   yarn start haiku://..
+//   yarn start motion-side://..
 //
-// We pass only first haiku:// protocol URI to creator
+// We pass only the first custom-protocol URI (see PRODUCT_PROTOCOL) to creator
 // On Windows and Linux, custom protocol handler is passed as argument
-const haikuURI = args.find((arg) => arg.startsWith('haiku://'));
+const haikuURI = args.find((arg) => arg.startsWith('motion-side://'));
 
 const availablePresets = {
   glass: 'primitives-misc-1-glass',

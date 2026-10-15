@@ -1,5 +1,6 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
+import {PRODUCT_NAME, REPOSITORY_URL} from '../branding';
 import {getAccountUrl} from '../environments';
 import {isMac} from '../environments/os';
 import {isWindows} from '../environments/os';
@@ -7,7 +8,7 @@ import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
 import {TourUtils} from '../types/enums';
 
-app.setName('Haiku Animator');
+app.setName(PRODUCT_NAME);
 
 export interface UndoState {
   canUndo: boolean;
@@ -148,9 +149,9 @@ export default class TopMenu {
 
     mainMenuPieces.push(
       {
-        label: 'About Haiku Animator',
+        label: `About ${PRODUCT_NAME}`,
         click: () => {
-          shell.openExternal('https://www.haikuanimator.com');
+          shell.openExternal(REPOSITORY_URL);
         },
       },
       {
@@ -159,20 +160,20 @@ export default class TopMenu {
     );
 
     mainMenuPieces.push({
-      label: 'Reload Animator',
+      label: `Reload ${PRODUCT_NAME}`,
       accelerator: 'CmdOrCtrl+R',
       role: 'reload',
     });
 
     mainMenuPieces.push({
-      label: 'Minimize Animator',
+      label: `Minimize ${PRODUCT_NAME}`,
       accelerator: 'CmdOrCtrl+M',
       role: 'minimize',
     });
 
     if (isMac()) {
       mainMenuPieces.push({
-        label: 'Hide Animator',
+        label: `Hide ${PRODUCT_NAME}`,
         accelerator: 'CmdOrCtrl+H',
         role: 'hide',
       });
@@ -183,7 +184,7 @@ export default class TopMenu {
         type: 'separator',
       },
       {
-        label: 'Quit Animator',
+        label: `Quit ${PRODUCT_NAME}`,
         accelerator: 'CmdOrCtrl+Q',
         role: 'quit',
       },

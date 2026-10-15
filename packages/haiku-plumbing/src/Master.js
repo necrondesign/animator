@@ -1,5 +1,6 @@
 /* tslint:disable:no-shadowed-variable */
 import * as async from 'async';
+import {PRODUCT_NAME} from 'haiku-common/lib/branding';
 import * as path from 'path';
 import * as os from 'os';
 import {debounce} from 'lodash';
@@ -400,7 +401,7 @@ export default class Master extends EventEmitter {
   }
 
   normalizeCommitMessage (message) {
-    return `${message} (via Haiku ${getHaikuCoreVersion()} ${os.platform()})`;
+    return `${message} (via ${PRODUCT_NAME} ${getHaikuCoreVersion()} ${os.platform()})`;
   }
 
   /**

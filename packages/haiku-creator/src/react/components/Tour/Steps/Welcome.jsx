@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {PRODUCT_NAME} from 'haiku-common/lib/branding';
 import {
   didTakeTour,
 } from 'haiku-serialization/src/utils/HaikuHomeDir';
@@ -32,7 +33,7 @@ export default class Welcome extends React.Component {
 
     return (
       <div>
-        <h2 style={styles.heading}>Welcome to Animator</h2>
+        <h2 style={styles.heading}>Welcome to {PRODUCT_NAME}</h2>
         <p style={styles.text}>Would you like to take the guided tour?</p>
         {
           !didTakeTour() &&

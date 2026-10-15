@@ -122,6 +122,12 @@ async function main () {
       log.log(`bakery still frame: ${stillSize} bytes`);
     }
 
+    const identity = await app.evaluate(({app: electronApp, BrowserWindow}) => ({
+      name: electronApp.getName(),
+      titles: BrowserWindow.getAllWindows().map((browserWindow) => browserWindow.getTitle()),
+    }));
+    log.log(`app identity: ${JSON.stringify(identity)}`);
+
     webviews = await listWebviews();
     if (webviews.some((webview) => webview.crashed)) {
       errors.push(`[smoke] a webview crashed: ${JSON.stringify(webviews)}`);

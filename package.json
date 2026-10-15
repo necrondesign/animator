@@ -6,7 +6,8 @@
     "packages/haiku-*"
   ],
   "version": "5.1.2",
-  "description": "Haiku Animator",
+  "productName": "motion-side",
+  "description": "motion-side — interactive animation editor (based on Haiku Animator)",
   "main": "index.js",
   "author": "Haiku Systems Inc.",
   "license": "AGPL-3.0-or-later",
@@ -90,11 +91,11 @@
     ]
   },
   "build": {
-    "appId": "com.Haiku.HaikuForDesignersAndEngineers",
-    "copyright": "Copyright (c) 2018 Haiku",
+    "appId": "io.github.necrondesign.motion-side",
+    "copyright": "Copyright (c) 2016-2021 Haiku Systems Inc.; 2026 necrondesign. AGPL-3.0-or-later.",
     "npmRebuild": false,
     "nodeGypRebuild": false,
-    "productName": "Haiku",
+    "productName": "motion-side",
     "forceCodeSigning": false,
     "afterSign": "scripts/notarize.js",
     "mac": {
@@ -152,9 +153,9 @@
       "icon": "build/dmgIcon.icns"
     },
     "protocols": {
-      "name": "haiku",
+      "name": "motion-side",
       "schemes": [
-        "haiku"
+        "motion-side"
       ]
     },
     "asar": true,

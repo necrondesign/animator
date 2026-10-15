@@ -1,5 +1,6 @@
 import * as Radium from 'radium';
 import * as React from 'react';
+import {ISSUES_URL, PRODUCT_NAME} from 'haiku-common/lib/branding';
 import * as ReactDOM from 'react-dom';
 import {ipcRenderer, shell} from 'electron';
 import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
@@ -241,7 +242,7 @@ class StageTitleBar extends React.Component {
             return this.props.createNotice({
               type: 'danger',
               title: 'Uh oh!',
-              message: 'Animator is having a problem accessing your project. 😢  Please restart Animator. If you see this error again, contact Haiku for support.',
+              message: `${PRODUCT_NAME} is having a problem accessing your project. 😢  Please restart ${PRODUCT_NAME}. If you see this error again, please report it at ${ISSUES_URL}.`,
             });
           }
 
@@ -332,7 +333,7 @@ class StageTitleBar extends React.Component {
     const noticeNotice = this.props.createNotice({
       type: 'info',
       title: 'No need to save!',
-      message: 'Animator saves your work automatically',
+      message: `${PRODUCT_NAME} saves your work automatically`,
     });
 
     window.setTimeout(() => {

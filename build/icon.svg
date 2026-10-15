@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1FC8B5"/>
+      <stop offset="1" stop-color="#3B4CCA"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- macOS icon grid: 824x824 rounded square centered on a 1024 canvas -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)" filter="url(#shadow)"/>
+  <!-- motion curve (ease in/out) with keyframes -->
+  <path d="M232 700 C 420 700, 400 324, 792 324" fill="none" stroke="#FFFFFF" stroke-width="56" stroke-linecap="round"/>
+  <circle cx="232" cy="700" r="62" fill="#FFFFFF"/>
+  <circle cx="792" cy="324" r="62" fill="#FFFFFF"/>
+  <rect x="470" y="470" width="84" height="84" rx="10" transform="rotate(45 512 512)" fill="#FFD166"/>
+</svg>

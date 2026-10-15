@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="380" viewBox="0 0 540 380">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1FC8B5"/>
+      <stop offset="1" stop-color="#3B4CCA"/>
+    </linearGradient>
+  </defs>
+  <rect width="540" height="380" fill="#22282B"/>
+  <text x="270" y="92" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="54" font-weight="700" fill="#F2F4F5">motion-side</text>
+  <!-- arrow between the app icon (left) and the Applications folder (right) drop targets -->
+  <path d="M215 212 C 250 190, 290 190, 322 208" fill="none" stroke="url(#g)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M312 194 L 330 212 L 306 220" fill="none" stroke="#3B4CCA" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="270" y="345" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif"
+        font-size="15" fill="#C9D1D4">To install, drag motion-side to the Applications folder</text>
+</svg>

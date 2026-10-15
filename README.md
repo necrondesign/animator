@@ -1,26 +1,27 @@
-# Haiku Animator
+# motion-side
 
-> **This is an independent community fork** of
-> [HaikuTeam/animator](https://github.com/HaikuTeam/animator), maintained by
-> [necrondesign](https://github.com/necrondesign). It is not affiliated with or
-> endorsed by Haiku Systems Inc. The original code is © Haiku Systems Inc. and is
-> distributed under the AGPL-3.0 (runtime `@haiku/core`: MIT); all changes in this
-> fork are released under the same licenses. See [LICENSING.md](LICENSING.md) and
-> [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Project audit and roadmap:
+**motion-side** is a desktop editor for interactive web animations: draw on a timeline, add states and
+expressions, and ship the result as a web component (vanilla JS, React, Vue) or export it to Lottie, GIF or video.
+
+> **Based on [Haiku Animator](https://github.com/HaikuTeam/animator).** motion-side is an independent fork
+> maintained by [necrondesign](https://github.com/necrondesign); it is not affiliated with or endorsed by
+> Haiku Systems Inc. The original code is © Haiku Systems Inc. and is distributed under the AGPL-3.0 (runtime
+> `@haiku/core`: MIT); all changes in this fork are released under the same licenses. See
+> [LICENSING.md](LICENSING.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Project audit and roadmap:
 > [docs/](docs/README.md) (current status: [docs/STATUS.md](docs/STATUS.md)).
 
-Haiku Animator is a design tool for creating Lottie animations and interactive web components. It's popular among enterprise motion design teams, digital creative studios, and animation classrooms.
-
-Some features:
+Features:
 
  - Free-transform canvas for visual vector editing
  - Visual timeline for keyframe animations
- - Exporters for Lottie animations, GIFs, and videos 
- - Asset-linking from Figma, Illustrator, or Sketch
- - Spreadsheet-like property "Expressions" for interactions and animations
+ - States, actions and spreadsheet-like property "Expressions" for interactive components
+ - Web component output for vanilla JS, React and Vue via the `@haiku/core` runtime
+ - Exporters for Lottie animations, GIFs, and videos
+ - Asset-linking from Sketch, Illustrator or Figma
  - Code editors for interactive element actions & raw project source
 
-<img alt="Screenshot of Haiku Animator animating its own logo" src="haiku-animator-screenshot.png" />
+Internal package names (`@haiku/core`, `haiku-*`) and the project file format keep their original names so that
+existing Haiku Animator projects and embedded components stay compatible.
 
 
 # Installation
@@ -130,22 +131,20 @@ with `d` being duration between `logger.time` and `logger.timeEnd`. To do a subs
 
 ## Contributing
 
-Create a PR, file an issue, or join the Slack community with [this invite link](https://join.slack.com/t/haiku-community/shared_invite/zt-4u3snz0w-vcL8qttFFHvlrZNl8NSmPg).
+Open an issue or a pull request at [necrondesign/animator](https://github.com/necrondesign/animator).
 
 
 ## License
 
-Every project you create with Haiku Animator is entirely *yours,* to license or sell or publish however you'd like.
+Every project you create with motion-side is entirely *yours,* to license or sell or publish however you'd like.
 
-This project's source code is licensed AGPL.
+The editor's source code is licensed AGPL-3.0-or-later; the `@haiku/core` runtime is MIT. See [LICENSING.md](LICENSING.md).
 
 
-## Status of this project
+## History
 
-Animator was developed commercially for several years under Haiku Systems Inc., a software startup based in San Francisco, California with a team spread across the world.  This code was open-sourced in August 2021 when Haiku shut down the commercial collaboration/storage services connected to Haiku Animator.  Previously available features like publishing & sharing links have been removed.
-
-Our hope is that open-sourcing Haiku Animator allows it to be even more useful, to more people (it's free), and lesfor longer (open source).
-
-This project is open to new maintainers.  This codebase isn't perfect.  In fact, in its current state it has deep flaws.  That said, to a dedicated tinkerer, it has potential.  We created it chasing a dream of creative empowerment — we open-source it in hopes of that dream continuing on.
-
-Read more at https://www.haikuanimator.com/
+motion-side continues [Haiku Animator](https://github.com/HaikuTeam/animator), which Haiku Systems Inc.
+developed commercially for several years and open-sourced in August 2021, when Haiku shut down the commercial
+collaboration and storage services connected to it. In the original authors' words, they open-sourced it "in hopes
+of that dream continuing on". This fork removed the dead cloud services and telemetry, modernized the toolchain and
+moved the app to a current Electron; see [docs/STATUS.md](docs/STATUS.md).

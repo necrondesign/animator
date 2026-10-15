@@ -1,17 +1,16 @@
 import * as React from 'react';
+import {ISSUES_URL, PRODUCT_NAME, REPOSITORY_URL} from 'haiku-common/lib/branding';
 
 export default function ({styles, openLink}) {
   return (
     <div>
       <h2 style={styles.heading}>That’s a wrap!</h2>
       <div style={styles.text}>
-        Now it's your turn to build something awesome using Animator. You can <strong>check out the following resources</strong> to help you kick-start your first project:
+        Now it's your turn to build something awesome using {PRODUCT_NAME}. You can <strong>check out the following resources</strong> to help you kick-start your first project:
 
         <div style={styles.linksWrapper}>
-          - <a onClick={openLink} href="https://www.haiku.ai/learn/" style={styles.link}>Tutorials</a> <br />
-          - <a onClick={openLink} href="https://docs.haiku.ai/" style={styles.link}>Documentation</a> <br />
-          - <a onClick={openLink} href="https://help.haiku.ai/" style={styles.link}>Help (FAQs &amp; troubleshooting)</a> <br />
-          - <a onClick={openLink} href="https://share.haiku.ai/" style={styles.link}>Showcase</a>: Get inspired and learn from others by <a onClick={openLink} href="https://docs.haiku.ai/embedding-and-using-haiku/publishing-and-embedding.html#forking" style={styles.link}>forking</a> projects!
+          - <a onClick={openLink} href={REPOSITORY_URL} style={styles.link}>Source code and documentation</a> <br />
+          - <a onClick={openLink} href={ISSUES_URL} style={styles.link}>Report a problem or ask a question</a>
         </div>
       </div>
     </div>

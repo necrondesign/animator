@@ -20,7 +20,8 @@ if (!global.process.env.NODE_ENV || global.process.env.NODE_ENV === 'production'
 }
 
 // On Windows and Linux, custom protocol handler is passed as argument
-const haikuURI = process.argv.find((arg) => arg.startsWith('haiku://'));
+const {PRODUCT_PROTOCOL} = require('haiku-common/lib/branding');
+const haikuURI = process.argv.find((arg) => arg.startsWith(`${PRODUCT_PROTOCOL}://`));
 
 if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   require('@haiku/cli');
@@ -50,7 +51,7 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   if (process.env.NODE_ENV === 'production' && os.platform() === 'darwin' && !app.isInApplicationsFolder()) {
     dialog.showErrorBox(
       'Move to Applications folder',
-      'You cannot run Animator from the current folder. Please move Animator to the Applications folder and try again.',
+      `You cannot run ${app.getName()} from the current folder. Please move it to the Applications folder and try again.`,
     );
     global.process.exit(0);
   }
