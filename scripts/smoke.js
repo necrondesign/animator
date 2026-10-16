@@ -328,6 +328,42 @@ async function main () {
       errors.push(`[smoke] IPC bridge failed: ${JSON.stringify(bridge)}`);
     }
 
+    // Project trust: opening a folder that was never trusted asks first; cancelling keeps the current project open.
+    const untrusted = path.join(fse.mkdtempSync(path.join(os.tmpdir(), 'animator-smoke-untrusted-')), 'Downloaded');
+    fse.copySync(SOURCE_PROJECT, untrusted);
+    const trust = await app.evaluate(async ({Menu, dialog}, folder) => {
+      const showOpenDialog = dialog.showOpenDialog;
+      const showMessageBox = dialog.showMessageBox;
+      const prompts = [];
+      dialog.showOpenDialog = async () => ({canceled: false, filePaths: [folder]});
+      dialog.showMessageBox = async (window, options) => {
+        prompts.push(options.message);
+        return {response: options.cancelId};
+      };
+      const findItem = (items) => {
+        for (const item of items) {
+          if (item.label === 'Open…') {
+            return item;
+          }
+          const found = item.submenu && findItem(item.submenu.items);
+          if (found) {
+            return found;
+          }
+        }
+      };
+      findItem(Menu.getApplicationMenu().items).click();
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      dialog.showOpenDialog = showOpenDialog;
+      dialog.showMessageBox = showMessageBox;
+      return prompts;
+    }, untrusted);
+    const stillOpen = (await listWebviews()).some((webview) => webview.url.includes(encodeURIComponent(project)));
+    if (trust.length === 1 && /trust/i.test(trust[0]) && stillOpen) {
+      log.log('project trust: an untrusted project asks first; cancelling keeps the current project open');
+    } else {
+      errors.push(`[smoke] project trust failed: ${JSON.stringify({prompts: trust, stillOpen})}`);
+    }
+
     // Edit > Paste with SVG markup on the system clipboard (e.g. Figma "Copy as SVG") adds it to the stage.
     const previousClipboard = await app.evaluate(({clipboard, Menu}, svg) => {
       const text = clipboard.readText();

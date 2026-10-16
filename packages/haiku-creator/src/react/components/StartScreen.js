@@ -222,7 +222,7 @@ export default class StartScreen extends React.Component {
   createProject = () => {
     chooseNewProjectFolder().then((folder) => {
       if (folder) {
-        this.props.onOpenProject(folder);
+        this.props.onOpenProject(folder, {isNew: true});
       }
     }, (error) => this.showError(error.message));
   };

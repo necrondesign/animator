@@ -6,6 +6,8 @@ import {
   ipcRenderer,
   Menu,
   MenuItemConstructorOptions,
+  MessageBoxOptions,
+  MessageBoxReturnValue,
   OpenDialogOptions,
   OpenDialogReturnValue,
   SaveDialogOptions,
@@ -20,6 +22,7 @@ import {CLIPBOARD_READ_TEXT, CLIPBOARD_WRITE_TEXT} from './clipboard';
 const CHANNELS = {
   showOpenDialog: 'bridge:show-open-dialog',
   showSaveDialog: 'bridge:show-save-dialog',
+  showMessageBox: 'bridge:show-message-box',
   openDevTools: 'bridge:open-dev-tools',
   closeDevToolsIfFocused: 'bridge:close-dev-tools-if-focused',
   destroyWindow: 'bridge:destroy-window',
@@ -44,6 +47,8 @@ export const dialogs = {
     invoke(CHANNELS.showOpenDialog, options),
   showSaveDialog: (options: SaveDialogOptions): Promise<SaveDialogReturnValue> =>
     invoke(CHANNELS.showSaveDialog, options),
+  showMessageBox: (options: MessageBoxOptions): Promise<MessageBoxReturnValue> =>
+    invoke(CHANNELS.showMessageBox, options),
 };
 
 export const devTools = {
@@ -81,6 +86,8 @@ export const registerBridgeHandlers = (ipcMain: IpcMain) => {
     dialog.showOpenDialog(windowOf(event.sender), options));
   ipcMain.handle(CHANNELS.showSaveDialog, (event, options: SaveDialogOptions) =>
     dialog.showSaveDialog(windowOf(event.sender), options));
+  ipcMain.handle(CHANNELS.showMessageBox, (event, options: MessageBoxOptions) =>
+    dialog.showMessageBox(windowOf(event.sender), options));
   ipcMain.handle(CHANNELS.openDevTools, (event) => {
     event.sender.openDevTools();
   });

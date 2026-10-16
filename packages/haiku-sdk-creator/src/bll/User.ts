@@ -8,6 +8,8 @@ export enum UserSettings {
   DefaultTimeDisplayMode = 'defaultTimeDisplayMode',
   TimeDisplayModes = 'timeDisplayModes',
   FigmaToken = 'figmaToken',
+  // Project folders the user chose to trust (see haiku-creator/src/react/projectTrust.js).
+  TrustedProjects = 'trustedProjects',
   // #FIXME: capitalize after conflict resolution.
   DoNotDisplayConfirmGroupPopoup = 'doNotDisplayConfirmGroupPopoup',
 }

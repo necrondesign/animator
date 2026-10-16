@@ -12,7 +12,13 @@ import * as Project from 'haiku-serialization/src/bll/Project';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import EventHandlerEditor from './components/EventHandlerEditor';
-import StartScreen, {chooseExistingProjectFolder, chooseNewProjectFolder, rememberRecentProject} from './components/StartScreen';
+import StartScreen, {
+  chooseExistingProjectFolder,
+  chooseNewProjectFolder,
+  getRecentProjects,
+  rememberRecentProject,
+} from './components/StartScreen';
+import {ensureProjectIsTrusted} from './projectTrust';
 import {ISSUES_URL, PRODUCT_NAME} from 'haiku-common/lib/branding';
 import SideBar from './components/SideBar';
 import Library from './components/library/Library';
@@ -362,7 +368,7 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:new-project', () => {
-      chooseNewProjectFolder().then((folder) => this.switchToProjectFolder(folder), (error) => {
+      chooseNewProjectFolder().then((folder) => this.switchToProjectFolder(folder, {isNew: true}), (error) => {
         this.createNotice({type: 'error', title: 'Unable to create project', message: error.message});
       });
     });
@@ -626,7 +632,8 @@ export default class Creator extends React.Component {
       // A folder given at startup (HAIKU_PROJECT_FOLDER) opens directly, skipping the start screen. Plumbing's
       // services are reachable once Envoy answers, so this is a safe moment to launch.
       if (this.props.folder) {
-        this.openProjectFolder(this.props.folder);
+        // Given explicitly at startup (HAIKU_PROJECT_FOLDER, e.g. `yarn start` scenarios and tests): trusted.
+        this.openProjectFolder(this.props.folder, {isNew: true});
       }
     });
 
@@ -1042,19 +1049,46 @@ export default class Creator extends React.Component {
   /**
    * Opens a folder chosen from the menu, closing the current project first if one is open.
    */
-  switchToProjectFolder (folder) {
+  switchToProjectFolder (folder, {isNew = false} = {}) {
     if (!folder) {
       return;
     }
     if (!this.state.projectModel) {
-      this.openProjectFolder(folder);
+      this.openProjectFolder(folder, {isNew});
       return;
     }
-    ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
-    this.teardownMaster({shouldFinishTour: true}, () => this.openProjectFolder(folder));
+    // Ask about trust before closing the current project, so cancelling keeps it open.
+    this.ensureProjectIsTrusted(folder, isNew).then((trusted) => {
+      if (!trusted) {
+        return;
+      }
+      ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
+      this.teardownMaster({shouldFinishTour: true}, () => this.launchProjectFolder(folder));
+    });
   }
 
-  openProjectFolder (folder) {
+  ensureProjectIsTrusted (folder, isNew) {
+    return ensureProjectIsTrusted({
+      folder,
+      isNew,
+      user: this.user,
+      recentProjects: getRecentProjects(),
+      showMessageBox: dialogs.showMessageBox,
+    });
+  }
+
+  /**
+   * Opens a project folder once it is trusted (see projectTrust.js). `isNew`: the folder was just created here.
+   */
+  openProjectFolder (folder, {isNew = false} = {}) {
+    this.ensureProjectIsTrusted(folder, isNew).then((trusted) => {
+      if (trusted) {
+        this.launchProjectFolder(folder);
+      }
+    });
+  }
+
+  launchProjectFolder (folder) {
     rememberRecentProject(folder);
     this.launchFolder(
       // Load up the necessary metadata in Plumbing to launch normally. Local projects have no organization; the npm
@@ -1410,7 +1444,7 @@ export default class Creator extends React.Component {
           />
         }
         {this.state.dashboardVisible && !this.shouldShowProjectLoader() && !this.state.tearingDown && <StartScreen
-          onOpenProject={(folder) => this.openProjectFolder(folder)}
+          onOpenProject={(folder, options) => this.openProjectFolder(folder, options)}
           createNotice={this.createNotice}
         />
         }
