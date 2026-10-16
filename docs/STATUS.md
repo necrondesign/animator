@@ -175,7 +175,10 @@
 - [ ] **Безопасность, этап 2d:** изоляция окон интерфейса (`contextIsolation`, `sandbox`), файловые операции модели —
       через IPC; `<webview>` → `WebContentsView`.
 - [ ] **UI на React 18+** (сейчас 15.6 + radium, react-popover, better-react-spinkit).
-- [ ] **`@haiku/core`:** ESM-сборка, публичный API, удалить IE/Modernizr/raf-шимы и мёртвые файлы,
+- [x] **`@haiku/core`, шаг 1 — чистка** (2026-10-16): удалены полифилы `requestAnimationFrame`/`performance.now`/
+      `Object.assign`, Modernizr, определение IE/старого Edge и их ветка раскладки SVG, 8 неиспользуемых файлов.
+      Поддерживаются современные браузеры.
+- [ ] **`@haiku/core`:** ESM-сборка, публичный API,
       React-адаптер на хуках, Vue 3, решить судьбу Angular-адаптера (Angular 6), безопасный режим
       expressions без `new Function` (CSP).
 - [x] **Линтер: tslint → ESLint 10** (2026-10-16). Один конфиг `eslint.config.mjs` на весь репозиторий

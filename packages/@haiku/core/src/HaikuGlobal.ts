@@ -18,7 +18,8 @@ export interface HaikuRoot {
       HaikuGlobalAnimationHarness?: {
         queue: (() => void)[];
         frame: () => void;
-        raf?: () => void;
+        // Handle of the pending animation frame (or fallback timer), used to cancel the loop.
+        raf?: number;
         cancel: () => void;
       };
     };

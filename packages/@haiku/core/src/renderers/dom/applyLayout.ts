@@ -3,22 +3,7 @@
  */
 
 import applyCssLayout from '../../layout/applyCssLayout';
-import modernizr from '../../vendor/modernizr';
-import getWindowsBrowserVersion from './getWindowsBrowserVersion';
-import isEdge from './isEdge';
-import isIE from './isIE';
-import isMobile from './isMobile';
 import isTextNode from './isTextNode';
-
-const safeWindow = typeof window !== 'undefined' && window;
-const PLATFORM_INFO = {
-  hasWindow: !!safeWindow,
-  isMobile: isMobile(safeWindow), // Dumb navigator check
-  isIE: isIE(safeWindow), // Dumb navigator check - use feature detection instead?
-  isEdge: isEdge(safeWindow),
-  windowsBrowserVersion: getWindowsBrowserVersion(safeWindow),
-  hasPreserve3d: modernizr.hasPreserve3d(safeWindow), // I dunno if we actually need this
-};
 
 export default function applyLayout (
   domElement,
@@ -41,8 +26,6 @@ export default function applyLayout (
       if (domElement.style.display !== 'block') {
         domElement.style.display = 'block';
       }
-
-      component.config.platform = PLATFORM_INFO;
 
       applyCssLayout(domElement, virtualElement, virtualElement.layout, computedLayout, component);
     }

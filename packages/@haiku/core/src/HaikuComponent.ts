@@ -40,7 +40,6 @@ import enhance from './reflection/enhance';
 import functionToRFO, {RFO} from './reflection/functionToRFO';
 import StateTransitionManager, {StateTransitionParameters, StateValues} from './StateTransitionManager';
 import {calculateValue} from './Transitions';
-import assign from './vendor/assign';
 import invert from './vendor/gl-mat4/invert';
 import {CurveSpec} from './vendor/svg-points/types';
 
@@ -523,11 +522,11 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     this.bindStates();
 
-    assign(this.hooks, this.config.hooks);
+    Object.assign(this.hooks, this.config.hooks);
 
-    assign(this.helpers, this.config.helpers);
+    Object.assign(this.helpers, this.config.helpers);
 
-    assign(this.bytecode.timelines, this.config.timelines);
+    Object.assign(this.bytecode.timelines, this.config.timelines);
 
     return this;
   }
@@ -761,7 +760,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   getInjectables (): any {
     const injectables = {};
 
-    assign(injectables, this.getSummonablesSchema());
+    Object.assign(injectables, this.getSummonablesSchema());
 
     // Local states get precedence over global summonables, so assign them last
     for (const key in this._states) {
@@ -851,7 +850,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   bindStates () {
-    const allStates = assign({}, this.bytecode.states, this.config.states);
+    const allStates = Object.assign({}, this.bytecode.states, this.config.states);
 
     for (const stateSpecName in allStates) {
       const stateSpec = allStates[stateSpecName];
@@ -908,7 +907,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
   }
 
   allEventHandlers (): any {
-    return assign(
+    return Object.assign(
       {},
       this.bytecode.eventHandlers,
       this.config.eventHandlers,
@@ -1585,7 +1584,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
    */
   resetStatesToInitialValuesWithTransition (duration: number, curve: Curve = Curve.Linear) {
     // Build initial states
-    const initialStates = assign({}, this.bytecode.states, this.config.states);
+    const initialStates = Object.assign({}, this.bytecode.states, this.config.states);
     for (const key in initialStates) {
       initialStates[key] = initialStates[key].value;
     }

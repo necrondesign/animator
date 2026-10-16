@@ -15,14 +15,10 @@ their licenses ship with each package in `node_modules`.
 | Component | License | Copyright / source |
 |---|---|---|
 | array-unique | MIT | © 2014-2016 Jon Schlinkert |
-| assign | MIT | © 2017 Ryan Florence |
 | color-names | MIT | © 2015 Dmitry Ivanov |
 | color-string | MIT | © 2011 Heather Arthur |
 | gl-mat4 † | zlib | stackgl/gl-mat4, derived from gl-matrix © 2013 Brandon Jones, Colin MacKenzie IV |
 | just-curves | MIT | © justanimate |
-| modernizr | MIT | © 2016 Modernizr |
-| performance-now | MIT | © 2013 Braveg1rl |
-| raf | MIT | © 2017 Chris Dickinson |
 | seedrandom | MIT | © 2015 David Bau |
 | svg-path-reversal | Public domain / MIT | see file header |
 | svg-points | ISC | © 2016 Colin Meinke |

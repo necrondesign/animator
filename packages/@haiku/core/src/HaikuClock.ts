@@ -5,8 +5,30 @@
 import {ClockConfig, IHaikuClock} from './api';
 import HaikuBase from './HaikuBase';
 import HaikuGlobal from './HaikuGlobal';
-import assign from './vendor/assign';
-import raf from './vendor/raf';
+// requestAnimationFrame drives the clock in browsers. Outside the web (Node) the clock does not tick by itself; old DOM
+// emulations without requestAnimationFrame (e.g. jsdom in tests) fall back to a timer.
+const FALLBACK_FRAME_MS = 16;
+const raf = {
+  request (callback: FrameRequestCallback) {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    if (window.requestAnimationFrame) {
+      return window.requestAnimationFrame(callback);
+    }
+    return window.setTimeout(() => callback(Date.now()), FALLBACK_FRAME_MS);
+  },
+  cancel (handle: number) {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (window.cancelAnimationFrame) {
+      window.cancelAnimationFrame(handle);
+    } else {
+      window.clearTimeout(handle);
+    }
+  },
+};
 
 const NUMBER = 'number';
 
@@ -111,7 +133,7 @@ export default class HaikuClock extends HaikuBase implements IHaikuClock {
   }
 
   assignOptions (options: ClockConfig) {
-    this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
+    this.options = Object.assign(this.options || {}, DEFAULT_OPTIONS, options || {});
     return this;
   }
 

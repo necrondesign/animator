@@ -144,14 +144,8 @@ export default function applyCssLayout (domElement, virtualElement, nodeLayout, 
 
     if (
       elementScope === SVG &&
-      // IE doesn't support using transform on the CSS style in SVG elements, so if we are in SVG, and if we are
-      // inside an IE context, use the transform attribute itself. Always prefer the transform attribute for 2D inner
-      // SVG attributes, which have more consistent cross-browser behavior.
-      (
-        nodeLayout.format === Layout3D.FORMATS.TWO ||
-        context.config.platform.isIE ||
-        context.config.platform.isEdge
-      )
+      // Prefer the transform attribute for 2D inner SVG elements, which has more consistent cross-browser behavior.
+      nodeLayout.format === Layout3D.FORMATS.TWO
     ) {
       domElement.setAttribute('transform', matrixString);
     } else if (

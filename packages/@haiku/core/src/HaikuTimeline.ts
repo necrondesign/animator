@@ -7,7 +7,6 @@ import HaikuBase, {GLOBAL_LISTENER_KEY} from './HaikuBase';
 import getActionsMaxTime from './helpers/getActionsMaxTime';
 import getTimelineMaxTime from './helpers/getTimelineMaxTime';
 import {isNumeric, tokenizeDirective} from './reflection/Tokenizer';
-import assign from './vendor/assign';
 
 const NUMBER = 'number';
 
@@ -91,7 +90,7 @@ export default class HaikuTimeline extends HaikuBase {
   }
 
   assignOptions (options) {
-    this.options = assign(this.options || {}, DEFAULT_OPTIONS, options || {});
+    this.options = Object.assign(this.options || {}, DEFAULT_OPTIONS, options || {});
   }
 
   ensureClockIsRunning () {
