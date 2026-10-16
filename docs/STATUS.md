@@ -192,6 +192,10 @@
       `unmounted`, слоты-функции, `emits`, стабильный id корневого элемента), тест на Vue 3.5. Адаптер Angular 6 удалён:
       Angular-приложения используют Web Component; `angular-module.js`/`angular-dom.js` удаляются из проектов при открытии.
       React, Vue — необязательные peer-зависимости.
+- [x] **`@haiku/core`, шаг 7 — бандлы на esbuild** (2026-10-16): `yarn bundle` собирает `dist/` (DOM, Web Component, Vue;
+      обычная и минифицированная версии, глобальные переменные для `<script>`) вместо rollup 0.53 и uglify-es; поле `types`.
+      Поле `exports` не добавлено: редактор и проекты импортируют глубокие пути `@haiku/core/lib/...` без расширений,
+      `exports` их сломал бы.
 - [ ] **`@haiku/core`:** ESM-сборка, публичный API,
       React-адаптер на хуках, Vue 3, решить судьбу Angular-адаптера (Angular 6), безопасный режим
       expressions без `new Function` (CSP).

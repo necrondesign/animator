@@ -1,83 +1,36 @@
-const commonjs = require('rollup-plugin-commonjs');
-const json = require('rollup-plugin-json');
-const rollup = require('rollup');
-const nodeResolve = require('rollup-plugin-node-resolve');
+// Builds browser bundles of the runtime adapters into dist/ (for <script> tag use without a bundler):
+// an IIFE exposing a global, plus a minified copy. Run with `yarn bundle` (compiles lib/ first).
+const esbuild = require('esbuild');
 const path = require('path');
-const uglify = require('rollup-plugin-uglify-es');
-const fse = require('fs-extra');
 
-const ROOT = global.process.cwd();
+const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
 
-const createBundle = (input, name, doUglify = false) => {
-  const plugins = [
-    nodeResolve({
-      jsnext: true,
-      main: true,
-    }), commonjs({
-      sourceMap: false,
-      extensions: ['.js'],
-    }), json(),
-  ];
+const ADAPTERS = [
+  {bundle: 'dom', entry: 'dom/index.js', globalName: 'HaikuDOMAdapter'},
+  {bundle: 'element', entry: 'dom/element/index.js', globalName: 'HaikuElementAdapter'},
+  {bundle: 'vue-dom', entry: 'dom/vue/index.js', globalName: 'HaikuVueAdapter', external: ['vue']},
+];
 
-  if (doUglify) {
-    plugins.push(uglify());
-  }
+const build = ({bundle, entry, globalName, external = []}, minify) => esbuild.build({
+  entryPoints: [path.join(ROOT, entry)],
+  outfile: path.join(DIST, `${bundle}.bundle${minify ? '.min' : ''}.js`),
+  bundle: true,
+  format: 'iife',
+  globalName,
+  // The CommonJS entry points export the adapter as module.exports.
+  footer: {js: `${globalName} = ${globalName} && ${globalName}.default || ${globalName};`},
+  external,
+  minify,
+  target: 'es2019',
+  platform: 'browser',
+  tsconfig: path.join(ROOT, 'tsconfig.json'),
+  logLevel: 'warning',
+});
 
-  return rollup.rollup({
-    input,
-    plugins,
-  }).then((bundle) => bundle.generate({
-    name,
-    format: 'iife',
-  }));
-};
-
-const adapters = {
-  dom: {
-    name: 'HaikuDOMAdapter',
-    dir: '',
-  },
-  'vue-dom': {
-    name: 'HaikuVueAdapter',
-    dir: 'vue',
-  },
-};
-
-fse.mkdirp(DIST);
-for (const bundleName in adapters) {
-  const {name, dir} = adapters[bundleName];
-  const input = path.join(
-    ROOT,
-    'dom',
-    dir,
-    'index.js',
-  );
-  // Full bundle.
-  createBundle(
-    input,
-    name,
-  ).then(({code}) => {
-    fse.outputFileSync(
-      path.join(
-        DIST,
-        `${bundleName}.bundle.js`,
-      ),
-      code,
-    );
+Promise.all(ADAPTERS.flatMap((adapter) => [build(adapter, false), build(adapter, true)]))
+  .then(() => console.log(`bundles written to ${DIST}`))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
   });
-  // Minified bundle.
-  createBundle(
-    input,
-    name,
-    true,
-  ).then(({code}) => {
-    fse.outputFileSync(
-      path.join(
-        DIST,
-        `${bundleName}.bundle.min.js`,
-      ),
-      code,
-    );
-  });
-}

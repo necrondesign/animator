@@ -50,6 +50,16 @@ components and this runtime:
 
 <br>
 
+#### Without a bundler
+
+`yarn bundle` writes browser builds to `dist/` that expose globals, e.g. for a plain HTML page:
+
+    <script src="dist/dom.bundle.min.js"></script>      <!-- window.HaikuDOMAdapter -->
+    <script src="dist/element.bundle.min.js"></script>  <!-- window.HaikuElementAdapter -->
+    <script>
+      HaikuElementAdapter(HaikuDOMAdapter(bytecode), 'my-card'); // then use <my-card></my-card>
+    </script>
+
 #### Direct installation
 
 To develop with the runtime directly, use this repository's `packages/@haiku/core` (it is not published to npm by
