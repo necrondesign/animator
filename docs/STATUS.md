@@ -43,7 +43,7 @@
 
 | Пакет | Назначение | Лицензия |
 |---|---|---|
-| `@haiku/core` | Рантайм анимаций (bytecode → DOM), адаптеры vanilla/React/Vue/Angular, демо-галерея | MIT |
+| `@haiku/core` | Рантайм анимаций (bytecode → DOM), адаптеры vanilla/Web Component/React/Vue, демо-галерея | MIT |
 | `@haiku/cli` | CLI (большая часть команд требовала облако Haiku) | MIT |
 | `@haiku/sdk-client`, `@haiku/sdk-inkstone` | Клиенты облака Haiku (мертво; на удаление в Фазе 3) | AGPL |
 | `haiku-creator` | Главное окно редактора (React 15), main-процесс, «пекарня» кадров | AGPL |
@@ -188,6 +188,10 @@
       Element с Shadow DOM (атрибуты `autoplay`/`loop`, методы `play`/`pause`/`setState`). Каждый проект получает `element.js`,
       регистрирующий тег по имени пакета (`my-card` → `<my-card>`); пример в окне Export. Проверено тестами (jsdom 30) и в
       Chromium (smoke). Попутно исправлен давний баг: повторный монтаж компонента (`callRemount`) всегда падал.
+- [x] **`@haiku/core`, шаги 5–6 — Vue 3, без Angular** (2026-10-16): Vue-адаптер переписан под Vue 3 (`h` из `vue`,
+      `unmounted`, слоты-функции, `emits`, стабильный id корневого элемента), тест на Vue 3.5. Адаптер Angular 6 удалён:
+      Angular-приложения используют Web Component; `angular-module.js`/`angular-dom.js` удаляются из проектов при открытии.
+      React, Vue — необязательные peer-зависимости.
 - [ ] **`@haiku/core`:** ESM-сборка, публичный API,
       React-адаптер на хуках, Vue 3, решить судьбу Angular-адаптера (Angular 6), безопасный режим
       expressions без `new Function` (CSP).

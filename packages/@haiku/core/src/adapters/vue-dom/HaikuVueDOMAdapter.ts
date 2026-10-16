@@ -8,6 +8,21 @@ import HaikuComponent from '../../HaikuComponent';
 import getParsedProperty from '../../helpers/getParsedProperty';
 import {randomString} from '../../helpers/StringUtils';
 
+// Vue 3 (installed by the app). Loaded on use, so the runtime works without Vue when this adapter is not used.
+const vue = () => require('vue');
+
+const EMITTED_EVENTS = [
+  'haikuComponentWillInitialize',
+  'haikuComponentDidInitialize',
+  'haikuComponentWillMount',
+  'haikuComponentDidMount',
+  'haikuComponentWillUnmount',
+];
+
+// Element and component vnodes from the default slot (Vue 3 slots are functions; text and comments are skipped).
+const slotElements = (vueComponent) => (vueComponent.$slots.default ? vueComponent.$slots.default() : [])
+  .filter((node: any) => node && (typeof node.type === 'string' || typeof node.type === 'object'));
+
 const clearProps = (props): Object => {
   const result = {};
 
@@ -42,9 +57,7 @@ const allProps = (vueComponent) => {
       onHaikuComponentWillUnmount: (component) => {
         vueComponent.$emit('haikuComponentWillUnmount', component);
       },
-      children: vueComponent.$slots.default
-        ? vueComponent.$slots.default.filter((node: any) => node.tag !== undefined)
-        : [],
+      children: slotElements(vueComponent),
       vanities: {
         'controlFlow.placeholder': (
           element: BytecodeNode,
@@ -62,7 +75,7 @@ const allProps = (vueComponent) => {
 
           const node = element.__memory.targets[0];
           if (node) {
-            const vueElement = surrogate.elm;
+            const vueElement = surrogate.el;
             const div = document.createElement('div');
             node.parentNode.replaceChild(div, node);
 
@@ -86,6 +99,7 @@ const allProps = (vueComponent) => {
 
 export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
   return {
+    emits: EMITTED_EVENTS,
     props: {
       // We use null (which is the equivalent of 'any') for Boolean values
       // because Vue does typecasting for us, which sets undefined to false.
@@ -117,20 +131,22 @@ export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
       // LEGACY
       haikuOptions: Object,
     },
+    created () {
+      // Stable across re-renders.
+      this.hostId = `haiku-vueroot-${randomString(24)}`;
+    },
     mounted () {
       this.haiku = haikuComponentFactory(this.$el, allProps(this));
     },
     updated () {
       this.haiku.assignConfig(allProps(this));
     },
-    destroyed () {
+    unmounted () {
       this.haiku.callUnmount();
     },
-    render (createElement) {
-      return createElement('div', {
-        attrs: {
-          id: `haiku-vueroot-${randomString(24)}`,
-        },
+    render () {
+      return vue().h('div', {
+        id: this.hostId,
         style: {
           position: 'relative',
           margin: 0,
@@ -140,7 +156,7 @@ export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
           height: '100%',
           transform: 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)',
         },
-      }, this.$slots.default);
+      }, this.$slots.default ? this.$slots.default() : undefined);
     },
   };
 }

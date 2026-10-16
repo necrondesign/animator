@@ -21,7 +21,6 @@ const {
   getReactProjectName,
   getProjectNameLowerCase,
   readPackageJson,
-  getAngularSelectorName,
 } = require('@haiku/sdk-client/lib/ProjectDefinitions');
 
 const SILENT_METHODS = {
@@ -1004,7 +1003,6 @@ Project.getProjectNameVariations = (folder) => {
   const projectNameSafeShort = getProjectNameSafeShort(projectHaikuConfig.project);
   const projectNameLowerCase = getProjectNameLowerCase(projectHaikuConfig.project);
   const reactProjectName = getReactProjectName(projectHaikuConfig.project);
-  const angularSelectorName = getAngularSelectorName(projectHaikuConfig.project);
   const primaryAssetPath = getDefaultSketchAssetPath(projectHaikuConfig.project);
   const defaultIllustratorAssetPath = getDefaultIllustratorAssetPath(projectHaikuConfig.project);
 
@@ -1013,7 +1011,6 @@ Project.getProjectNameVariations = (folder) => {
     projectNameSafeShort,
     projectNameLowerCase,
     reactProjectName,
-    angularSelectorName,
     primaryAssetPath,
     defaultIllustratorAssetPath,
   };

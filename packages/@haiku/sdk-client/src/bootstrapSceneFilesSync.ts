@@ -1,7 +1,7 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import {getAngularSelectorName, getHaikuCoreVersion} from './ProjectDefinitions';
+import {getHaikuCoreVersion} from './ProjectDefinitions';
 
 export const bootstrapSceneFilesSync = (componentFolder: string, scenename: string, userconfig: any) => {
   const rootComponentId = getCodeJs(scenename, userconfig);
@@ -16,9 +16,8 @@ export const bootstrapSceneFilesSync = (componentFolder: string, scenename: stri
     DOM_EMBED_JS(getHaikuCoreVersion()),
   );
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/react-dom.js`), REACT_DOM_JS);
-  fse.outputFileSync(path.join(componentFolder, `code/${scenename}/angular-dom.js`),
-    ANGULAR_DOM_JS(getAngularSelectorName(path.basename(componentFolder)), scenename),
-  );
+  // The Angular adapter was removed (Angular apps use the web component, element.js).
+  fse.removeSync(path.join(componentFolder, `code/${scenename}/angular-dom.js`));
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/vue-dom.js`), VUE_DOM_JS);
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/element.js`), ELEMENT_JS);
 
@@ -88,12 +87,6 @@ const REACT_DOM_JS = dedent`
   var HaikuReactComponent = HaikuReactAdapter(require('./dom'))
   if (HaikuReactComponent.default) HaikuReactComponent = HaikuReactComponent.default
   module.exports = HaikuReactComponent
-`.trim();
-
-const ANGULAR_DOM_JS = (selector: string, scene: string) => dedent`
-  var HaikuAngularAdapter = require('@haiku/core/dom/angular')
-  var HaikuAngularModule = HaikuAngularAdapter('${selector}${scene !== 'main' ? `-${scene}` : ''}', require('./dom'))
-  module.exports = HaikuAngularModule
 `.trim();
 
 // A Custom Element class for this component (unregistered; the project's element.js registers the main one).

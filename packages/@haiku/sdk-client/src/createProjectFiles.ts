@@ -141,6 +141,8 @@ export function createProjectFiles (
         'embed.js',
         'react-dom.js',
         'vue-dom.js',
+        // The Angular adapter was removed; Angular apps use the web component (element.js).
+        'angular-module.js',
       ];
       filesToRemove.forEach((fileToRemove) => {
         fse.removeSync(path.join(projectOptions.projectPath, fileToRemove));
@@ -198,10 +200,6 @@ export function createProjectFiles (
       fse.outputFileSync(path.join(projectOptions.projectPath, 'react.js'), dedent`
         // By default, a react-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/react-dom')
-      `);
-      fse.outputFileSync(path.join(projectOptions.projectPath, 'angular-module.js'), dedent`
-        // By default, a Angular module is exported; see code/main/* for other options
-        module.exports = require('./code/main/angular-dom')
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, 'vue.js'), dedent`
         // By default, a vue-dom module is exported; see code/main/* for other options
