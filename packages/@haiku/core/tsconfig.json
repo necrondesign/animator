@@ -7,7 +7,7 @@
     "declarationDir": "lib",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": ["es6", "dom"],
+    "lib": ["es2019", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": false,
@@ -15,7 +15,7 @@
     "preserveConstEnums": true,
     "rootDir": "src",
     "sourceMap": true,
-    "target": "ES5",
+    "target": "ES2019",
     "types": [
       "node"
     ]

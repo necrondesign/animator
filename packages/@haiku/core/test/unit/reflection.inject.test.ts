@@ -13,7 +13,7 @@ tape(
     });
     t.equal(
       JSON.stringify(f1.specification),
-      '{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"return [a, b, c];"}',
+      '{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return [a, b, c];"}',
     );
     t.equal(
       f1.injectee,
@@ -26,7 +26,7 @@ tape(
     }));
     t.equal(
       JSON.stringify(f2.specification),
-      '{"type":"FunctionExpression","name":null,"params":["a","b","c"],"body":"return [a, b, c];"}',
+      '{"type":"ArrowFunctionExpression","name":null,"params":["a","b","c"],"body":"return [a, b, c];"}',
     );
     t.equal(
       f2.injectee,
@@ -44,7 +44,7 @@ tape(
     ); // ...And if we specify these
     t.equal(
       JSON.stringify(f3.specification),
-      '{"type":"FunctionExpression","name":null,"params":["d","e","f"],"body":"return [a, b, c];","injectee":true}',
+      '{"type":"ArrowFunctionExpression","name":null,"params":["d","e","f"],"body":"return [a, b, c];","injectee":true}',
     );
     t.equal(
       f3.injectee,

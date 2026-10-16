@@ -118,15 +118,57 @@ function tokensToParams (tokens) {
   return JSON.parse(json);
 }
 
-function signatureToParams (signature) {
-  const tokens = tokenizeParameters(signature);
-  const clean = [];
-  for (let i = 0; i < tokens.length; i++) {
-    if (tokens[i].type !== 'whitespace') {
-      clean.push(tokens[i]);
+// Removes default values (`a = 1`, `{b = f(2)}`) from a signature: only parameter names matter here.
+function stripDefaultValues (signature: string): string {
+  let out = '';
+  let skipping = false;
+  let depthWhenSkipping = 0;
+  let depth = 0;
+  let quote = null;
+  for (let i = 0; i < signature.length; i++) {
+    const char = signature[i];
+    if (quote) {
+      if (char === '\\') {
+        i++;
+      } else if (char === quote) {
+        quote = null;
+      }
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '(' || char === '[' || char === '{') {
+      depth++;
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth--;
+      if (skipping && depth < depthWhenSkipping) {
+        skipping = false;
+      }
+    } else if (char === ',' && skipping && depth === depthWhenSkipping) {
+      skipping = false;
+    } else if (char === '=' && !skipping && signature[i + 1] !== '>' && signature[i + 1] !== '=') {
+      skipping = true;
+      depthWhenSkipping = depth;
+      continue;
+    }
+    if (!skipping) {
+      out += char;
     }
   }
+  return out;
+}
+
+function signatureToParams (signature) {
   try {
+    const tokens = tokenizeParameters(stripDefaultValues(signature));
+    const clean = [];
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].type !== 'whitespace') {
+        clean.push(tokens[i]);
+      }
+    }
     return tokensToParams(clean);
   } catch (exception) {
     console.warn(`Unable to parse signature ${signature}`, exception);
@@ -134,26 +176,88 @@ function signatureToParams (signature) {
   }
 }
 
+// Index of the bracket closing the one at `open`, skipping strings; -1 if unbalanced.
+function matchingClose (str: string, open: number): number {
+  const pairs = {'(': ')', '[': ']', '{': '}'};
+  const stack = [];
+  let quote = null;
+  for (let i = open; i < str.length; i++) {
+    const char = str[i];
+    if (quote) {
+      if (char === '\\') {
+        i++;
+      } else if (char === quote) {
+        quote = null;
+      }
+    } else if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+    } else if (pairs[char]) {
+      stack.push(pairs[char]);
+    } else if (char === stack[stack.length - 1]) {
+      stack.pop();
+      if (stack.length === 0) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+// Index of the arrow (=>) of an arrow function, outside any brackets; -1 if there is none.
+function topLevelArrow (str: string): number {
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (char === '(' || char === '[' || char === '{') {
+      const close = matchingClose(str, i);
+      if (close < 0) {
+        return -1;
+      }
+      i = close;
+    } else if (char === '"' || char === "'" || char === '`') {
+      return -1;
+    } else if (char === '=' && str[i + 1] === '>') {
+      return i;
+    }
+  }
+  return -1;
+}
+
 export default function functionToRFO (fn) {
-  let str = fn.toString();
+  let str = fn.toString().trim();
 
   // HACK: Remove paren wrapping if any was provided
   if (str[str.length - 1] === ')') {
-    if (str[0] === '(') {
-      str = str.slice(1);
+    if (str[0] === '(' && matchingClose(str, 0) === str.length - 1) {
+      str = str.slice(1, -1).trim();
     }
   }
 
-  const pidx1 = str.indexOf('(');
-  const pidx2 = str.indexOf(')');
-  const prefix = str.slice(0, pidx1);
-  const signature = str.slice(pidx1, pidx2 + 1);
-  const suffix = str.slice(pidx2 + 1, str.length);
-  const body = suffix.slice(suffix.indexOf('{') + 1, suffix.length - 1).trim(); // Don't include braces or padding
-  const type = suffix.match(/^\s*=>\s*{/)
-    ? 'ArrowFunctionExpression'
-    : 'FunctionExpression';
-  const name = nth(2, 'identifier', tokenizeParameters(prefix)).value;
+  let type;
+  let name = null;
+  let signature;
+  let body;
+
+  const arrow = str.startsWith('function') || str.startsWith('async function') ? -1 : topLevelArrow(str);
+  if (arrow >= 0) {
+    // (a, b) => {...}, a => {...}, (a, b) => expression
+    type = 'ArrowFunctionExpression';
+    const head = str.slice(0, arrow).trim().replace(/^async\s+/, '');
+    signature = head.startsWith('(') ? head : `(${head})`;
+    const tail = str.slice(arrow + 2).trim();
+    body = tail.startsWith('{') && matchingClose(tail, 0) === tail.length - 1
+      ? tail.slice(1, -1).trim() // Don't include braces or padding
+      : `return ${tail.replace(/;\s*$/, '')};`;
+  } else {
+    // function name (a, b) {...}, and method shorthand name (a, b) {...}
+    type = 'FunctionExpression';
+    const pidx1 = str.indexOf('(');
+    const pidx2 = matchingClose(str, pidx1);
+    const prefix = str.slice(0, pidx1);
+    signature = str.slice(pidx1, pidx2 + 1);
+    const suffix = str.slice(pidx2 + 1, str.length);
+    body = suffix.slice(suffix.indexOf('{') + 1, suffix.length - 1).trim(); // Don't include braces or padding
+    name = nth(2, 'identifier', tokenizeParameters(prefix)).value;
+  }
   const params = signatureToParams(signature);
 
   const spec: RFO = {
