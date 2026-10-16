@@ -5,7 +5,6 @@ import * as path from 'path';
 import * as os from 'os';
 import {debounce} from 'lodash';
 import * as fse from 'haiku-fs-extra';
-import {ErrorCode} from '@haiku/sdk-inkstone/lib/errors';
 import HaikuComponent from '@haiku/core/lib/HaikuComponent';
 import * as walkFiles from 'haiku-serialization/src/utils/walkFiles';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
@@ -25,11 +24,9 @@ import Watcher from './Watcher';
 import MasterGitProject from './MasterGitProject';
 import MasterModuleProject from './MasterModuleProject';
 import getExporterListener from './envoy/getExporterListener';
-import Raven from './Raven';
 import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
 import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
-import {createCDNBundles} from './project-folder/createCDNBundle';
 import {
   getHaikuCoreVersion,
   fetchProjectConfigInfo,
@@ -725,20 +722,10 @@ export default class Master extends EventEmitter {
     // This has to happen in initializeFolder because it's here that we set the 'isBase' undoable.
     this._git.restart(project);
 
-    const ravenContext = {
-      user: {email: project.authorName},
-      extra: {
-        projectName: project.projectName,
-        projectPath: this.folder,
-        organizationName: project.organizationName,
-      },
-    };
-    Raven.setContext(ravenContext);
-
     // Note: 'ensureProjectFolder' should already have run by this point.
     return async.series([
       (cb) => {
-        return this._git.initializeFolder(project, this.envoyHandlers.user.checkOfflinePrivileges(), cb);
+        return this._git.initializeFolder(project, cb);
       },
 
       // Now that we've (maybe) cloned content, we need to create any other necessary files that _might not_ yet
@@ -825,277 +812,6 @@ export default class Master extends EventEmitter {
         }
         return done(null, results[results.length - 1]);
       });
-    });
-  }
-
-  /**
-   * @method saveProject
-   */
-  saveProject (project, saveOptions, done) {
-    const finish = (err, out) => {
-      this._isSaving = false;
-      return done(err, out);
-    };
-
-    if (this._isSaving) {
-      logger.info('[master] project save: already in progress! short circuiting');
-      return done();
-    }
-
-    this._isSaving = true;
-
-    logger.info('[master] project save');
-
-    // #FIXME: This should be already done (requires moving Master and MasterGitProject into Project handler).
-    // Note that we will need to ensure the updates from Creator#updateProjectObject are also synced down.
-    this.envoyHandlers.project.setCurrentProject(project);
-
-    return async.series([
-      // Check to see if a save is even necessary, and return early if not
-      (cb) => {
-        return this._git.doesGitHaveChanges((err, doesGitHaveChanges) => {
-          if (err) {
-            return cb(err);
-          }
-          if (doesGitHaveChanges) {
-            return cb();
-          }
-
-          this._git.resolveSha().then((sha) => {
-            this.envoyHandlers.project.setCurrentSha(
-              sha,
-              /*skipSaveSnapshot=*/true,
-              ).then(() => {
-                this.envoyHandlers.project.getSnapshotInfo().then((info) => {
-                  // If we have info and it indicates publishing entirely succeeded, we can exit early.
-                  if (info.snapshotSyndicated) {
-                    return cb(true, info);
-                  }
-
-                  // Else, we should proceed as if this is the first publish. We might get here if a user tears down
-                  // Master in the middle of publishing, lost connectivity, etc.
-                  cb();
-                }).catch((error) => {
-                  if (error.message === ErrorCode.ErrorOffline) {
-                    return cb(error);
-                  }
-
-                  // As long as we're online, no worries—just continue saving as usual.
-                  cb();
-                });
-              });
-          });
-        });
-      },
-
-      (cb) => {
-        // At this point, we cannot proceed with an inkstone representation of the project.
-        if (!project.local) {
-          return cb();
-        }
-
-        this.envoyHandlers.project.createProject(
-          project.projectName,
-          /*allowOffline=*/false,
-          /*deferCaudexBacking=*/false,
-        ).then(() => cb()).catch(cb);
-      },
-
-      (cb) => {
-        this.envoyHandlers.project.updateProject(
-          // The user may have opted in to specific privacy settings prior to this step. Calling update
-          // ensures those settings stick on the first publish.
-          project,
-          /*ensureCaudexBacking=*/true,
-        ).then(() => {
-          this._git.reload(project);
-          cb();
-        }).catch(cb);
-      },
-
-      // Write out any enabled exported formats.
-      (cb) => {
-        // Just in case this ran somehow before the project was initialized
-        if (!this.project) {
-          return cb();
-        }
-
-        // Just in case we haven't initialized any active components yet
-        const acs = this.project.getAllActiveComponents();
-        if (acs.length < 1) {
-          return cb();
-        }
-
-        // Create a fault-tolerant async series to process all requested formats for all components
-        return async.eachSeries(acs, (ac, nextComponent) => {
-          logger.info(`[master] project save: writing exported formats for ${ac.getSceneName()}`);
-          return async.series([ExporterFormat.Bodymovin, ExporterFormat.HaikuStatic].map((format) => (nextFormat) => {
-            let filename;
-            switch (format) {
-              case ExporterFormat.Bodymovin:
-                filename = ac.getAbsoluteLottieFilePath();
-                break;
-              case ExporterFormat.HaikuStatic:
-                filename = ac.getAbsoluteHaikuStaticFilePath();
-                break;
-            }
-
-            return saveExport({format, filename, outlet: 'cdn'}, ac, (err) => {
-              if (err) {
-                logger.warn(`[master] error during export for ${ac.getSceneName()}: ${err.toString()}`);
-              }
-
-              return nextFormat();
-            });
-          }), nextComponent);
-        }, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb();
-        });
-      },
-
-      // Ensure we bump the semver before proceeding.
-      (cb) => {
-        return this._git.bumpSemverAppropriately(cb);
-      },
-
-      // Populate the bytecode's metadata. This may be a no-op if the file has already been saved
-      (cb) => {
-        // Just in case this ran somehow before we initialized the project
-        if (!this.project) {
-          return cb();
-        }
-
-        // Just in case we haven't initialized any active components yet
-        const acs = this.project.getAllActiveComponents();
-        if (acs.length < 1) {
-          return cb();
-        }
-
-        return async.eachSeries(acs, (ac, next) => {
-          logger.info(`[master] project save: assigning metadata to ${ac.getSceneName()}`);
-
-          return fetchProjectConfigInfo(ac.fetchActiveBytecodeFile().folder, (err, userconfig) => {
-            if (err) {
-              return next(err);
-            }
-
-            // Hack: we shouldn't have to do this. This fixes an odd issue where a forked project with no changes
-            // does not persist changes from bytecode migration on first publish.
-            if (ac.$instance && ac.$instance.bytecode !== ac.getReifiedBytecode()) {
-              ac.handleUpdatedBytecode(ac.$instance.bytecode);
-            }
-
-            return ac.writeMetadata(
-              userconfig,
-              this.project.getMetadata(),
-              (err) => {
-                if (err) {
-                  return next(err);
-                }
-                return ac.fetchActiveBytecodeFile().awaitNoFurtherContentFlushes(next);
-              },
-            );
-          });
-        }, (err) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb();
-        });
-      },
-
-      // Build the rest of the content of the folder,
-      (cb) => {
-        logger.info('[master] project save: populating content');
-        createProjectFiles(project, cb);
-      },
-
-      // Build CDN bundles
-      (cb) => {
-        logger.info('[master] project save: creating cdn bundle');
-        createCDNBundles(project, cb);
-      },
-
-      (cb) => {
-        this._git.commitProjectIfChanged('Updated metadata', cb);
-      },
-
-      // Now do all of the git/share/publish/fs operations required for the real save
-      (cb) => {
-        logger.info('[master] project save: creating snapshot');
-        this._git.saveProject(project, saveOptions, cb);
-      },
-
-      (cb) => {
-        this._git.resolveSha().then((sha) => {
-          this.envoyHandlers.project.setSemver(this._git.folderState.semverVersion);
-          this.envoyHandlers.project.setCurrentSha(sha).then(() => {
-            // Write out any enabled exported assets.
-            const requests = this.envoyHandlers.project.getExporterAssetRequests(project);
-            let processedRequests = 0;
-            async.eachSeries(requests, (request, next) => {
-              const savedListener = (finishedRequest) => {
-                if (finishedRequest === request) {
-                  this.envoyHandlers.project.syndicateExporterRequest(request).then(() => {
-                    processedRequests++;
-                    if (processedRequests === requests.length) {
-                      this.envoyHandlers.project.markSyndicated();
-                    }
-                  }).catch((err) => {
-                    logger.warn('[master] project save: asset syndication failed');
-                    logger.warn(err.message);
-                  });
-
-                  removeOneTimeListeners();
-                }
-              };
-
-              const abortListener = (abortedRequest) => {
-                if (abortedRequest === request) {
-                  removeOneTimeListeners();
-                }
-              };
-
-              const removeOneTimeListeners = () => {
-                this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:saved`, savedListener);
-                this.envoyHandlers.exporter.off(`${EXPORTER_CHANNEL}:abort`, abortListener);
-              };
-
-              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:saved`, savedListener);
-              this.envoyHandlers.exporter.on(`${EXPORTER_CHANNEL}:abort`, abortListener);
-              this.envoyHandlers.exporter.save(request);
-              next();
-            }, cb);
-          }).catch((err) => {
-            return cb(err);
-          });
-        });
-      },
-
-      (cb) => {
-        this.envoyHandlers.project.getSnapshotInfo().then((info) => {
-          cb(null, info);
-        }).catch(cb);
-      },
-    ], (err, results) => { // async gives back _all_ results from each step
-      if (err && err !== true) {
-        finish(err);
-        return;
-      }
-
-      finish(null, results[results.length - 1]);
-
-      // Silently push results to the remote, unless no push was needed.
-      if (err !== true) {
-        this._git.pushToRemote((err) => {
-          if (err) {
-            logger.warn('[master] silent project push failed');
-          }
-        });
-      }
     });
   }
 

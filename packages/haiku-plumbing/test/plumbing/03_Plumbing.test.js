@@ -3,7 +3,6 @@ import * as async from 'async';
 import * as cp from 'child_process';
 import * as path from 'path';
 import TestHelpers from '../TestHelpers';
-import {stubProperties} from 'haiku-testing/lib/mock';
 
 const DEF_SVG_1 = path.join(__dirname, '..', 'fixtures', 'files', 'designs', 'bef', 'Default.svg');
 tape('Plumbing', (test) => {
@@ -21,19 +20,6 @@ tape('Plumbing', (test) => {
       branchName: 'master',
     };
     return async.series([
-      (cb) => {
-        const [mockAuthenticate, unstub] = stubProperties(plumbing.envoyHandlers.user, 'authenticate');
-        const identity = {
-          organization: {Name: 'Jenkins'},
-          user: {Username: 'jenkins@haiku.ai'},
-        };
-        mockAuthenticate.returns(new Promise((resolve) => resolve(identity)));
-        plumbing.envoyHandlers.user.authenticate('jenkins@haiku.ai', 'supersecure').then((resultingIdentity) => {
-          test.is(resultingIdentity, identity);
-          unstub();
-          cb();
-        });
-      },
       (cb) => plumbing.bootstrapProject({...project, skipContentCreation: true}, (err) => {
         if (err) {
           return cb(err);

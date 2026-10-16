@@ -14,16 +14,13 @@ import EnvoyLogger from 'haiku-sdk-creator/lib/envoy/EnvoyLogger';
 import {EXPORTER_CHANNEL, ExporterHandler} from 'haiku-sdk-creator/lib/exporter';
 import {ERROR_CHANNEL, ErrorHandler} from 'haiku-sdk-creator/lib/bll/Error';
 import {USER_CHANNEL, UserHandler} from 'haiku-sdk-creator/lib/bll/User';
-import {PROJECT_CHANNEL, ProjectHandler} from 'haiku-sdk-creator/lib/bll/Project';
 import {GLASS_CHANNEL, GlassHandler} from 'haiku-sdk-creator/lib/glass';
 import {TIMELINE_CHANNEL, TimelineHandler} from 'haiku-sdk-creator/lib/timeline';
 import {TOUR_CHANNEL, TourHandler} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL, ServicesHandler} from 'haiku-sdk-creator/lib/services';
-import {inkstone} from '@haiku/sdk-inkstone';
 import {client as sdkClient} from '@haiku/sdk-client';
 import * as serializeError from 'haiku-serialization/src/utils/serializeError';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as BaseModel from 'haiku-serialization/src/bll/BaseModel';
 import {awaitAllLocksFree} from 'haiku-serialization/src/bll/Lock';
 import Master from './Master';
@@ -32,7 +29,6 @@ import {
   copyDefaultSketchFile,
   copyDefaultIllustratorFile,
 } from './project-folder/copyExternalExampleFilesToProject';
-import {duplicateProject} from './project-folder/duplicateProject';
 import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
@@ -46,7 +42,7 @@ process.env.HAIKU_SUBPROCESS = 'plumbing';
 
 Error.stackTraceLimit = Infinity; // Show long stack traces when errors are shown
 
-import Raven from './Raven';
+import './errorReporting';
 
 // Don't allow malicious websites to connect to our websocket server (Plumbing or Envoy)
 export const HAIKU_WS_SECURITY_TOKEN = Math.random().toString(36).substring(7) + Math.random().toString(36).substring(7);
@@ -63,7 +59,6 @@ const METHOD_MESSAGES_TO_HANDLE_IMMEDIATELY = {
   masterHeartbeat: true,
   openTextEditor: true,
   openTerminal: true,
-  saveProject: true,
   previewProject: true,
   teardownMaster: true,
   hoverElement: true,
@@ -162,15 +157,14 @@ export default class Plumbing extends EventEmitter {
       haiku.envoy.token = HAIKU_WS_SECURITY_TOKEN;
 
       const error = new ErrorHandler(this.envoyServer);
-      if (global.sentryReporter) {
-        global.sentryReporter.envoy = error;
+      if (global.errorReporter) {
+        global.errorReporter.envoy = error;
       }
       const user = new UserHandler(this.envoyServer);
       const timeline = new TimelineHandler(this.envoyServer);
       const tour = new TourHandler(this.envoyServer);
-      const exporter = new ExporterHandler(user, this.envoyServer);
+      const exporter = new ExporterHandler(this.envoyServer);
       const glass = new GlassHandler(this.envoyServer);
-      const project = new ProjectHandler(user, this.envoyServer);
       const services = new ServicesHandler(this.envoyServer);
       this.envoyHandlers = {
         error,
@@ -179,7 +173,6 @@ export default class Plumbing extends EventEmitter {
         exporter,
         glass,
         user,
-        project,
         services,
       };
 
@@ -189,15 +182,7 @@ export default class Plumbing extends EventEmitter {
       this.envoyServer.bindHandler(EXPORTER_CHANNEL, ExporterHandler, this.envoyHandlers.exporter);
       this.envoyServer.bindHandler(USER_CHANNEL, UserHandler, this.envoyHandlers.user);
       this.envoyServer.bindHandler(GLASS_CHANNEL, GlassHandler, this.envoyHandlers.glass);
-      this.envoyServer.bindHandler(PROJECT_CHANNEL, ProjectHandler, this.envoyHandlers.project);
       this.envoyServer.bindHandler(SERVICES_CHANNEL, ServicesHandler, this.envoyHandlers.services);
-
-      this.envoyHandlers.user.on(`${USER_CHANNEL}:load`, ({user: {Username}, organization: {Name}}) => {
-        mixpanel.mergeToPayload({distinct_id: Username});
-        if (Raven) {
-          Raven.mergeContext({user: {email: Username}, extra: {organizationName: Name}});
-        }
-      });
 
       logger.info('[plumbing] launching plumbing control server');
 
@@ -638,14 +623,6 @@ export default class Plumbing extends EventEmitter {
     project,
     finish,
   ) {
-    Raven.mergeContext({
-      extra: {
-        ...Raven.getContext().extra,
-        projectName: project.projectName,
-        projectPath: project.projectPath,
-      },
-    });
-
     storeConfigValues(
       project.projectPath,
       {
@@ -719,40 +696,12 @@ export default class Plumbing extends EventEmitter {
     return this.awaitMasterAndCallMethod(projectPath, 'startProject', [{from: 'master'}], cb);
   }
 
-  resendEmailConfirmation (username, cb) {
-    return inkstone.user.requestConfirmEmail(username, cb);
-  }
-
   getenv (cb) {
     return cb(null, sdkClient.config.getenv());
   }
 
   setenv (environmentVariables, cb) {
     return cb(null, sdkClient.config.setenv(environmentVariables));
-  }
-
-  duplicateProject (destinationProject, sourceProject, cb) {
-    if (!sourceProject.projectExistsLocally) {
-      logger.info(`[plumbing] source project did not exist during duplicate: ${sourceProject.projectName}`);
-      // Unable to proceed; there is nothing from the source project that we could possibly copy.
-      return cb();
-    }
-
-    if (destinationProject.projectExistsLocally) {
-      // We don't actually need to return early here—but we should warn in logs in case something else bad happens
-      // as a result.
-      logger.warn(`[plumbing] source project existed locally during duplicate: ${destinationProject.projectName}`);
-    }
-
-    // Duplicate project folder content from source to destination.
-    duplicateProject(destinationProject, sourceProject, (err) => {
-      // Note: we don't pass errors forward to Creator here. It wouldn't know what to do with it.
-      if (err) {
-        logger.warn(`[plumbing] error during project duplication: ${err}`);
-      }
-
-      cb();
-    });
   }
 
   haltMasterForFolder (folder) {
@@ -791,29 +740,8 @@ export default class Plumbing extends EventEmitter {
 
       BaseModel.extensions.forEach((klass) => klass.purge());
 
-      Raven.mergeContext({
-        extra: {
-          ...Raven.getContext().extra,
-          projectName: undefined,
-          projectPath: undefined,
-        },
-      });
-
       cb();
     });
-  }
-
-  saveProject (project, saveOptions, cb) {
-    if (!saveOptions) {
-      saveOptions = {};
-    }
-    logger.info('[plumbing] saving with options', saveOptions);
-    return this.awaitMasterAndCallMethod(project.projectPath, 'saveProject', [project, saveOptions, {from: 'master'}], cb);
-  }
-
-  checkInkstoneUpdates (query = '', cb) {
-    const authToken = sdkClient.config.getAuthToken();
-    return inkstone.updates.check(authToken, query, cb);
   }
 
   listAssets (folder, cb) {

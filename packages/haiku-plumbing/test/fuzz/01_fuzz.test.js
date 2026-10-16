@@ -7,7 +7,6 @@ import * as fse from 'haiku-fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import TestHelpers from '../TestHelpers';
-import {stubProperties} from 'haiku-testing/lib/mock';
 
 tape('other.01', (test) => {
   const projectName = 'UnitTestProj' + Date.now();
@@ -24,40 +23,6 @@ tape('other.01', (test) => {
   };
   TestHelpers.launch((plumbing, teardownMaster, teardown) => {
     return async.series([
-      (cb) => {
-        const [mockAuthenticate, unstub] = stubProperties(plumbing.envoyHandlers.user, 'authenticate');
-        const identity = {
-          organization: {
-            Name: 'Jenkins',
-            Role: 0,
-            P0: 1,
-            P1: false,
-          },
-          user: {
-            Username: 'jenkins@haiku.ai',
-            IsAdmin: false,
-          },
-          lastOnline: Date.now(),
-        };
-        mockAuthenticate.returns(new Promise((resolve) => resolve(identity)));
-        plumbing.envoyHandlers.user.authenticate('jenkins@haiku.ai', 'supersecure').then((resultingIdentity) => {
-          test.is(resultingIdentity, identity);
-          unstub();
-          cb();
-        });
-      },
-
-      // Initially create the project.
-      (cb) => {
-        const [mockCreateProject, unstub] = stubProperties(plumbing.envoyHandlers.project, 'createProject');
-        mockCreateProject.returns(new Promise((resolve) => resolve(project)));
-        plumbing.envoyHandlers.project.createProject(projectName).then((haikuProject) => {
-          test.is(haikuProject, project);
-          unstub();
-          cb();
-        });
-      },
-
       (cb) => plumbing.bootstrapProject({...project, skipContentCreation: true}, (err) => {
         if (err) {
           return cb(err);

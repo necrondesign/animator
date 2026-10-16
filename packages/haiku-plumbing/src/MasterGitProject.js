@@ -411,7 +411,7 @@ export default class MasterGitProject extends EventEmitter {
           return reject(gitErr);
         }
 
-        logger.info('[inkstone] git HEAD resolved:', id.toString());
+        logger.info('[master-git] git HEAD resolved:', id.toString());
 
         resolve(id.toString());
       });
@@ -853,7 +853,7 @@ export default class MasterGitProject extends EventEmitter {
     });
   }
 
-  initializeFolder (initOptions, offlineOkay, done) {
+  initializeFolder (initOptions, done) {
     // Empty folder state since we are going to reload it in here
     this.folderState = {};
 
