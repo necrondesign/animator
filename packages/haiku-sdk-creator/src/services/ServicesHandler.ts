@@ -1,11 +1,9 @@
 // @ts-ignore
 import {Figma} from 'haiku-serialization/src/bll/Figma';
-import {ImportSpec, MaybeAsync, TokenExchange} from '.';
+import {ImportSpec, MaybeAsync} from '.';
 
 export interface Services {
-  figmaImportSVG (importSpec: ImportSpec, authToken: string): MaybeAsync<void>;
-
-  figmaGetAccessToken (tokenExchange: TokenExchange): MaybeAsync<object>;
+  figmaImportSVG(importSpec: ImportSpec, authToken: string): MaybeAsync<void>;
 }
 
 export class ServicesHandler implements Services {
@@ -13,9 +11,5 @@ export class ServicesHandler implements Services {
   figmaImportSVG (importSpec: ImportSpec, authToken: string) {
     const figma = new Figma({token: authToken});
     return figma.importSVG(importSpec);
-  }
-
-  figmaGetAccessToken (tokenExchange: TokenExchange) {
-    return Figma.getAccessToken(tokenExchange);
   }
 }

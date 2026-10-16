@@ -5,12 +5,6 @@ export interface ImportSpec {
   projectFolder: string;
 }
 
-export interface TokenExchange {
-  code: string;
-  state: number;
-  stateCheck: string;
-}
-
 export type MaybeAsync<T> = T | Promise<T>;
 
 export * from './ServicesHandler';

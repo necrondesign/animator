@@ -1,5 +1,4 @@
 // tslint:disable:no-namespace class-name
-import {inkstone} from '@haiku/sdk-inkstone';
 import {execSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
@@ -12,7 +11,6 @@ const HAIKU_HOME = path.join(os.homedir(), '.haiku');
 
 export const FILE_PATHS = {
   HAIKU_HOME,
-  AUTH_TOKEN: path.join(HAIKU_HOME, 'auth'),
   DOTENV: path.join(HAIKU_HOME, '.env'),
 };
 
@@ -30,9 +28,6 @@ export type HaikuDotEnv = {
 
 const applyEnv = (env: HaikuDotEnv) => {
   Object.assign(global.process.env, env);
-  if (env.HAIKU_API) {
-    inkstone.setConfig({baseUrl: env.HAIKU_API});
-  }
 };
 
 export namespace client {
@@ -108,19 +103,6 @@ export namespace client {
       );
 
       return newenv;
-    }
-
-    static getAuthToken (): string {
-      if (fs.existsSync(FILE_PATHS.AUTH_TOKEN)) {
-        const token = fs.readFileSync(FILE_PATHS.AUTH_TOKEN).toString();
-        return token;
-      }
-      return undefined;
-    }
-
-    static setAuthToken (newToken: string) {
-      ensureHomeFolder();
-      fs.writeFileSync(FILE_PATHS.AUTH_TOKEN, newToken);
     }
   }
 }

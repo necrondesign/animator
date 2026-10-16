@@ -57,8 +57,7 @@ export function createProjectFiles (
               "version": "${userconfig.version}",
               "haiku": ${JSON.stringify(userconfig, null, 2)},
               "authors": [
-                "${authorName}",
-                "Haiku <contact@haiku.ai>"
+                "${authorName}"
               ],
               "license": "LicenseRef-LICENSE",
               "main": "index.js",
@@ -157,12 +156,14 @@ export function createProjectFiles (
       fse.outputFileSync(path.join(projectOptions.projectPath, 'README.md'), dedent`
           # ${projectNameSafe}
 
-          This project was created with [Haiku](https://haiku.ai).
+          This project was created with [motion-side](https://github.com/necrondesign/motion-side), based on Haiku Animator.
 
           ## Install
 
+          Install it into your web app from this folder:
+
           \`\`\`
-          $ haiku install ${projectNameSafe}
+          $ npm install <path to this folder>
           \`\`\`
 
           ## Usage
@@ -252,11 +253,9 @@ export function createProjectFiles (
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, '.npmrc'), dedent`
         registry=https://registry.npmjs.org/
-        @haiku:registry=https://reservoir.haiku.ai:8910/
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, '.yarnrc'), dedent`
         registry "https://registry.npmjs.org/"
-        "@haiku:registry" "https://reservoir.haiku.ai:8910/"
       `);
 
       // Let the user skip this heavy step optionally, e.g. when just initializing the project the first time

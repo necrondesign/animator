@@ -1,6 +1,5 @@
 import {EnvoyEvent} from '.';
 import {Registry} from '../dal/Registry';
-import {obfuscate, Obfuscation, unobfuscate} from '../utils/crypto';
 import {EnvoyClientEventHandler} from './EnvoyClient';
 import EnvoyServer from './EnvoyServer';
 
@@ -50,13 +49,5 @@ export default class EnvoyHandler {
     if (this.registry) {
       this.registry.deleteConfig(key);
     }
-  }
-
-  setConfigObfuscated<T> (key: string, value: T) {
-    this.setConfig<Obfuscation>(key, obfuscate(value));
-  }
-
-  getConfigObfuscated<T> (key: string): T {
-    return unobfuscate(this.getConfig<Obfuscation>(key));
   }
 }

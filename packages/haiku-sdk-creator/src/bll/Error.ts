@@ -1,127 +1,70 @@
-import {shouldEmitErrors} from 'haiku-common/lib/environments';
-import {basename} from 'path';
-import {crashReportFork} from '../dal/Carbonite';
 import {MaybeAsync} from '../envoy';
 import EnvoyHandler from '../envoy/EnvoyHandler';
 
 export const ERROR_CHANNEL = 'error';
 
-const UPLOAD_INTERVAL = 10;
-
-export interface CrashMetadata {
-  zipPath: string;
-  uniqueId: string;
-  finalUrl: string;
+/**
+ * What Creator shows for an uncaught error. Errors are only displayed locally; nothing is sent anywhere.
+ */
+export interface ErrorReport {
+  message: string;
+  stack?: string;
 }
 
-export interface SentryExtraData {
-  carbonite?: string;
-  projectName?: string;
-  projectPath?: string;
-  organizationName?: string;
+interface ErrorTarget {
+  reportError(report: ErrorReport): MaybeAsync<void>;
 }
 
-export interface SentryCallbackData {
-  extra?: SentryExtraData;
-  exception?: {
-    values?: {
-      value?: string;
-    }[];
-    [index: number]: {
-      value?: string;
+const MAX_PENDING_REPORTS = 10;
+
+export const describeError = (error: any): ErrorReport => {
+  if (error && typeof error === 'object') {
+    return {
+      message: String(error.message || error.toString()),
+      stack: typeof error.stack === 'string' ? error.stack : undefined,
     };
-  };
-  culprit?: string;
-}
-
-const getErrorMetadata = (data: SentryCallbackData) => ({
-  message: (data.exception && data.exception[0] && data.exception[0].value) || 'Unknown',
-  culprit: data.culprit,
-});
-
-// Returns true iff a culprit is from a local component file.
-export const isUserlandCulprit = (culprit: string) => culprit && basename(culprit) === 'code.js';
-
-export class SentryReporter {
-  /**
-   * An ErrorHandler instance that should be attached to a SentryReporter instance as soon as it's ready.
-   * Because ErrorHandler instances will be resolved asynchronously in webviews, we typically won't have a handle
-   * on the envoy handler at construction-time for this class.
-   */
-  envoy?: ErrorHandler;
-
-  /**
-   * Project snapshots for crash reports are disabled; only the local error notice is emitted.
-   */
-  freezeInCarbonite (data: SentryCallbackData, emit = true): string|undefined {
-    if (this.envoy) {
-      Promise.resolve(this.envoy.crashReport(emit, data));
-    }
-    return undefined;
   }
 
-  /**
-   * Sentry callback for Node and JS clients. If an error handler is bound, attach a carbonite URL (if appropriate)
-   * and emit.
-   */
-  callback (data: SentryCallbackData, emit = true): SentryCallbackData {
-    if (!this.envoy) {
-      return data;
-    }
+  return {message: error === undefined || error === null || error === '' ? 'Unknown error' : String(error)};
+};
 
-    if (!data.extra) {
-      data.extra = {};
-    }
+/**
+ * Collects uncaught errors of the plumbing process and forwards them to the ERROR_CHANNEL handler, which tells Creator
+ * to show a notice. (Creator shows its own window errors directly, and those of the Glass/Timeline webviews via their
+ * console output.) Errors raised before the envoy handler is attached are queued.
+ */
+export class ErrorReporter {
+  private target?: ErrorTarget;
+  private pending: ErrorReport[] = [];
 
-    if (data.extra.projectPath && shouldEmitErrors()) {
-      this.freezeInCarbonite(data, emit);
-    } else {
-      Promise.resolve(this.envoy.crashReport(emit, data));
-    }
+  set envoy (target: ErrorTarget) {
+    this.target = target;
+    const pending = this.pending;
+    this.pending = [];
+    pending.forEach((report) => this.send(report));
+  }
 
-    return data;
+  report (error: any) {
+    const report = describeError(error);
+    if (this.target) {
+      this.send(report);
+    } else if (this.pending.length < MAX_PENDING_REPORTS) {
+      this.pending.push(report);
+    }
+  }
+
+  private send(report: ErrorReport) {
+    Promise.resolve(this.target.reportError(report)).catch (() => {
+      // The error channel is gone (e.g. while shutting down); there is nobody left to tell.
+    });
   }
 }
 
 export class ErrorHandler extends EnvoyHandler {
-  private lastUploadTime: number;
-
-  get shouldSendCrashReport () {
-    return !this.lastUploadTime || Date.now() >= UPLOAD_INTERVAL * 60000 + this.lastUploadTime;
-  }
-
-  clearLastUploadTime (): MaybeAsync<void> {
-    this.lastUploadTime = undefined;
-  }
-
-  crashReport (
-    emit: boolean,
-    data: SentryCallbackData,
-    projectPath?: string,
-    zipName?: string,
-    zipPath?: string,
-    uniqueId?: string,
-    finalUrl?: string,
-  ): MaybeAsync<void> {
-    if (projectPath && this.shouldSendCrashReport) {
-      this.lastUploadTime = Date.now();
-
-      crashReportFork(projectPath, zipName, zipPath, finalUrl);
-      if (emit) {
-        this.server.emit(ERROR_CHANNEL, {
-          payload: {uniqueId, ...getErrorMetadata(data)},
-          name: `${ERROR_CHANNEL}:error`,
-        });
-      }
-
-      return;
-    }
-
-    if (emit) {
-      this.server.emit(ERROR_CHANNEL, {
-        payload: getErrorMetadata(data),
-        name: `${ERROR_CHANNEL}:error`,
-      });
-    }
+  reportError (report: ErrorReport): MaybeAsync<void>  {
+    this.server.emit(ERROR_CHANNEL, {
+      payload: report,
+      name: `${ERROR_CHANNEL}:error`,
+    });
   }
 }

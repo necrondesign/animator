@@ -21,7 +21,6 @@
   "license": "UNLICENSED",
   "types": "./lib/index.d.ts",
   "dependencies": {
-    "@haiku/sdk-inkstone": "5.1.2",
     "dedent": "^0.7.0",
     "dotenv": "^5.0.1",
     "fs-extra": "^4.0.2",

@@ -24,7 +24,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@haiku/sdk-client": "5.1.2",
-    "@haiku/sdk-inkstone": "5.1.2",
     "haiku-common": "5.1.2",
     "haiku-serialization": "5.1.2",
     "qs": "6.4.0",
