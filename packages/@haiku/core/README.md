@@ -41,6 +41,9 @@ components and this runtime:
 1. Design a component in motion-side.
 2. Install the project folder into your app: `$ npm install <path to the project folder>`
 3. Use it — the editor's Export window shows the exact snippets for your project:
+   - web component, on any page or in any framework: `import '<package>/element'` and use the tag it registers
+     (named after the package, e.g. `<my-card></my-card>`; attributes `autoplay` and `loop`; methods `play()`,
+     `pause()`, `setState()`)
    - plain JavaScript: `require('<package>')(document.getElementById('mount'))`
    - React 18 or 19: `import Animation from '<package>/react'` and render `<Animation />`
    - Vue: `import Animation from '<package>/vue'`

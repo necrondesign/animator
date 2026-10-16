@@ -2,6 +2,8 @@
 import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 import * as path from 'path';
+// @ts-ignore
+import {toCustomElementName} from '@haiku/core/lib/adapters/element/HaikuElementAdapter';
 
 const logger = console;
 
@@ -204,6 +206,12 @@ export function createProjectFiles (
       fse.outputFileSync(path.join(projectOptions.projectPath, 'vue.js'), dedent`
         // By default, a vue-dom module is exported; see code/main/* for other options
         module.exports = require('./code/main/vue-dom')
+      `);
+      fse.outputFileSync(path.join(projectOptions.projectPath, 'element.js'), dedent`
+        // Registers the main component as the <${toCustomElementName(npmPackageName)}> custom element (web component):
+        // import this file once, then use <${toCustomElementName(npmPackageName)}></${toCustomElementName(npmPackageName)}> in your HTML.
+        var HaikuElementAdapter = require('@haiku/core/dom/element')
+        module.exports = HaikuElementAdapter(require('./code/main/dom'), '${toCustomElementName(npmPackageName)}')
       `);
       fse.outputFileSync(path.join(projectOptions.projectPath, 'react-bare.js'), dedent`
         // This only exports a React module into which a Haiku Core must be passed

@@ -3,6 +3,7 @@ import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as React from 'react';
+import {toCustomElementName} from '@haiku/core/lib/adapters/element/HaikuElementAdapter';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {ModalHeader, ModalWrapper} from 'haiku-ui-common/lib/react/Modal';
 
@@ -106,6 +107,11 @@ const readPackageName = (folder) => {
  * Replaces Haiku's cloud "Publish"/share modal.
  */
 export default class ExportModal extends React.Component {
+  elementSnippet (packageName) {
+    const tag = toCustomElementName(packageName);
+    return `import '${packageName}/element';\n\n<${tag}></${tag}>`;
+  }
+
   copy (text) {
     clipboard.writeText(text).then(
       () => this.props.createNotice({type: 'info', title: 'Copied', message: 'Copied to the clipboard.'}),
@@ -154,6 +160,8 @@ export default class ExportModal extends React.Component {
           <div style={STYLES.sectionTitle}>Use as a web component</div>
           <div>This project is an npm package. Install it into your web app straight from its folder:</div>
           {this.renderSnippet(installCommand)}
+          <div>Web Component (any page or framework):</div>
+          {this.renderSnippet(this.elementSnippet(packageName))}
           <div>JavaScript:</div>
           {this.renderSnippet(`const mount = require('${packageName}');\nmount(document.getElementById('animation'));`)}
           <div>React:</div>

@@ -132,6 +132,11 @@ async function checkStartScreen (env, launchOptions, errors) {
       errors.push('[smoke] the new project\'s .npmrc still points @haiku packages at Haiku\'s dead registry');
       return;
     }
+    const element = path.join(newProject, 'element.js');
+    if (!fse.existsSync(element) || !fse.readFileSync(element, 'utf8').includes('\'my-project\'')) {
+      errors.push('[smoke] the new project has no element.js registering <my-project>');
+      return;
+    }
     log.log('new project created and opened from the start screen');
   } catch (exception) {
     errors.push(`[smoke] start screen: ${exception.stack || exception.message}`);
@@ -290,6 +295,32 @@ async function main () {
       log.log('security guards: navigation, window.open and remote <webview> are blocked');
     } else {
       errors.push(`[smoke] security guards failed: ${JSON.stringify(guard)}`);
+    }
+
+    // The project as a web component (the element adapter around its bytecode) renders in a real browser engine.
+    const elementCheck = await runInCreator(`new Promise((resolve) => {
+      try {
+        const bytecode = require(${JSON.stringify(path.join(project, 'code', 'main', 'code.js'))});
+        const HaikuDOMAdapter = require('@haiku/core/dom');
+        const ElementClass = require('@haiku/core/dom/element')(HaikuDOMAdapter(bytecode));
+        customElements.define('smoke-test-element', ElementClass);
+        const element = document.createElement('smoke-test-element');
+        element.style.cssText = 'position:fixed;left:0;top:0;width:200px;height:200px;';
+        document.body.appendChild(element);
+        setTimeout(() => {
+          const mount = element.shadowRoot && element.shadowRoot.querySelector('.haiku-element-mount');
+          const rendered = Boolean(mount && mount.querySelector('svg, div'));
+          element.remove();
+          resolve({rendered});
+        }, 1500);
+      } catch (error) {
+        resolve({error: error.message});
+      }
+    })`);
+    if (elementCheck.rendered) {
+      log.log('web component: the project\'s custom element renders in Chromium');
+    } else {
+      errors.push(`[smoke] the project's custom element did not render: ${JSON.stringify(elementCheck)}`);
     }
 
     // Main-process services over IPC (no @electron/remote): context menus and dialogs, from Creator and from Glass.

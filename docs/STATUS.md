@@ -184,6 +184,10 @@
 - [x] **`@haiku/core`, шаг 3 — React 18/19** (2026-10-16): адаптер без устаревших `componentWillReceiveProps` и
       `ReactDOM.render` (вставка React-содержимого в анимацию — через `createRoot`), peer-зависимость `react ^18 || ^19`,
       тест на React 19 (рендер, обновление пропсов, размонтирование). README рантайма без ссылок на мёртвые сервисы Haiku.
+- [x] **`@haiku/core`, шаг 4 — Web Component** (2026-10-16): адаптер `@haiku/core/dom/element` делает из компонента Custom
+      Element с Shadow DOM (атрибуты `autoplay`/`loop`, методы `play`/`pause`/`setState`). Каждый проект получает `element.js`,
+      регистрирующий тег по имени пакета (`my-card` → `<my-card>`); пример в окне Export. Проверено тестами (jsdom 30) и в
+      Chromium (smoke). Попутно исправлен давний баг: повторный монтаж компонента (`callRemount`) всегда падал.
 - [ ] **`@haiku/core`:** ESM-сборка, публичный API,
       React-адаптер на хуках, Vue 3, решить судьбу Angular-адаптера (Angular 6), безопасный режим
       expressions без `new Function` (CSP).

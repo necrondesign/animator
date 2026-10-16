@@ -421,7 +421,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
 
     if (!skipMarkForFullFlush) {
       this.markForFullFlush();
-      this.clearCaches(null);
+      this.clearCaches();
     }
 
     // If autoplay is not wanted, stop the all timelines immediately after we've mounted

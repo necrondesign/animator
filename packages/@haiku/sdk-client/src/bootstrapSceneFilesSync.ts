@@ -20,6 +20,7 @@ export const bootstrapSceneFilesSync = (componentFolder: string, scenename: stri
     ANGULAR_DOM_JS(getAngularSelectorName(path.basename(componentFolder)), scenename),
   );
   fse.outputFileSync(path.join(componentFolder, `code/${scenename}/vue-dom.js`), VUE_DOM_JS);
+  fse.outputFileSync(path.join(componentFolder, `code/${scenename}/element.js`), ELEMENT_JS);
 
   if (!fse.existsSync(path.join(componentFolder, `code/${scenename}/dom-standalone.js`))) {
     fse.outputFileSync(path.join(componentFolder, `code/${scenename}/dom-standalone.js`), DOM_STANDALONE_JS);
@@ -93,6 +94,12 @@ const ANGULAR_DOM_JS = (selector: string, scene: string) => dedent`
   var HaikuAngularAdapter = require('@haiku/core/dom/angular')
   var HaikuAngularModule = HaikuAngularAdapter('${selector}${scene !== 'main' ? `-${scene}` : ''}', require('./dom'))
   module.exports = HaikuAngularModule
+`.trim();
+
+// A Custom Element class for this component (unregistered; the project's element.js registers the main one).
+const ELEMENT_JS = dedent`
+  var HaikuElementAdapter = require('@haiku/core/dom/element')
+  module.exports = HaikuElementAdapter(require('./dom'))
 `.trim();
 
 const VUE_DOM_JS = dedent`
