@@ -69,6 +69,6 @@ function expressionToOASTComponent (exp, key, keyChain) {
 
 module.exports = expressionToOASTComponent;
 
-let RFOToFunctionAST = require('./RFOToFunctionAST');
-let objectToOAST = require('./objectToOAST');
-let functionToASTExpression = require('./functionToASTExpression');
+const RFOToFunctionAST = require('./RFOToFunctionAST');
+const objectToOAST = require('./objectToOAST');
+const functionToASTExpression = require('./functionToASTExpression');

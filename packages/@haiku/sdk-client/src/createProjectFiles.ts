@@ -6,14 +6,14 @@ import * as path from 'path';
 const logger = console;
 
 import {
-    fetchProjectConfigInfo,
-    getAuthorNameOrFallback,
-    getCopyrightNotice,
-    getHaikuCoreVersion,
-    getNpmPackageName,
-    getOrganizationNameOrFallback,
-    getProjectNameSafeShort,
-    getReactProjectName,
+  fetchProjectConfigInfo,
+  getAuthorNameOrFallback,
+  getCopyrightNotice,
+  getHaikuCoreVersion,
+  getNpmPackageName,
+  getOrganizationNameOrFallback,
+  getProjectNameSafeShort,
+  getReactProjectName,
 } from './ProjectDefinitions';
 
 export function createProjectFiles (
@@ -79,13 +79,13 @@ export function createProjectFiles (
           delete packageJson.dependencies['@haiku/player'];
         }
 
-          // TODO: Handle this step more gracefully when we are increasing by a major version.
+        // TODO: Handle this step more gracefully when we are increasing by a major version.
         packageJson.dependencies['@haiku/core'] = `^${haikuCoreVersion}`;
 
-          // #LEGACY: some old Haiku in the wild have an engines entry, which causes issues with yarn.
+        // #LEGACY: some old Haiku in the wild have an engines entry, which causes issues with yarn.
         delete packageJson.engines;
 
-          // Write the file assuming we may have made a change in any of the conditions above
+        // Write the file assuming we may have made a change in any of the conditions above
         fse.writeJsonSync(path.join(projectOptions.projectPath, 'package.json'), packageJson, {spaces: 2});
       }
 
@@ -109,21 +109,21 @@ export function createProjectFiles (
       // Do a bunch of fix-ups that modify the folder content from legacy naming and folder structure.
       // We need to change this subroutine any time we make a change to the project content structure
       const filesToMove: {[key: string]: string} = {
-          // Core code files
+        // Core code files
         'bytecode.js': 'code/main/code.js',
 
-          // --
-          // TODO: Switch the bundle code files to these paths, once we're ready to make the equivalent
-          // switch inside sumi-e, inkstone, share-page, and wherever else.
-          // ALSO SEE BELOW, where paths need to be changed as well
-          // 'index.embed.js': 'public/dom-embed.bundle.js',
-          // 'index.standalone.js': 'public/dom-standalone.bundle.js'
-          // --
+        // --
+        // TODO: Switch the bundle code files to these paths, once we're ready to make the equivalent
+        // switch inside sumi-e, inkstone, share-page, and wherever else.
+        // ALSO SEE BELOW, where paths need to be changed as well
+        // 'index.embed.js': 'public/dom-embed.bundle.js',
+        // 'index.standalone.js': 'public/dom-standalone.bundle.js'
+        // --
       };
       for (const formerFilePath in filesToMove) {
         const nextFilePath = filesToMove[formerFilePath];
         if (fse.existsSync(path.join(projectOptions.projectPath, formerFilePath))) {
-            // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
+          // I guess there is no 'moveSync', and 'copySync' acts weird, so here it is imperatively:
           const contentsToCopy = fse.readFileSync(path.join(projectOptions.projectPath, formerFilePath)).toString();
           fse.outputFileSync(path.join(projectOptions.projectPath, nextFilePath), contentsToCopy);
           fse.removeSync(path.join(projectOptions.projectPath, formerFilePath));
@@ -146,7 +146,7 @@ export function createProjectFiles (
 
       logger.info('[project folder] creating files');
 
-        // Other user data may have been written these, so don't overwrite if they're already present
+      // Other user data may have been written these, so don't overwrite if they're already present
       if (!fse.existsSync(path.join(projectOptions.projectPath, '.haiku/comments.json'))) {
         fse.outputFileSync(path.join(projectOptions.projectPath, '.haiku/comments.json'), dedent`
             []
@@ -188,7 +188,7 @@ export function createProjectFiles (
         `);
       }
 
-        // But a bunch of ancillary files we take full control of and overwrite despite what the user did
+      // But a bunch of ancillary files we take full control of and overwrite despite what the user did
       fse.outputFileSync(path.join(projectOptions.projectPath, 'index.js'), dedent`
         // By default, a DOM module is exported; see code/main/* for other options
         module.exports = require('./code/main/dom')

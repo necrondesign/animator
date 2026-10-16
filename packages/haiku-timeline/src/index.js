@@ -5,7 +5,6 @@ import * as qs from 'qs';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Timeline from './components/Timeline';
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
 
 // We are in a webview; use query string parameters for boot-up configuration
@@ -41,7 +40,7 @@ try {
         userconfig={userconfig}
         websocket={websocket}
         folder={config.folder}
-        />,
+      />,
       document.getElementById('root'),
     );
   });

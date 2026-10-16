@@ -4,7 +4,6 @@ import * as LoggerInstance from 'haiku-serialization/src/utils/LoggerInstance';
 export type EnvoyLogLevel = 'info' | 'log' | 'warn' | 'error';
 
 export default class EnvoyLogger implements Console {
-  // tslint:disable-next-line:variable-name
   Console: console.ConsoleConstructor;
   memory: any;
 

@@ -1328,11 +1328,11 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
 
       keyframes.forEach((keyframe, index) => {
         if (timelineProperty[keyframe].curve) {
-            // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
+          // Either a curve is defined or there is no next keyframe. Either way, there's nothing to normalize.
           return;
         }
 
-          // Create a linear tween to enforce that every transition has a curve, which is a requirement for Bodymovin.
+        // Create a linear tween to enforce that every transition has a curve, which is a requirement for Bodymovin.
         timelineProperty[keyframe].curve = Curve.Linear;
 
         if (index === keyframes.length - 1) {
@@ -1344,13 +1344,13 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
               timelineProperty[keyframe].value,
               timelineProperty[keyframes[index + 1]].value,
             )) {
-            // There is either no transition to "recover", or the transition is happening inside of 0 frames. Either
-            // way, our choice of a linear "transition" is fine.
+          // There is either no transition to "recover", or the transition is happening inside of 0 frames. Either
+          // way, our choice of a linear "transition" is fine.
           return;
         }
 
-          // Insert a keyframe one frame before the next keyframe, using identical values as the current keyframe. It
-          // will transition into the next keyframe inside of 0 frames, just like our trivial cases above.
+        // Insert a keyframe one frame before the next keyframe, using identical values as the current keyframe. It
+        // will transition into the next keyframe inside of 0 frames, just like our trivial cases above.
         timelineProperty[keyframes[index + 1] - 1] = timelineProperty[keyframe];
       });
     });

@@ -309,7 +309,7 @@ ModuleWrapper.getHaikuKnownImportMatch = (importPath) => {
 
   // not a good general solution, but good enough for player components
   return importPath.replace(/^@haiku\/player/, REPLACEMENT_MODULES['@haiku/player'])
-                   .replace(/^@haiku\/core/, REPLACEMENT_MODULES['@haiku/core']);
+    .replace(/^@haiku\/core/, REPLACEMENT_MODULES['@haiku/core']);
 };
 
 ModuleWrapper.clearHotCache = () => {

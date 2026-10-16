@@ -12,9 +12,9 @@ module.exports = {
     logger.info('[sketch utils] about to parse Sketch paths', rawDump);
 
     return rawDump
-        .trim()
-        .split('\n')
-        .filter(Boolean);
+      .trim()
+      .split('\n')
+      .filter(Boolean);
   },
 
   pathsToInstallationInfo (sketchPaths) {

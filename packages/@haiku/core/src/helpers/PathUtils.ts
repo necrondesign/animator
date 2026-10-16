@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+/* eslint-disable @stylistic/max-len */
 
 import {normalizePath, reverseNormalizedPath} from '../vendor/svg-path-reversal/SVGPathReversal';
 import {CurveDef, CurveSpec} from '../vendor/svg-points/types';
@@ -18,7 +18,6 @@ export interface Vec4 {
 
 export const splitSegmentInSVGPoints = (points: CurveSpec[], pt1Index: number, pt2Index: number, t: number): void => {
   if (pt2Index === points.length) {
-    // tslint:disable-next-line
     pt2Index = 0;
   }
 
@@ -120,7 +119,6 @@ export const distance = (a: Vec2, b: Vec2): number => {
   return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 };
 
-// tslint:disable-next-line:variable-name
 export const mat4_multiply_vec4 = (m: number[], v: Vec4): Vec4 => {
   return {
     x: v.x * m[0] + v.y * m[1] + v.z * m[2] + v.w * m[3],

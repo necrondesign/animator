@@ -1,4 +1,4 @@
-/* eslint-disable prefer-promise-reject-errors */
+
 const {URL, URLSearchParams} = require('url');
 const request = require('request');
 const fse = require('haiku-fs-extra');
@@ -164,10 +164,10 @@ class Figma {
         this.request({uri: element.svgURL, auth: false}).then((svg) => {
           resolve(Object.assign(element, {svg}));
         })
-        .catch((error) => {
-          logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`, error);
-          resolve();
-        });
+          .catch((error) => {
+            logger.error(`[figma] failed to import slice or group: ${JSON.stringify(element)}`, error);
+            resolve();
+          });
       });
     });
 
@@ -275,7 +275,6 @@ class Figma {
 
     try {
       const url = new URL(rawURL);
-      // eslint-disable-next-line
       const [_, __, id, name] = url.pathname.split('/');
 
       if (!id) {

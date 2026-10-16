@@ -2,7 +2,7 @@ import {BytecodeTimelineProperties, LayoutSpec, ThreeDimensionalLayoutProperty} 
 import {LAYOUT_3D_VANITIES} from '@haiku/core/lib/HaikuComponent';
 import Layout3D from '@haiku/core/lib/Layout3D';
 import composedTransformsToTimelineProperties,
-  {ComposedTransformSpec} from 'haiku-common/lib/layout/composedTransformsToTimelineProperties';
+{ComposedTransformSpec} from 'haiku-common/lib/layout/composedTransformsToTimelineProperties';
 import {initialValueOr} from './timelineUtils';
 
 const {createLayoutSpec, computeMatrix} = Layout3D;
@@ -46,13 +46,15 @@ const supportedMultiplicativeLayoutProperties = [
 const shimLayoutForPseudoElement = (timeline: BytecodeTimelineProperties, element: {layout: LayoutSpec}) => {
   supportedAdditiveLayoutProperties.forEach((property) => {
     if (timeline.hasOwnProperty(property)) {
-      LAYOUT_3D_VANITIES[property as keyof typeof LAYOUT_3D_VANITIES](null, element, initialValueOr(timeline, property, 0));
+      const vanity = property as keyof typeof LAYOUT_3D_VANITIES;
+      LAYOUT_3D_VANITIES[vanity](null, element, initialValueOr(timeline, property, 0));
     }
   });
 
   supportedMultiplicativeLayoutProperties.forEach((property) => {
     if (timeline.hasOwnProperty(property)) {
-      LAYOUT_3D_VANITIES[property as keyof typeof LAYOUT_3D_VANITIES](null, element, initialValueOr(timeline, property, 1));
+      const vanity = property as keyof typeof LAYOUT_3D_VANITIES;
+      LAYOUT_3D_VANITIES[vanity](null, element, initialValueOr(timeline, property, 1));
     }
   });
 };

@@ -54,7 +54,6 @@ export default class TestHelpers {
       if (err) {
         throw err;
       }
-      // tslint:disable-next-line:variable-name
       const Glass = require('@glass/react/Glass').default;
       return fetchProjectConfigInfo(folder, (fetchErr, userconfig) => {
         if (fetchErr) {

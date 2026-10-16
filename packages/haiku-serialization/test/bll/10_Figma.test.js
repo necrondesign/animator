@@ -1,4 +1,3 @@
-const {URL} = require('url');
 const tape = require('tape');
 const {Figma, FIGMA_DEFAULT_FILENAME} = require('./../../src/bll/Figma');
 const SampleFileFixture = require('../fixtures/figma/sample-file.json');

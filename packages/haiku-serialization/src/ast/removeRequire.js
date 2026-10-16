@@ -1,6 +1,6 @@
-let _ = require('lodash');
-let traverseAST = require('./traverseAST');
-let matchesRequire = require('./matchesRequire');
+const _ = require('lodash');
+const traverseAST = require('./traverseAST');
+const matchesRequire = require('./matchesRequire');
 
 /**
  * @function removeRequire
@@ -25,5 +25,5 @@ module.exports = function removeRequire (ast, identifierName, modulePath) {
 
   // otherwise we just filter it out
   ast.program.body = _.filter(ast.program.body, (stmt) =>
-      !matchesRequire(stmt, identifierName, modulePath));
+    !matchesRequire(stmt, identifierName, modulePath));
 };

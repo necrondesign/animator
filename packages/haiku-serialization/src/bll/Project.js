@@ -895,7 +895,7 @@ class Project extends BaseModel {
         const ac = this.findActiveComponentBySceneName(scenename);
 
         if (!ac) {
-          return cb({}); // eslint-disable-line standard/no-callback-literal
+          return cb({});
         }
 
         return ac.readMetadata((err, metadata) => {

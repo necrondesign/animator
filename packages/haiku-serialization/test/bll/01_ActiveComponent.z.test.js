@@ -4,12 +4,8 @@ const fse = require('haiku-fs-extra');
 const async = require('async');
 
 const Project = require('./../../src/bll/Project');
-const File = require('./../../src/bll/File');
-const Element = require('./../../src/bll/Element');
-
-const waitUntilFileProbablyWroteToDisk = (fn) => {
-  return setTimeout(fn, 2000); // Disk writes happen on a 500ms interval
-};
+require('./../../src/bll/File');
+require('./../../src/bll/Element');
 
 tape('ActiveComponent.prototype.instantiateComponent-with-z', (t) => {
   t.plan(6);

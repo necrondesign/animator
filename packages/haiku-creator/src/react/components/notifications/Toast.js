@@ -114,7 +114,7 @@ class Toast extends React.Component {
           STYLES[toastType],
           lightScheme && {backgroundColor: Color(STYLES[toastType].backgroundColor).fade(0.27)},
         ]}
-          onClick={this.closeNotice}>{icon}
+        onClick={this.closeNotice}>{icon}
         </div>
         <div style={[STYLES.title]}>{toastTitle}{(toastCount > 1) ? ` (${toastCount})` : ''}</div>
         <div style={[STYLES.body]}>{toastMessage}</div>

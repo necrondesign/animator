@@ -1,4 +1,4 @@
-/* tslint:disable:no-shadowed-variable only-arrow-functions ter-prefer-arrow-callback max-line-length no-parameter-reassignment */
+
 // Local git operations for project folders, implemented with isomorphic-git (pure JS, no native build).
 // Remote synchronization (clone/fetch/push/merge) belonged to Haiku's cloud and is not supported.
 import * as git from 'isomorphic-git';
@@ -46,7 +46,7 @@ const INDEX_LOCK_INTERVAL = 0;
 function _gimmeIndex (pwd, cb) {
   if (!LOCKED_INDEXES[pwd]) {
     LOCKED_INDEXES[pwd] = true;
-    // eslint-disable-next-line
+
     return cb(() => {
       LOCKED_INDEXES[pwd] = false;
     });

@@ -6,7 +6,7 @@ import {getAngularSelectorName, getHaikuCoreVersion} from './ProjectDefinitions'
 export const bootstrapSceneFilesSync = (componentFolder: string, scenename: string, userconfig: any) => {
   const rootComponentId = getCodeJs(scenename, userconfig);
 
-    // Only write these files if they don't exist yet; don't overwrite the user's own content
+  // Only write these files if they don't exist yet; don't overwrite the user's own content
   if (!fse.existsSync(path.join(componentFolder, `code/${scenename}/code.js`))) {
     fse.outputFileSync(path.join(componentFolder, `code/${scenename}/code.js`), rootComponentId);
   }

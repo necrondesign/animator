@@ -2,7 +2,7 @@
  * @file Work based on https://github.com/superRaytin/react-monaco-editor/blob/master/src/editor.js
  */
 
- /* global monaco:true */
+/* global monaco:true */
 
 import * as React from 'react';
 import * as Radium from 'radium';

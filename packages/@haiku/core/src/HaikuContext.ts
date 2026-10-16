@@ -28,7 +28,6 @@ export interface ComponentFactory {
  * A Haiku component tree may contain many components, but there is only one context.
  * The context is where information shared by all components in the tree should go, e.g. clock time.
  */
-// tslint:disable:variable-name
 export default class HaikuContext extends HaikuBase implements IHaikuContext {
   clock: IHaikuClock;
   component: HaikuComponent;

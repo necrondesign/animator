@@ -1158,69 +1158,69 @@ class Timeline extends React.Component {
 
     return [
       (
-          <div
-            key="gauge-timekeeping-wrapper"
-            className="gauge-timekeeping-wrapper"
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              height: 35,
-              width: timeline.getPropertiesPixelWidth(),
-              backgroundColor: Palette.COAL,
-              borderBottom: `1px solid ${Palette.FATHER_COAL}`,
-              zIndex: zIndex.timekeepingWrapper.base,
-              fontSize: 10,
-            }}
-          >
-            <GaugeTimeReadout saveTimeDisplayModeSetting={this.saveTimeDisplayModeSetting} timeline={timeline} />
-          </div>
-        ),
+        <div
+          key="gauge-timekeeping-wrapper"
+          className="gauge-timekeeping-wrapper"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            height: 35,
+            width: timeline.getPropertiesPixelWidth(),
+            backgroundColor: Palette.COAL,
+            borderBottom: `1px solid ${Palette.FATHER_COAL}`,
+            zIndex: zIndex.timekeepingWrapper.base,
+            fontSize: 10,
+          }}
+        >
+          <GaugeTimeReadout saveTimeDisplayModeSetting={this.saveTimeDisplayModeSetting} timeline={timeline} />
+        </div>
+      ),
       (
-          <SimplifiedFrameGrid
-            key="frame-grid"
-            propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
+        <SimplifiedFrameGrid
+          key="frame-grid"
+          propertiesPixelWidth={timeline.getPropertiesPixelWidth()}
+          timeline={timeline}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+        />
+      ),
+      (
+        <FrameActionsGrid
+          key="frame-actions-grid"
+          timeline={timeline}
+          onShowFrameActionsEditor={this.showFrameActionsEditor}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+        />
+      ),
+      (
+        <Gauge
+          key="gauge"
+          timeline={timeline}
+          onMouseDown={this.onGaugeMouseDown}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+        />
+      ),
+      (
+        <ScrubberInterior
+          key="scrubber"
+          timeline={timeline}
+          onMouseDown={this.onGaugeMouseDown}
+          timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+        />
+      ),
+      (
+        this.state.showBezierEditor ? (
+          <BezierPopup
+            key="bezier-poopup"
+            keyframes={this.state.currentEditingBezier}
+            onHide={this.hideBezierEditor}
             timeline={timeline}
-            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
+            activeComponent={this.getActiveComponent()}
+            x={this.state.bezierEditorCoords.x}
+            y={this.state.bezierEditorCoords.y}
           />
-        ),
-      (
-          <FrameActionsGrid
-            key="frame-actions-grid"
-            timeline={timeline}
-            onShowFrameActionsEditor={this.showFrameActionsEditor}
-            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
-          />
-        ),
-      (
-          <Gauge
-            key="gauge"
-            timeline={timeline}
-            onMouseDown={this.onGaugeMouseDown}
-            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
-          />
-        ),
-      (
-          <ScrubberInterior
-            key="scrubber"
-            timeline={timeline}
-            onMouseDown={this.onGaugeMouseDown}
-            timelineOffsetPadding={TIMELINE_OFFSET_PADDING}
-          />
-        ),
-      (
-          this.state.showBezierEditor ? (
-            <BezierPopup
-              key="bezier-poopup"
-              keyframes={this.state.currentEditingBezier}
-              onHide={this.hideBezierEditor}
-              timeline={timeline}
-              activeComponent={this.getActiveComponent()}
-              x={this.state.bezierEditorCoords.x}
-              y={this.state.bezierEditorCoords.y}
-            />
-          ) : null
-        ),
+        ) : null
+      ),
     ];
   }
 
@@ -1376,17 +1376,17 @@ class Timeline extends React.Component {
     if (!this.getActiveComponent() || !this.getActiveComponent().getCurrentTimeline()) {
       return (
         <div
-        id="timeline"
-        className="no-select"
-        style={{
-          position: 'absolute',
-          backgroundColor: Palette.GRAY,
-          color: Palette.ROCK,
-          top: 0,
-          left: 0,
-          height: '100%',
-          width: '100%',
-        }} />
+          id="timeline"
+          className="no-select"
+          style={{
+            position: 'absolute',
+            backgroundColor: Palette.GRAY,
+            color: Palette.ROCK,
+            top: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+          }} />
       );
     }
 

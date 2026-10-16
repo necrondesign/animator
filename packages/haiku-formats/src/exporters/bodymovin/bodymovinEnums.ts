@@ -74,6 +74,8 @@ export const enum ShapeType {
   Fill = 'fl',
 }
 
+// Lottie reuses the same short key for different properties of different objects.
+/* eslint-disable @typescript-eslint/no-duplicate-enum-values */
 export const enum TransformKey {
   TransformOrigin = 'a',
   BorderRadius = 'r',
@@ -99,6 +101,7 @@ export const enum TransformKey {
   StrokeLinejoin = 'lj',
   StrokeMiterlimit = 'ml',
 }
+/* eslint-enable @typescript-eslint/no-duplicate-enum-values */
 
 export const enum StrokeLinecap {
   Butt = 1,

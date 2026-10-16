@@ -1,4 +1,4 @@
-let generate = require('@babel/generator').default;
+const generate = require('@babel/generator').default;
 
 function generateCode (ast, options, code) {
   const output = generate(ast, options || {

@@ -13,7 +13,6 @@ import {
  * It is basically a state machine indicating which interaction mode is active.
  * @namespace {object}
  */
-// tslint:disable-next-line:no-namespace
 export namespace InteractionMode {
   export const GLASS_EDIT = CoreInteractionMode.EDIT; // Default mode, all is editable
   export const GLASS_PREVIEW = CoreInteractionMode.LIVE; // Preview mode

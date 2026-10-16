@@ -145,7 +145,6 @@ export default class TransitionBody extends React.Component {
     const pxOffsetLeft = this.props.keyframe.getPixelOffsetLeft(0, frameInfo.pxpf, frameInfo.mspf);
     const pxOffsetRight = this.props.keyframe.getPixelOffsetRight(0, frameInfo.pxpf, frameInfo.mspf);
     const curve = this.props.keyframe.getCurveCapitalized();
-    // tslint:disable-next-line:variable-name
     const CurveSVG = CURVESVGS[curve + 'SVG'];
     const curverepr = CurveSVG ? (
       <CurveSVG

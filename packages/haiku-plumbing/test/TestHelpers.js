@@ -5,7 +5,6 @@ import * as fse from 'haiku-fs-extra';
 import * as randomAlphabetical from 'haiku-serialization/src/utils/randomAlphabetical';
 import Plumbing, {HAIKU_WS_SECURITY_TOKEN} from '@plumbing/Plumbing';
 
-
 function websocket (host, port, folder, alias, type) {
   const websocket = new Websocket(
     `ws://${host}:${port}/?folder=${folder}&alias=${alias}&type=${type}&token=${HAIKU_WS_SECURITY_TOKEN}`);

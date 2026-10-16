@@ -1,5 +1,5 @@
-let fse = require('haiku-fs-extra');
-let filterWalkFolder = require('./filterWalkFolder');
+const fse = require('haiku-fs-extra');
+const filterWalkFolder = require('./filterWalkFolder');
 
 module.exports = function walkFiles (dir, done) {
   return filterWalkFolder(dir, fileOnlyFilter, done);

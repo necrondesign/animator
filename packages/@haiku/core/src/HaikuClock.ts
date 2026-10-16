@@ -62,7 +62,6 @@ if (!HaikuGlobal.HaikuGlobalAnimationHarness) {
   HaikuGlobal.HaikuGlobalAnimationHarness.frame();
 }
 
-// tslint:disable:variable-name
 export default class HaikuClock extends HaikuBase implements IHaikuClock {
   private boundRunner: () => void = () => {
     this.run();

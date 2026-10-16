@@ -15,7 +15,7 @@ import AssetList from './AssetList';
 import FileImporter from './FileImporter';
 import DesignFileCreator from './DesignFileCreator';
 import {statSync} from 'fs';
-import {basename, extname} from 'path';
+import {basename} from 'path';
 
 const openWithDefaultProgram = (asset) => {
   shell.openPath(asset.getAbspath());
@@ -183,8 +183,6 @@ class Library extends React.Component {
       })
       .catch((error = {}) => {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
-        const reportData = {url, message};
-
         this.setState({isLoading: false, loadingProgress: null, loadingSpeed: null, lockLoadingFromWatchers: false});
 
         if (error.status === 403) {
@@ -226,7 +224,7 @@ class Library extends React.Component {
 
   handleSketchLaunch (asset) {
     sketchUtils.checkIfInstalled().then((isSketchInstalled) => {
-      if (Boolean(isSketchInstalled)) {
+      if (isSketchInstalled) {
         openWithDefaultProgram(asset);
         // On library Sketch asset double click, ask to download Sketch only if on mac
       } else if (isMac()) {
@@ -390,7 +388,7 @@ class Library extends React.Component {
         <div
           id="library-scroll-wrap"
           style={STYLES.scrollwrap}>
-            <div style={STYLES.assetsWrapper}>
+          <div style={STYLES.assetsWrapper}>
             {this.shouldDisplayAssetList() && (
               <AssetList
                 websocket={this.props.websocket}
@@ -408,18 +406,18 @@ class Library extends React.Component {
                 conglomerateComponent={this.props.conglomerateComponent}
               />
             )}
-              {this.shouldDisplayAssetCreator() && (
-                <DesignFileCreator
-                  projectModel={this.props.projectModel}
-                  websocket={this.props.websocket}
-                  figma={this.state.figma}
-                  onSetFigmaToken={this.setFigmaToken}
-                  onImportFigmaAsset={this.importFigmaAsset}
-                  onRefreshFigmaAsset={this.importFigmaAsset}
-                  onStart={this.onAssetCreatorStart}
-                />
-              )}
-            </div>
+            {this.shouldDisplayAssetCreator() && (
+              <DesignFileCreator
+                projectModel={this.props.projectModel}
+                websocket={this.props.websocket}
+                figma={this.state.figma}
+                onSetFigmaToken={this.setFigmaToken}
+                onImportFigmaAsset={this.importFigmaAsset}
+                onRefreshFigmaAsset={this.importFigmaAsset}
+                onStart={this.onAssetCreatorStart}
+              />
+            )}
+          </div>
         </div>
         {
           this.state.sketchDownloader.isVisible &&

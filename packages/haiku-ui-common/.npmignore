@@ -4,7 +4,6 @@ src/
 stories/
 test/
 tsconfig.json
-tslint.json
 tsconfig.test.json
 typings/
 README.md

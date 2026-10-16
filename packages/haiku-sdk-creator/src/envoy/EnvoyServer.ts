@@ -194,17 +194,18 @@ export default class EnvoyServer {
               //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
               this.broadcast(response);
             })
-            .catch((error: Error) => {
-              const response = {
-                channel: data.channel,
-                data: {error: error instanceof Error ? {message: error.message} : error},
-                id: data.id,
-                intent: DatagramIntent.RESPONSE,
-              } as Datagram;
-              // TODO: could reply directly to the client that requested instead of broadcasting to all
-              //       would require identifying the client (via datagram) & then tracking clientId in future datagrams
-              this.broadcast(response);
-            });
+              .catch((error: Error) => {
+                const response = {
+                  channel: data.channel,
+                  data: {error: error instanceof Error ? {message: error.message} : error},
+                  id: data.id,
+                  intent: DatagramIntent.RESPONSE,
+                } as Datagram;
+                // TODO: could reply directly to the client that requested instead of broadcasting to all
+                //       would require identifying the client (via datagram) & then tracking clientId in future
+                //       datagrams
+                this.broadcast(response);
+              });
 
           } else {
             const response = {

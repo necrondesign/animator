@@ -88,7 +88,7 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
             key={`pagination-${page}-span`}
             style={{...STYLES.pageNumber, color: page === this.state.currentHoveredPage && Palette.SUNSTONE}}
           >
-          •
+            •
           </span>
         </a>,
       );
@@ -152,14 +152,16 @@ export class Paginator extends React.PureComponent<PaginatorProps, PaginatorStat
               style={{...STYLES.arrow, color: 'next' === this.state.currentHoveredArrow && Palette.SUNSTONE}}
               key="next"
               onClick={() => {
-                this.changeFirstItemToDisplay(Math.min(this.props.firstItemToDisplay + this.props.numItemsPerPage, this.props.numTotalItems));
+                this.changeFirstItemToDisplay(
+                  Math.min(this.props.firstItemToDisplay + this.props.numItemsPerPage, this.props.numTotalItems),
+                );
               }}
               onMouseEnter={() => {
                 this.hoverArrowOn('next');
               }}
               onMouseLeave={this.hoverArrowOff}
             >
-            →
+              →
             </span>
           }
         </div>

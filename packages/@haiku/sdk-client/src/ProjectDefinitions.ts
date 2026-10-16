@@ -51,8 +51,8 @@ export const getProjectNameLowerCase = (name: string) => getSafeProjectName(name
 export const getReactProjectName = (name: string) => `React_${getSafeProjectName(name)}`;
 
 export const getAngularSelectorName = (name: string) => getSafeProjectName(name)
-.replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
-.replace(/^-/, '');
+  .replace(/([A-Z])/g, (char: string) => `-${char.toLowerCase()}`)
+  .replace(/^-/, '');
 
 export const getStandaloneName = (organizationName: string, name: string) =>
   `HaikuComponent_${organizationName}_${getProjectNameSafeShort(name)}`;

@@ -25,11 +25,11 @@ export class PrettyScroll extends React.PureComponent {
           `}
         </style>
 
-    {
-      React.Children.map(this.props.children, (child: React.ReactElement<any>) => (
-        React.cloneElement(child, {className: child.props.className + ' haiku-scroll'})
-      ))
-    }
+        {
+          React.Children.map(this.props.children, (child: React.ReactElement<any>) => (
+            React.cloneElement(child, {className: child.props.className + ' haiku-scroll'})
+          ))
+        }
 
       </div>
     );

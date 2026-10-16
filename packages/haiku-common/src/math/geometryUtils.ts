@@ -169,16 +169,14 @@ export const transform2DPoint = (point: Vec2, ancestryMatrices: any[]): Vec2 => 
 };
 
 export const isPointAlongStroke = (element: HaikuElement, point: Vec2,
-                                   threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
+  threshold: number = DEFAULT_LINE_SELECTION_THRESHOLD): boolean => {
 
   const original = element;
   if (element.type === 'use') {
-    // tslint:disable-next-line
     element = element.getTranscludedElement();
   }
 
   if (isNaN(threshold) || threshold < DEFAULT_LINE_SELECTION_THRESHOLD) {
-    // tslint:disable-next-line
     threshold = DEFAULT_LINE_SELECTION_THRESHOLD;
   }
 
@@ -238,7 +236,6 @@ export const isPointInsidePrimitive = (element: HaikuElement, point: Vec2): bool
 
   const original = element;
   if (element.type === 'use') {
-    // tslint:disable-next-line:no-parameter-reassignment
     element = element.getTranscludedElement();
     if (!element) {
       return false;

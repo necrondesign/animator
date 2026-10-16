@@ -23,7 +23,7 @@ test('fileManipulation#unzip succesfully unzips a file', async (t) => {
 });
 
 test('fileManipulation#sanitize replaces invalid linux characters with a dash', (t) => {
-  const sanitized = fileManipulation.sanitize('my / file / name')
+  const sanitized = fileManipulation.sanitize('my / file / name');
   t.equal(sanitized, 'my - file - name', 'dashes should be removed');
   t.end();
-})
+});

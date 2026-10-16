@@ -1,8 +1,8 @@
-let fse = require('fs-extra');
-let semver = require('semver');
-let lodash = require('lodash');
-let path = require('path');
-let allPackages = require('./packages')();
+const fse = require('fs-extra');
+const semver = require('semver');
+const lodash = require('lodash');
+const path = require('path');
+const allPackages = require('./packages')();
 
 module.exports = function getSemverTop () {
   let top;

@@ -6,7 +6,6 @@
  * Interaction mode types.
  * @namespace {object}
  */
-// tslint:disable-next-line:no-namespace
 export namespace InteractionMode {
   export const EDIT = 0; // Default mode, all is editable
   export const LIVE = 1; // Live mode

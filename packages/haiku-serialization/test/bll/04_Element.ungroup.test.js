@@ -39,7 +39,7 @@ tape('Element.ungroup', (suite) => {
           }
           const element = ac0.findElementByComponentId(mana.attributes['haiku-id']);
           test.ok(element, 'element present');
-          const template = ac0.fetchActiveBytecodeFile().getReifiedDecycledBytecode().template;
+          ac0.fetchActiveBytecodeFile().getReifiedDecycledBytecode();
           let counter = 0;
           element.getHaikuElement().visit((descendantHaikuElement) => {
             if (descendantHaikuElement.tagName === 'use') {

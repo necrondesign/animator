@@ -8,7 +8,6 @@
  * nor user-defined states collide with known keywords which will cause problems
  * with codegen and runtime exceptions.
  */
-/* tslint:disable */
 const WORDS = {
   'enum': true,
   'function': true,
@@ -76,7 +75,6 @@ const WORDS = {
   'while': true,
   'yield': true,
 };
-/* tslint:enable */
 
 const isReserved = (word) => {
   return WORDS[word];

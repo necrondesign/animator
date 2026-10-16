@@ -39,8 +39,12 @@ export class RevealPanel extends React.PureComponent<RevealPanelProps> {
           transform: `translateX(${this.props.showDetail ? '-50%' : '0'})`,
         }}
       >
-        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.hidden : STYLES.visible)}}>{this.props.leftPanel}</div>
-        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.visible : STYLES.hidden)}}>{this.props.rightPanel}</div>
+        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.hidden : STYLES.visible)}}>
+          {this.props.leftPanel}
+        </div>
+        <div style={{...STYLES.item, ...(this.props.showDetail ? STYLES.visible : STYLES.hidden)}}>
+          {this.props.rightPanel}
+        </div>
       </div>
     );
   }

@@ -136,7 +136,6 @@ class Snippets extends React.PureComponent {
     } else {
       const allLines = this.props.editor._modelData.viewModel.lines.lines.length + 1;
       range = new monaco.Range(allLines, 100, allLines, 100);
-      // tslint:disable-next-line:no-parameter-reassignment
       injectable = `${injectable}`;
     }
 

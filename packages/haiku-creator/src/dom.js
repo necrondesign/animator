@@ -2,7 +2,6 @@ import * as React from 'react';
 import {render} from 'react-dom';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import Creator from './react/Creator';
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
 const remote = require('@electron/remote');
 

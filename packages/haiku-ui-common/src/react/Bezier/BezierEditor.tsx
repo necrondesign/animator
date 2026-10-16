@@ -262,71 +262,71 @@ export default class BezierEditor extends React.Component<BezierEditorProps> {
         };
 
     return (
-        <div
-          className={wrapperClass}
-          style={{
-            background: Palette.COAL,
-            borderRadius: 4,
-            width: popupWidth,
-            padding: '11px 20px 0 20px',
-            height: popupHeight,
-            textAlign: 'center',
-            boxShadow: 'rgba(21, 32, 34, 0.9) 0px 12px 60px 0px',
-          }}
+      <div
+        className={wrapperClass}
+        style={{
+          background: Palette.COAL,
+          borderRadius: 4,
+          width: popupWidth,
+          padding: '11px 20px 0 20px',
+          height: popupHeight,
+          textAlign: 'center',
+          boxShadow: 'rgba(21, 32, 34, 0.9) 0px 12px 60px 0px',
+        }}
+      >
+        <BezierOnionPreview value={value} update={!down} />
+        <svg
+          style={styles as React.CSSProperties}
+          ref={this.assignRootRef}
+          className={className}
+          width={width}
+          height={height}
         >
-          <BezierOnionPreview value={value} update={!down} />
-          <svg
-            style={styles as React.CSSProperties}
-            ref={this.assignRootRef}
-            className={className}
-            width={width}
-            height={height}
-          >
-            <Grid
-              {...sharedProps}
-              background={svgBackground}
-              gridColor={gridColor}
-            />
-            <BezierCurveGraph
-              {...sharedProps}
-              value={value}
-              curveColor={curveColor}
-              curveWidth={curveWidth}
-            />
-            {readOnly ? (
-              undefined
-            ) : (
-              <g>
-                <Handle
-                  {...sharedProps}
-                  {...handle1Events}
-                  index={0}
-                  xval={value[0]}
-                  yval={value[1]}
-                  handleRadius={handleRadius}
-                  handleColor={handleColor}
-                  down={down === 1}
-                  hover={hover === 1}
-                  handleStroke={handleStroke}
-                  background={background}
-                />
-                <Handle
-                  {...sharedProps}
-                  {...handle2Events}
-                  index={1}
-                  xval={value[2]}
-                  yval={value[3]}
-                  handleRadius={handleRadius}
-                  handleColor={handleColor}
-                  down={down === 2}
-                  hover={hover === 2}
-                  handleStroke={handleStroke}
-                  background={background}
-                />
-              </g>
-            )}
-          </svg>
-        </div>
+          <Grid
+            {...sharedProps}
+            background={svgBackground}
+            gridColor={gridColor}
+          />
+          <BezierCurveGraph
+            {...sharedProps}
+            value={value}
+            curveColor={curveColor}
+            curveWidth={curveWidth}
+          />
+          {readOnly ? (
+            undefined
+          ) : (
+            <g>
+              <Handle
+                {...sharedProps}
+                {...handle1Events}
+                index={0}
+                xval={value[0]}
+                yval={value[1]}
+                handleRadius={handleRadius}
+                handleColor={handleColor}
+                down={down === 1}
+                hover={hover === 1}
+                handleStroke={handleStroke}
+                background={background}
+              />
+              <Handle
+                {...sharedProps}
+                {...handle2Events}
+                index={1}
+                xval={value[2]}
+                yval={value[3]}
+                handleRadius={handleRadius}
+                handleColor={handleColor}
+                down={down === 2}
+                hover={hover === 2}
+                handleStroke={handleStroke}
+                background={background}
+              />
+            </g>
+          )}
+        </svg>
+      </div>
     );
   }
 }

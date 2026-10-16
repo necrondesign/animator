@@ -30,7 +30,6 @@ export const calculateValue = (
   sortedKeyframes?: number[],
 ) => {
   if (!sortedKeyframes) {
-    // tslint:disable-next-line:no-parameter-reassignment
     sortedKeyframes = getSortedKeyframes(keyframeGroup);
   }
   const keyframesList = getKeyframesList(sortedKeyframes, nowValue);

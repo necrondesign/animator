@@ -181,7 +181,6 @@ class StageTitleBar extends React.Component {
           if (heartbeatErr || !masterState) {
             // If master disconnects we might not even get an error, so create a fake error in its place
             if (!heartbeatErr) {
-              // tslint:disable-next-line:no-parameter-reassignment
               heartbeatErr = new Error('Unknown problem with master heartbeat');
             }
             logger.error(heartbeatErr);

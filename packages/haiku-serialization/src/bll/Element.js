@@ -239,7 +239,6 @@ class Element extends BaseModel {
   }
 
   isLockedViaParents () {
-    // tslint:disable-next-line:no-this-assignment
     let p = this;
     while (p) {
       if (p.isLocked()) {
@@ -1080,7 +1079,6 @@ class Element extends BaseModel {
     const existingRows = this.getAllRows();
     existingRows.forEach((row) => row.mark());
 
-    // tslint:disable-next-line:no-this-assignment
     const element = this;
     const component = this.component;
     const timeline = this.component.getCurrentTimeline();
@@ -1667,7 +1665,6 @@ class Element extends BaseModel {
   }
 
   getParentSvgElement () {
-    // tslint:disable-next-line:no-this-assignment
     let currElem = this;
     while (currElem) {
       if (currElem.getNameString() === 'svg') {

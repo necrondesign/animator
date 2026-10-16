@@ -88,7 +88,7 @@ function parse (xml) {
       if (!attr) {
         return node;
       }
-            // tslint:disable-next-line:triple-equals
+            // eslint-disable-next-line eqeqeq
       if (attr.name !== 'id' && parseFloat(attr.value) == attr.value) {
         attr.value = parseFloat(attr.value);
       }

@@ -53,7 +53,7 @@ export class ErrorReporter {
     }
   }
 
-  private send(report: ErrorReport) {
+  private send (report: ErrorReport) {
     Promise.resolve(this.target.reportError(report)).catch (() => {
       // The error channel is gone (e.g. while shutting down); there is nobody left to tell.
     });

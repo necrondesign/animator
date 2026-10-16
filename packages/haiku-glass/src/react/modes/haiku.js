@@ -1,4 +1,3 @@
-/* tslint:disable */
 
 function kw (type) {
   return {type: type, style: 'keyword'}

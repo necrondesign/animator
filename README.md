@@ -87,9 +87,11 @@ For the compiler to watch for changes as you develop, run the following command 
 
 ### Before committing
 
-First lint all of the code:
+First lint all of the code (this only reports problems):
 
-    $ yarn lint-all
+    $ yarn lint
+
+Safe automatic fixes (formatting, `let` → `const`) can be applied explicitly with `yarn lint:fix`.
 
 Then run the unit tests in all of the code:
 

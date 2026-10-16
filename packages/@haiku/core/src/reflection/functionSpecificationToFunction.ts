@@ -8,7 +8,6 @@ export default function functionSpecificationToFunction (name, params, body, typ
   let fn;
 
   if (type === 'ArrowFunctionExpression') {
-    // tslint:disable-next-line:no-function-constructor-with-string-args
     fn = new Function(
       '\n' +
       'return ' +
@@ -22,7 +21,6 @@ export default function functionSpecificationToFunction (name, params, body, typ
       '}\n',
     )();
   } else {
-    // tslint:disable-next-line:no-function-constructor-with-string-args
     fn = new Function(
       '\n' +
       'return function ' +

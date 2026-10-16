@@ -15,7 +15,6 @@ import {join} from 'path';
 const resolveFfmpegPath = (): string => {
   try {
     // ffmpeg-static exports the absolute path of its downloaded binary (or null on unsupported platforms).
-    // tslint:disable-next-line:no-var-requires
     const staticPath: string|null = require('ffmpeg-static');
     if (staticPath) {
       return staticPath;

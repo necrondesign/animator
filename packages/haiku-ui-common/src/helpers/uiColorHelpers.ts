@@ -17,11 +17,11 @@ export function derivateDisplayValueFromColorString (colorString: string) {
     : DisplayValues[get(colorString).model.toUpperCase() as keyof typeof DisplayValues] || DisplayValues.HEX;
 }
 
-export function derivateStringFromColorResult (result: ColorResult & { source: string }) {
+export function derivateStringFromColorResult (result: ColorResult & {source: string}) {
   const values: [number, number, number, number] =
-  Number(result.source) === DisplayValues.HSL
-  ? [roundValue(result.hsl.h), roundValue(result.hsl.s * 100), roundValue(result.hsl.l * 100), result.hsl.a]
-  : [result.rgb.r, result.rgb.g, result.rgb.b, result.hsl.a];
+    Number(result.source) === DisplayValues.HSL
+      ? [roundValue(result.hsl.h), roundValue(result.hsl.s * 100), roundValue(result.hsl.l * 100), result.hsl.a]
+      : [result.rgb.r, result.rgb.g, result.rgb.b, result.hsl.a];
 
   return to(DisplayValues[result.source as unknown as number].toLowerCase(), values);
 }

@@ -1,8 +1,8 @@
-let isFunctionNode = require('./isFunctionNode');
-let getFunctionNodeName = require('./getFunctionNodeName');
-let getFunctionNodeParams = require('./getFunctionNodeParams');
-let getFunctionNodeBody = require('./getFunctionNodeBody');
-let computeUnaryExpression = require('./computeUnaryExpression');
+const isFunctionNode = require('./isFunctionNode');
+const getFunctionNodeName = require('./getFunctionNodeName');
+const getFunctionNodeParams = require('./getFunctionNodeParams');
+const getFunctionNodeBody = require('./getFunctionNodeBody');
+const computeUnaryExpression = require('./computeUnaryExpression');
 
 function OASTToRO (oast) {
   if (oast.type === 'ObjectExpression') {

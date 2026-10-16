@@ -13,6 +13,8 @@ declare module 'react-color' {
     v: number;
   }
 
+  // The type parameter must match the declaration in react-color for the interfaces to merge.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface CustomPickerProps<A> {
     hex?: string;
     hsl?: HSLColor;

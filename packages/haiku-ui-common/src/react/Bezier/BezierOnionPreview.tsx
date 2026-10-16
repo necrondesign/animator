@@ -77,10 +77,10 @@ export default class BezierOnionPreview extends React.Component<BezierOnionPrevi
       this.previewOnion.appendChild(slice);
 
       const player = slice.animate(
-            // FIXME when https://github.com/Microsoft/TypeScript/issues/26073 is released
-            // @ts-ignore
-            [{transform: 'translateX(0px)', easing: this.CSSBezier}, {transform: 'translateX(185px)'}],
-            {duration: this.props.animationDuration, fill: 'forwards'});
+        // FIXME when https://github.com/Microsoft/TypeScript/issues/26073 is released
+        // @ts-ignore
+        [{transform: 'translateX(0px)', easing: this.CSSBezier}, {transform: 'translateX(185px)'}],
+        {duration: this.props.animationDuration, fill: 'forwards'});
       player.pause();
       player.currentTime = this.props.animationDuration * i / this.props.numberOnionSlices;
     }

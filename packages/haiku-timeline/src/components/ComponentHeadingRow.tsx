@@ -104,8 +104,8 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
 
     Element.deselectAllOtherElements({
       component: this.props.row.component},
-      this.props.row.element,
-      {from: 'timeline'},
+    this.props.row.element,
+    {from: 'timeline'},
     );
 
     this.props.row.expandAndSelect({from: 'timeline'});
@@ -274,8 +274,8 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
               >
                 <span style={{pointerEvents: 'none'}}>
                   {this.props.isExpanded
-                      ? <DownCarrotSVG color={Palette.ROCK} />
-                      : <RightCarrotSVG />}
+                    ? <DownCarrotSVG color={Palette.ROCK} />
+                    : <RightCarrotSVG />}
                 </span>
               </span>
               <ComponentHeadingRowHeading
@@ -344,9 +344,9 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
               rowHeight={this.props.rowHeight}
               row={this.props.row}
             />
-          : ''}
+            : ''}
         </div>
-      }
+        }
       </div>
     );
   }

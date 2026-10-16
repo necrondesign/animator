@@ -2,7 +2,7 @@ const tape = require('tape');
 const path = require('path');
 const fse = require('haiku-fs-extra');
 const Project = require('./../../src/bll/Project');
-const Element = require('./../../src/bll/Element');
+require('./../../src/bll/Element');
 
 const TEXT_SVG = `<svg><text font-family="DontKnowDontCare" font-size="12">Hello friend.</text></svg>`;
 
@@ -18,14 +18,14 @@ tape('File.readMana', (t) => {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
       if (err) {
- throw err;
-}
+        throw err;
+      }
       fse.outputFileSync(path.join(folder, 'designs/Text.svg'), TEXT_SVG);
       const ac0 = project.getCurrentActiveComponent();
       return ac0.instantiateComponent('designs/Text.svg', {}, {from: 'test'}, (err, mana) => {
         if (err) {
- throw err;
-}
+          throw err;
+        }
         const timelineProperties = ac0
           .fetchActiveBytecodeFile()
           .getReifiedBytecode()

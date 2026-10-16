@@ -121,7 +121,7 @@ class EventHandlerEditor extends React.PureComponent {
       allowNonTsExtensions: true,
     });
 
-  // Define our own autocompletion items
+    // Define our own autocompletion items
     this.completionDisposer = monaco.languages.registerCompletionItemProvider('javascript', {
       provideCompletionItems (model, position) {
 
@@ -310,9 +310,9 @@ class EventHandlerEditor extends React.PureComponent {
 
     return (
       <ModalWrapper style={{...visibilityStyles, ...STYLES.container}}
-            onEsc={this.doCloseFromEsc}
-            onCmdEnter={this.doCloseFromEsc}
-            onCmdS={this.doSaveFromCmdS}>
+        onEsc={this.doCloseFromEsc}
+        onCmdEnter={this.doCloseFromEsc}
+        onCmdS={this.doSaveFromCmdS}>
         <div
           onMouseDown={(mouseEvent) => {
             // Prevent outer view from closing us

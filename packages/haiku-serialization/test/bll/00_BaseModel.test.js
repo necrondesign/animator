@@ -45,7 +45,7 @@ tape('BaseModel', (t) => {
   Qux.DEFAULT_OPTIONS = {foo: 1, required: {blah: true}};
   BaseModel.extend(Qux);
   try {
-    const qux1 = new Qux({meow: 2});
+    new Qux({meow: 2});
   } catch (exception) {
     t.equal(exception.message, 'Property \'blah\' is required');
   }

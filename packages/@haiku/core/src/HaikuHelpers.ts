@@ -24,8 +24,8 @@ const MAIN =
   ((typeof window !== 'undefined')
     ? window
     : (typeof global !== 'undefined')
-    ? global
-    : {}) as Helpers;
+      ? global
+      : {}) as Helpers;
 
 if (!MAIN.HaikuHelpers) {
   MAIN.HaikuHelpers = {};

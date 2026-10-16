@@ -450,21 +450,6 @@ function fireMouseUp (kf, onCurve, keySpec = {}, mouseSpec = {}) {
   );
 }
 
-function fireDragStop (kf, onCurve, keySpec = {}) {
-  kf.handleDragStop(
-    {}, // unused
-    mockKeySpec(kf, keySpec),
-    mockViewSpec(kf, onCurve),
-  );
-}
-
-function fireContextMenu (kf, onCurve, keySpec = {}) {
-  kf.handleContextMenu(
-    mockKeySpec(kf, keySpec),
-    viewSpec(kf, onCurve),
-  );
-}
-
 function mockEventSpec (kf, mouseSpec = {}) {
   return {
     nativeEvent: {

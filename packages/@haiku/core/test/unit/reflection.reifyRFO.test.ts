@@ -306,7 +306,7 @@ tape(
             body: '  return 123;',
           },
         },
-        // tslint:disable-next-line:max-line-length
+
         'function ({ a, b, c, c: [ d, e ] }, { f, z, z: [ g, h ], i, j, k, k: { l, m, m: { n, o } } }, ...args) {\n    return 123;\n}',
       ],
 
@@ -392,7 +392,7 @@ tape(
             body: '  return 123;',
           },
         },
-        // tslint:disable-next-line:max-line-length
+
         '({ a, b, c, c: [ d, e ] }, { f, z, z: [ g, h ], i, j, k, k: { l, m, m: { n, o } } }, ...args) => {\n    return 123;\n}',
       ],
     ];

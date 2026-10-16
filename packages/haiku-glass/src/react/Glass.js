@@ -22,9 +22,7 @@ import * as requestElementCoordinates from 'haiku-serialization/src/utils/reques
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import originMana from '../overlays/originMana';
 import controlPointMana from '../overlays/controlPointMana';
-import boxMana from '../overlays/boxMana';
 import lineMana from '../overlays/lineMana';
-import defsMana from '../overlays/defsMana';
 import rotationCursorMana from '../overlays/rotationCursorMana';
 import scaleCursorMana from '../overlays/scaleCursorMana';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -833,8 +831,7 @@ export class Glass extends React.Component {
     });
     this._renderCount++;
 
-
-overlays.push({
+    overlays.push({
       elementName: 'g',
       attributes: {
         style: {
@@ -844,9 +841,8 @@ overlays.push({
       },
       children,
     });
-    
-  }
 
+  }
 
   interpolateAttributesAtKeyframes (el, attributes) {
     const curKeys = {};
@@ -1424,7 +1420,7 @@ overlays.push({
             break;
           }
           const points = SVGPoints.pathToPoints(Element.directlySelected.attributes.d);
-         // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
+          // If the control handles share the same coordinates, then it's already a corner. Otherwise, it's a curve.
           const convertToCorner = (
             (dataIndex === 0 && points[dataIndex + 1] && points[dataIndex + 1].curve &&
               (points[dataIndex + 1].curve.x1 !== points[dataIndex].x || points[dataIndex + 1].curve.y1 !== points[dataIndex].y)
@@ -1731,7 +1727,7 @@ overlays.push({
                         elSize.y,
                         Number((newKeys.rx && newKeys.rx[ms]) || 0),
                         Number((newKeys.ry && newKeys.ry[ms]) || 0),
-                      ))},
+                      ))};
 
                       pathKeys.x[ms] = null;
                       pathKeys.y[ms] = null;
@@ -1744,9 +1740,9 @@ overlays.push({
                         [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path',
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
                   }
@@ -1764,9 +1760,9 @@ overlays.push({
                         [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path',
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
 
                     break;
                   }
@@ -1786,9 +1782,9 @@ overlays.push({
                         [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path',
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                   case 'line': {
@@ -1806,9 +1802,9 @@ overlays.push({
                         [Element.directlySelected.attributes['haiku-id']]: pathKeys,
                       },
                     },
-                      {
-                        [Element.directlySelected.attributes['haiku-id']]: 'path',
-                      }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
+                    {
+                      [Element.directlySelected.attributes['haiku-id']]: 'path',
+                    }, keyframeOptions, {from: 'glass'}, updateNewOriginalClickStateFunc);
                     break;
                   }
                   case 'polygon':
@@ -2108,7 +2104,6 @@ overlays.push({
       )
     ) {
       if (target.parentNode) {
-        // tslint:disable-next-line:no-parameter-reassignment
         target = target.parentNode;
       }
     }
@@ -3086,7 +3081,6 @@ overlays.push({
   renderDirectSelection (element, selectedAnchorIndices, overlays) {
     const original = element;
     if (element.type === 'use') {
-      // tslint:disable-next-line:no-parameter-reassignment
       element = element.getTranscludedElement();
     }
 
@@ -3623,13 +3617,13 @@ overlays.push({
           const targetId = mouseDown.nativeEvent.target && mouseDown.nativeEvent.target.id;
 
           if (
-              targetId === 'stage-root' ||
+            targetId === 'stage-root' ||
               targetId === 'full-background' ||
               targetId === 'haiku-glass-stage-container' ||
               targetId === 'haiku-glass-stage-background-live' ||
               targetId === 'haiku-glass-stage-background-preview' ||
               targetId === 'haiku-glass-stage-background-preview-border'
-            ) {
+          ) {
             // If unselecting anything except an actual element, assume we want to deselect all
             Element.unselectAllElements({component: this.getActiveComponent()}, {from: 'glass'});
           }
@@ -3668,7 +3662,7 @@ overlays.push({
               fontSize: 14,
             }}>
             {Math.round(zoom.x / 1 * 100)}%
-            </div>
+          </div>
           : ''}
 
         {!this.isPreviewMode() && this.state.isCreateComponentModalOpen &&
@@ -3861,7 +3855,7 @@ overlays.push({
                   opacity: this.state.isStageNameHovering && !this.state.isStageSelected ? 1 : 0,
                   overflow: 'visible',
                 }}
-                />
+              />
             </svg>
             : ''}
 

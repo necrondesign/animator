@@ -1,4 +1,4 @@
-/* tslint:disable:no-shadowed-variable max-line-length */
+
 import * as async from 'async';
 import * as fse from 'haiku-fs-extra';
 import * as path from 'path';
@@ -234,13 +234,13 @@ export default class MasterGitProject extends EventEmitter {
     if (!this._projectInfo.branchName) {
       // Note the inversion of the typical error-first continuation
       // This is a legacy implementation; I'm not sure why #TODO
-      return cb(false); // eslint-disable-line
+      return cb(false);
     }
 
     const refPath = path.join(this.folder, '.git', 'refs', 'heads', this._projectInfo.branchName);
 
     return fse.exists(refPath, (answer) => {
-      return cb(!!answer); // eslint-disable-line
+      return cb(!!answer);
     });
   }
 
@@ -632,14 +632,14 @@ export default class MasterGitProject extends EventEmitter {
   }
 
   pullRemote (cb) {
-    
-    //skip this; servers unplugged
+
+    // skip this; servers unplugged
     return cb();
-    
+
     // We can't pull the remote if we don't have any remote info;
     // this can happen if there's a connection problem;
     // instead of crashing, we just silently skip this step
-    
+
     if (!this.folderState.remoteProjectDescriptor) {
       return cb();
     }

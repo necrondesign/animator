@@ -1,5 +1,5 @@
-let _ = require('lodash');
-let matchesRequire = require('./matchesRequire');
+const _ = require('lodash');
+const matchesRequire = require('./matchesRequire');
 
 /**
  * @function upsertRequire

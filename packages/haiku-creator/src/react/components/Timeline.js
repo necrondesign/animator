@@ -105,7 +105,7 @@ export default class Timeline extends React.Component {
           alignItems: 'center',
         }}>
         </div>
-          }
+        }
       </div>
     );
   }

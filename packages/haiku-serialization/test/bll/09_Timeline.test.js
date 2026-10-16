@@ -110,18 +110,18 @@ const setupTest = (name, cb) => {
   const envoyOptions = {mock: true};
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     if (err) {
- throw err;
-}
+      throw err;
+    }
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
       if (err) {
- throw err;
-}
+        throw err;
+      }
       fse.outputFileSync(path.join(folder, 'designs/Path.svg'), PATH_SVG_1);
       const ac = project.getCurrentActiveComponent();
       return ac.instantiateComponent('designs/Path.svg', {}, {from: 'test'}, (err) => {
         if (err) {
- throw err;
-}
+          throw err;
+        }
         const rows = ac.getRows().filter((row) => row.isProperty()).slice(0, 3);
         return async.eachSeries(rows, (row, next) => {
           const mss = [0, 1000, 2000, 3000, 4000, 5000];
@@ -131,8 +131,8 @@ const setupTest = (name, cb) => {
           }, next);
         }, (err) => {
           if (err) {
- throw err;
-}
+            throw err;
+          }
           cb(ac, rows, (finish) => {
             if (global.haiku && global.haiku.HaikuGlobalAnimationHarness) {
               global.haiku.HaikuGlobalAnimationHarness.cancel();

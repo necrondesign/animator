@@ -24,7 +24,7 @@ class AssetList extends React.Component {
               onImportFigmaAsset={this.props.onImportFigmaAsset}
               onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
               conglomerateComponent={this.props.conglomerateComponent}
-              />
+            />
           );
         })}
       </div>

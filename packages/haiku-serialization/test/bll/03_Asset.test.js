@@ -111,7 +111,6 @@ test('Asset.getAssetInfo', (t) => {
 test('Asset.isSketchFile', (t) => {
   const assets = mockAssets();
   const sketchAsset = assets[1].children[0];
-  const figmaAsset = assets[1].children[1];
 
   t.ok(sketchAsset.isSketchFile());
   t.notOk(sketchAsset.isFigmaFile());
@@ -120,7 +119,6 @@ test('Asset.isSketchFile', (t) => {
 
 test('Asset.isFigmaFile', (t) => {
   const assets = mockAssets();
-  const sketchAsset = assets[1].children[0];
   const figmaAsset = assets[1].children[1];
 
   t.ok(figmaAsset.isFigmaFile());

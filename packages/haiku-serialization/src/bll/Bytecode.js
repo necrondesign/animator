@@ -1328,8 +1328,8 @@ Bytecode.addDefaultCurveIfNecessary = (
 
   if (property) {
     const orderedKeyframes = Object.keys(property)
-    .map(Number)
-    .sort((a, b) => a - b);
+      .map(Number)
+      .sort((a, b) => a - b);
 
     const lastKeyframe = orderedKeyframes
       .filter((time) => time < newKeyframeTime)

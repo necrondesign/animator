@@ -277,7 +277,7 @@ async function main () {
       ? path.join(path.dirname(process.env.SMOKE_EXECUTABLE), '..', 'Resources', 'app.asar', 'node_modules',
         'haiku-creator', 'lib', 'bakery', 'electron.js')
       : path.join(ROOT, 'packages', 'haiku-creator', 'lib', 'bakery', 'electron.js');
-    await app.evaluate(({}, {modulePath, recipe}) => new Promise((resolve, reject) => {
+    await app.evaluate((_electron, {modulePath, recipe}) => new Promise((resolve, reject) => {
       const bake = process.mainModule.require(modulePath).default;
       const timer = setTimeout(() => reject(new Error('bakery timed out')), 60 * 1000);
       bake(recipe, () => {

@@ -1,5 +1,5 @@
-let fse = require('haiku-fs-extra');
-let path = require('path');
+const fse = require('haiku-fs-extra');
+const path = require('path');
 
 module.exports = (dir, filter, done) => {
   const items = [];

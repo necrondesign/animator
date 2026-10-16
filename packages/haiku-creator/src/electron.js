@@ -12,8 +12,6 @@ import {PRODUCT_NAME, PRODUCT_PROTOCOL} from 'haiku-common/lib/branding';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {isMac} from 'haiku-common/lib/environments/os';
-import _ from 'lodash';
-import { writeJSON } from 'fs-extra';
 
 if (!app) {
   throw new Error('You can only run electron.js from an electron process');
@@ -69,8 +67,6 @@ const haiku = global.process.env.HAIKU_ENV
   ? JSON.parse(global.process.env.HAIKU_ENV)
   : {};
 
-
-
 app.on('window-all-closed', () => {
   app.quit();
 });
@@ -84,7 +80,6 @@ if (!haiku.plumbing.url) {
     throw new Error(`Oops! You must define a HAIKU_PLUMBING_PORT env var!`);
   }
 
-  // tslint:disable-next-line:max-line-length
   haiku.plumbing.url = `http://${global.process.env.HAIKU_PLUMBING_HOST || '0.0.0.0'}:${global.process.env.HAIKU_PLUMBING_PORT}/?token=${process.env.HAIKU_WS_SECURITY_TOKEN}`;
 }
 

@@ -31,7 +31,6 @@ export const enum PlaybackFlag {
 }
 
 const makePlaybackProc = (body: string): Function => {
-  // tslint:disable-next-line:no-function-constructor-with-string-args
   return new Function('$time', body);
 };
 
@@ -43,7 +42,6 @@ const PLAYBACK_FLAGS = {
   seek: true,
 };
 
-// tslint:disable:variable-name
 export default class HaikuTimeline extends HaikuBase {
   options;
   component: IHaikuComponent;

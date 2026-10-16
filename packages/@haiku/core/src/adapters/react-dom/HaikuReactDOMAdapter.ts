@@ -19,7 +19,6 @@ export interface HaikuComponentState {
   randomId: string;
 }
 
-// tslint:disable-next-line:function-name
 export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRawBytecode): {} {
   class HaikuReactComponentInternal extends React.Component<HaikuComponentProps, HaikuComponentState> {
     static React = React;
@@ -89,7 +88,6 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
                   // with the attributes of the virtual element at the same position
                   const div = document.createElement('div');
                   node.parentNode.replaceChild(div, node);
-                  // tslint:disable-next-line:no-parameter-reassignment
                   node = div;
                 }
                 node.style.visibility = 'hidden';
@@ -147,7 +145,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
 
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
-        this.haiku = haikuAdapter( // eslint-disable-line
+        this.haiku = haikuAdapter(
           this.mount,
           haikuConfig,
         );

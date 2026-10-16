@@ -675,7 +675,6 @@ const createCollection = (klass, opts) => {
 
   klass.findById = (id) => hashmapCollection[id];
 
-  // eslint-disable-next-line
   klass.create = (props, opts) => new klass(props, opts);
 
   klass.upsert = (props, opts) => {

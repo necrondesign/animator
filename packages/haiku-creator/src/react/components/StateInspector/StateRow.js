@@ -314,7 +314,7 @@ class StateRow extends React.Component {
               <span key={`${this.props.stateName}-menu`}
                 style={[
                   STYLES.stateMenu,
-                  (!this.state.isHovered || true) && {display: 'none'}, // TODO: remove this '|| true' to show stack menu on hover and create popover
+                  {display: 'none'}, // TODO: show the stack menu on hover (!this.state.isHovered) once it has a popover
                 ]}>
                 <StackMenuSVG color={Radium.getState(this.state, `${this.props.stateName}-menu`, ':hover') ? Palette.ROCK : Palette.ROCK_MUTED} />
               </span>

@@ -643,7 +643,6 @@ class ElementSelectionProxy extends BaseModel {
   getBoundingClientRect () {
     const points = this.getBoxPointsTransformed();
 
-    // tslint:disable-next-line:one-variable-per-declaration
     let left, right, top, bottom, width, height;
     if (!points || !points.length) {
       // It seems that sometimes proxy is given an empty set of elements to drag (?)
@@ -1054,8 +1053,8 @@ class ElementSelectionProxy extends BaseModel {
       const snapLines = artboard.getSnapLinesInScreenCoords();
 
       // index corresponds with selected elements' indicies
-        // { x : number
-        //  y : number }
+      // { x : number
+      //  y : number }
       const overrides = [];
 
       const origin = addVectors(this._lastOrigin, totalDragDelta);
@@ -2476,7 +2475,7 @@ ElementSelectionProxy.fromSelection = (rawSelection, component) => {
       }, []),
     },
     {component},
-  ));
+    ));
 };
 
 const PASTEABLES = [];

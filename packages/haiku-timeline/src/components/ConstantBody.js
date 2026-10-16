@@ -114,8 +114,8 @@ export default class ConstantBody extends React.Component {
             zIndex: 2,
             width: '100%',
             backgroundColor: (this.props.keyframe.isSelectedBody())
-                ? Color(Palette.LIGHTEST_PINK).fade(0.5)
-                : Palette.DARKER_GRAY,
+              ? Color(Palette.LIGHTEST_PINK).fade(0.5)
+              : Palette.DARKER_GRAY,
           }} />
         }
       </span>

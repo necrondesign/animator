@@ -179,7 +179,6 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     if (this.layout) {
       ancestry.unshift(this.layout);
     }
-    // tslint:disable-next-line:no-this-assignment
     let ancestor = this;
     while (ancestor.parent) {
       ancestor = ancestor.parent;
@@ -917,7 +916,6 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
       return;
     }
 
-    // tslint:disable-next-line:no-this-assignment
     let hoverable = this;
 
     // If no last hovered element, there's nothing to unhover.
@@ -1087,7 +1085,6 @@ export default class HaikuElement extends HaikuBase implements IHaikuElement {
     return ancestors;
   };
 
-  // tslint:disable-next-line:variable-name
   static __name__ = 'HaikuElement';
 
   static findByNode = (node): HaikuElement => {

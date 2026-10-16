@@ -12,7 +12,7 @@ interface Window {
   HaikuCore: any;
 }
 
-declare var window: Window;
+declare let window: Window;
 
 tape(
   'dom-embed',

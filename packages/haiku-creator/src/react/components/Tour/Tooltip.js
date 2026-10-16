@@ -211,10 +211,10 @@ function Tooltip (props) {
                 <button
                   style={TOUR_STYLES.btnSecondary}
                   onClick={() => finish(true, true)}
-                  >
+                >
                   {stepData.current < stepData.total && (
-                      'Finish'
-                    )}
+                    'Finish'
+                  )}
                 </button>
                 <div style={{display: 'flex', alignItems: 'center'}}>
                   {showPreviousButton && (
@@ -227,10 +227,10 @@ function Tooltip (props) {
                   )}
 
                   {stepData.current < stepData.total && (
-                  <button style={TOUR_STYLES.btn} onClick={() => next()}>
-                        Next
-                      </button>
-                    )}
+                    <button style={TOUR_STYLES.btn} onClick={() => next()}>
+                      Next
+                    </button>
+                  )}
 
                   {stepData.current === stepData.total && (
                     <button

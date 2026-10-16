@@ -4,7 +4,7 @@ const argv = require('yargs').argv;
 const log = require('./helpers/log');
 const allPackages = require('./helpers/packages')();
 
-let DEP_TYPES = [
+const DEP_TYPES = [
   'dependencies',
   'devDependencies',
   'peerDependencies',

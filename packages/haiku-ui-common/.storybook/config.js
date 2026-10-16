@@ -1,6 +1,6 @@
-import { configure } from '@storybook/react';
+import {configure} from '@storybook/react';
 
-function loadStories() {
+function loadStories () {
   require('../stories/react/index.js');
   // You can require as many stories as you need.
 }

@@ -1,8 +1,0 @@
-{
-  "extends": ["tslint-config-haiku"],
-  "jsRules": {
-    "no-shadowed-variable": false,
-    "variable-name": false,
-    "no-parameter-reassignment": false
-  }
-}

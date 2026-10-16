@@ -31,7 +31,7 @@ export declare interface AdaptedWindow extends Window {
   document: AdaptedDocument;
 }
 
-declare var window: AdaptedWindow;
+declare let window: AdaptedWindow;
 
 /**
  * Example ways in which the export of this module is invoked:
@@ -49,16 +49,13 @@ declare var window: AdaptedWindow;
  * @function HaikuDOMAdapter
  * @description Given a bytecode object, return a factory function which can create a DOM-playable component.
  */
-// tslint:disable-next-line:variable-name
 const HaikuDOMAdapter: DOMAdapter = (bytecode, config?, safeWindow?) => {
   if (!config) {
-    // tslint:disable-next-line:no-parameter-reassignment
     config = {};
   }
 
   if (!safeWindow) {
     if (typeof window !== 'undefined') {
-      // tslint:disable-next-line:no-parameter-reassignment
       safeWindow = window;
     }
   }

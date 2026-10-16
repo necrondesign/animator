@@ -3,6 +3,8 @@ const fs = require('fs');
 const {exec} = require('child_process');
 
 const RESERVED_CHAR_REPLACEMENT = '-';
+// Control characters are not allowed in file names on Windows.
+// eslint-disable-next-line no-control-regex
 const FILENAME_RESERVED_REGEX = /[<>:"\/\\|?*\x00-\x1F]/g;
 const WINDOWS_NAMES_RESERVED_REGEX = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
 

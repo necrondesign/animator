@@ -1,4 +1,3 @@
-/* tslint:disable:import-name */
 import * as React from 'react';
 // @ts-ignore
 import jsx from 'react-syntax-highlighter/languages/prism/jsx';

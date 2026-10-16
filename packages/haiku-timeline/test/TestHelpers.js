@@ -54,7 +54,6 @@ export default class TestHelpers {
       if (err) {
         throw err;
       }
-      // tslint:disable-next-line:variable-name
       const Timeline = require('@timeline/components/Timeline').default;
       return fetchProjectConfigInfo(folder, (fetchErr, userconfig) => {
         if (fetchErr) {

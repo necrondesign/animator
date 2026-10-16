@@ -312,7 +312,6 @@ export const pointsToInterpolationTrace = (svgPoints: string|[number, number][])
   const chunkedPoints = polyPointsStringToPoints(svgPoints);
 
   // To support Bodymovin export format, we have to create a "dummy curve" with null interpolation points.
-  // tslint:disable-next-line:prefer-array-literal
   const dummyCurve = new Array(chunkedPoints.length);
   dummyCurve.fill([0, 0]);
   return {

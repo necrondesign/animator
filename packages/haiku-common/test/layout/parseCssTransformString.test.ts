@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 import * as tape from 'tape';
 
 import parseCssTransformString from '@common/layout/parseCssTransformString';

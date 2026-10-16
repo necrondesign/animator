@@ -182,7 +182,7 @@ export const chooseNewProjectFolder = () => getRemote().dialog.showSaveDialog({
   try {
     fs.mkdirSync(filePath, {recursive: true});
   } catch (exception) {
-    throw new Error(`Could not create "${filePath}": ${exception.message}`);
+    throw new Error(`Could not create "${filePath}": ${exception.message}`, {cause: exception});
   }
   return filePath;
 });

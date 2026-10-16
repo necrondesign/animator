@@ -131,7 +131,6 @@ class Tour extends React.Component {
       modalOffset,
     } = this.state;
 
-    // tslint:disable-next-line:variable-name
     const Step = steps[component];
 
     return (

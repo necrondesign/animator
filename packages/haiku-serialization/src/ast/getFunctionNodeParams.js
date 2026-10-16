@@ -1,6 +1,6 @@
-let objectPatternNodeToObject = require('./objectPatternNodeToObject');
+const objectPatternNodeToObject = require('./objectPatternNodeToObject');
 
-let unknowns = 0;
+const unknowns = 0;
 
 function getFunctionNodeParams (node) {
   const params = [];

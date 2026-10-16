@@ -72,7 +72,8 @@ const normalizeRotationsInQuadrants = (out: ComposedTransformSpec, normalizer: L
       return;
     }
 
-    const originalQuadrant = Math.floor(2 * normalizer.rotation[axis as keyof ThreeDimensionalLayoutProperty] / Math.PI);
+    const originalRotation = normalizer.rotation[axis as keyof ThreeDimensionalLayoutProperty];
+    const originalQuadrant = Math.floor(2 * originalRotation / Math.PI);
     const quadrantOut = Math.floor(2 * out[rotationProperty] / Math.PI);
     if (Math.abs(originalQuadrant - quadrantOut) < 3) {
       // We're within a half "tick" of the original normalizer, so there isn't an obvious way to normalize, so let's

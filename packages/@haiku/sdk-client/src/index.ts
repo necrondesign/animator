@@ -1,4 +1,3 @@
-// tslint:disable:no-namespace class-name
 import {execSync} from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';

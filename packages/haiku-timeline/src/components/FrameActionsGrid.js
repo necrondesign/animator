@@ -43,7 +43,13 @@ class FrameActionsGrid extends React.PureComponent {
     if (!this.mounted) {
       return null;
     }
-    if (what === 'timeline-frame-hovered' || 'timeline-max-frame-changed') {
+    // Frame positions depend on the visible range and width, like in SimplifiedFrameGrid.
+    if (
+      what === 'timeline-frame-hovered' ||
+      what === 'timeline-frame-range' ||
+      what === 'timeline-timeline-pixel-width' ||
+      what === 'timeline-max-frame-changed'
+    ) {
       this.forceUpdate();
     }
 
@@ -103,7 +109,7 @@ class FrameActionsGrid extends React.PureComponent {
                   left: pixelOffsetLeft + propertiesWidth,
                   top: 34,
                 }}
-                >
+              >
                 {this.renderFrameActions(frameNumber, hoveredFrame)}
               </div>
             );

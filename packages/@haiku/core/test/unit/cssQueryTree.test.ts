@@ -30,7 +30,7 @@ tape(
 
     t.equal(
       JSON.stringify(matches),
-      // tslint:disable-next-line:max-line-length
+
       '[{"elementName":"div","attributes":{"class":"bar"},"children":[{"elementName":"div"},{"elementName":"h1"}]}]',
       'matches list is correct',
     );

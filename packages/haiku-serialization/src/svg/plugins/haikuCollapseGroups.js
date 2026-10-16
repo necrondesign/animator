@@ -1,4 +1,3 @@
-/* tslint:disable */
 
 /**
  * Fork of original svgo rule.

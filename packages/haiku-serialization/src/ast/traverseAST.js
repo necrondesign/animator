@@ -1,4 +1,4 @@
-let traverse = require('@babel/traverse').default;
+const traverse = require('@babel/traverse').default;
 
 function traverseAST (ast, iterator) {
   traverse(ast, {

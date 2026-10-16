@@ -4,8 +4,8 @@ const argv = require('yargs').argv;
 const log = require('./helpers/log');
 const allPackages = require('./helpers/packages')();
 
-let args = argv._;
-let cmd = args[0];
+const args = argv._;
+const cmd = args[0];
 
 async.eachSeries(allPackages, (pack, next) => {
   log.log('running command ' + cmd + ' in ' + pack.abspath);

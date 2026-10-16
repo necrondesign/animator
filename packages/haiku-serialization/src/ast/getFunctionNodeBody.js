@@ -1,4 +1,4 @@
-let generateCode = require('./generateCode');
+const generateCode = require('./generateCode');
 
 function getFunctionNodeBody (node) {
   const lines = [];

@@ -397,7 +397,7 @@ class Keyframe extends BaseModel {
 
       // Some strings, such as color and path.d, are tweenable because core parses
       // them on the fly into numeric payloads that can be tweened.
-      // tslint:disable-next-line:triple-equals
+      // eslint-disable-next-line eqeqeq
       return HaikuComponent.PARSERS[ourPropertyName] || this.value == parseFloat(this.value, 10);
     }
 

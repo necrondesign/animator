@@ -1473,30 +1473,30 @@ export default class Creator extends React.Component {
                     visible={this.state.activeNav === 'state_inspector'} />
                 </SideBar>
                 <div style={{position: 'relative', width: '100%', height: '100%'}}>
-                    {
-                      !isPreviewMode(this.state.interactionMode) && (
-                        <EventHandlerEditor
-                          element={this.state.targetElement}
-                          save={(targetElement, serializedEvent) => {
-                            this.saveEventHandlers(targetElement, serializedEvent);
-                          }}
-                          close={this.safelyHideEventHandlersEditor}
-                          visible={this.state.showEventHandlerEditor}
-                          options={this.state.eventHandlerEditorOptions}
-                          ref={(editor) => {
-                            this.editor = editor;
-                          }}
-                        />
-                      )
-                    }
-                    {
-                      this.state.showConfirmGroupUngroupPopup &&
+                  {
+                    !isPreviewMode(this.state.interactionMode) && (
+                      <EventHandlerEditor
+                        element={this.state.targetElement}
+                        save={(targetElement, serializedEvent) => {
+                          this.saveEventHandlers(targetElement, serializedEvent);
+                        }}
+                        close={this.safelyHideEventHandlersEditor}
+                        visible={this.state.showEventHandlerEditor}
+                        options={this.state.eventHandlerEditorOptions}
+                        ref={(editor) => {
+                          this.editor = editor;
+                        }}
+                      />
+                    )
+                  }
+                  {
+                    this.state.showConfirmGroupUngroupPopup &&
                         <ConfirmGroupUngroupPopup
                           user={this.user}
                           setGroupUngroupAnswerAndClose={this.hideConfirmGroupUngroupPopup}
                           groupOrUngroup={this.state.groupOrUngroup}
                         />
-                    }
+                  }
                   <Stage
                     ref="stage"
                     folder={this.state.projectFolder}

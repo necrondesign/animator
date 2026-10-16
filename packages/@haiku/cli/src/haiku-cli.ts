@@ -13,7 +13,6 @@ import * as path from 'path';
 
 import {IContext, Nib} from './nib';
 
-// tslint:disable-next-line:no-var-requires
 const pkg = require('./../package.json');
 
 const cli = new Nib({

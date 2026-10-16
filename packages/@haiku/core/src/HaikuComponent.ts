@@ -108,7 +108,7 @@ const isFunction = (value) => {
 
 const INJECTABLES: any = {};
 
-declare var window: any;
+declare let window: any;
 
 const pkg = require('./../package.json');
 export const VERSION = pkg.version;
@@ -140,7 +140,6 @@ export interface ClearCacheOptions {
   clearStates?: boolean;
 }
 
-// tslint:disable:variable-name function-name
 export default class HaikuComponent extends HaikuElement implements IHaikuComponent {
   isDeactivated;
   isSleeping;
@@ -1624,7 +1623,6 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
     // Make all injectables available within the scope of the function we'll create below,
     // so users can freely evaluate an expression like this.evaluate('$user.mouse.x');
     try {
-      // tslint:disable-next-line:no-function-constructor-with-string-args
       const fn = new Function(
         '$children',
         '$clock',
@@ -1871,7 +1869,7 @@ export default class HaikuComponent extends HaikuElement implements IHaikuCompon
       let parser = this.getParser(outputName);
       if (
         !parser &&
-        // tslint:disable-next-line:triple-equals
+        // eslint-disable-next-line eqeqeq
         parseFloat(parseeWithKeys.parsee[parseeWithKeys.keys[0]].value) ==
           parseeWithKeys.parsee[parseeWithKeys.keys[0]].value
       ) {

@@ -34,11 +34,11 @@ tape('Plumbing', (test) => {
       }),
       (cb) => {
         return plumbing.startProject(project, (err) => {
-          test.error(err, 'no err starting')
-          const gitloglines = cp.execSync('git log --pretty=oneline', { cwd: folder }).toString().split('\n')
-          test.equal(gitloglines.length, 2, 'still only two git commits so far')
-          return cb()
-        })
+          test.error(err, 'no err starting');
+          const gitloglines = cp.execSync('git log --pretty=oneline', {cwd: folder}).toString().split('\n');
+          test.equal(gitloglines.length, 2, 'still only two git commits so far');
+          return cb();
+        });
       },
       (cb) => {
         return plumbing.awaitMasterAndCallMethod(folder, 'setCurrentActiveComponent', ['main', {from: 'test'}], (err) => {

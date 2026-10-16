@@ -1,4 +1,4 @@
-/* tslint:disable:no-parameter-reassignment no-shadowed-variable max-line-length */
+
 import * as path from 'path';
 import * as async from 'async';
 import * as lodash from 'lodash';
@@ -33,9 +33,9 @@ import {
   storeConfigValues,
 } from './project-folder/ProjectDefinitions';
 
-global.eval = () => {
-  // noop: eval is forbidden
-};
+// Deliberately replaces eval with a no-op in this process: project code must never be evaluated here.
+// eslint-disable-next-line no-eval
+global.eval = () => {};
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'plumbing';

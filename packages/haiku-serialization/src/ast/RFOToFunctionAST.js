@@ -1,6 +1,6 @@
-let paramsToFunctionASTParams = require('./paramsToFunctionASTParams');
-let functionBodyStringToFunctionBodyAST = require('./functionBodyStringToFunctionBodyAST');
-let wrapInHaikuInject = require('./wrapInHaikuInject');
+const paramsToFunctionASTParams = require('./paramsToFunctionASTParams');
+const functionBodyStringToFunctionBodyAST = require('./functionBodyStringToFunctionBodyAST');
+const wrapInHaikuInject = require('./wrapInHaikuInject');
 
 function RFOToFunctionAST (rfo, key) {
   const type = rfo.type || 'FunctionExpression';

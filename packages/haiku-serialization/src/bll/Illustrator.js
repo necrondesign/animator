@@ -140,7 +140,7 @@ class Illustrator {
     try {
       const installedApplications =
         execSync('reg QUERY "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths" /s')
-        .toString();
+          .toString();
 
       illustratorPath = installedApplications
         .split('\n')

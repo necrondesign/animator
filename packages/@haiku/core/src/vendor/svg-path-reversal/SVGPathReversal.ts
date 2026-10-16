@@ -13,7 +13,6 @@
 
 export const normalizePath = (d: string): string => {
   // preprocess "d" so that we have spaces between values
-  // tslint:disable-next-line:no-parameter-reassignment
   d = d.replace(/,/g, ' ')     // replace commas with spaces
     .replace(/-/g, ' - ')      // add spacing around minus signs
     .replace(/-\s+/g, '-')     // remove spacing to the right of minus signs.

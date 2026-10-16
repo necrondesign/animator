@@ -1,4 +1,3 @@
-/* tslint:disable */
 import * as fse from 'haiku-fs-extra';
 import * as path from 'path';
 import {commitProject, init} from '@plumbing/Git';

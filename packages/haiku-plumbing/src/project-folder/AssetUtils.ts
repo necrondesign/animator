@@ -75,7 +75,10 @@ export const dumpBase64Images = (
     cursor = buffer.indexOf(quotation, imageStart + 1) + 1;
     writeFileSync(
       path.join(folder, outputFilename),
-      Buffer.from(buffer.toString(UNICODE_ENCODING, encodingMarkStart + BASE64_DELIMITER.length, cursor - 1), BASE64_ENCODING),
+      Buffer.from(
+        buffer.toString(UNICODE_ENCODING, encodingMarkStart + BASE64_DELIMITER.length, cursor - 1),
+        BASE64_ENCODING,
+      ),
     );
     xml += 'web+haikuroot://' + path.posix.normalize(outputFilename);
     xml += quotation;

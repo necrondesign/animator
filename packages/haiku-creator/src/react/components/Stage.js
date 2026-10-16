@@ -4,7 +4,6 @@ import {handleWebviewConsoleMessage} from './webviewConsole';
 import * as qs from 'qs';
 import * as assign from 'lodash.assign';
 import * as path from 'path';
-import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import StageTitleBar from './StageTitleBar';
 import ComponentMenu from './ComponentMenu/ComponentMenu';
 import CodeEditor from './CodeEditor/CodeEditor';
@@ -312,7 +311,7 @@ class Stage extends React.Component {
               outline: '2px solid ' + interactionModeColor,
               visibility: showGlassOnStage(this.props.interactionMode) ? 'visible' : 'hidden',
               opacity: showGlassOnStage(this.props.interactionMode) ? 1 : 0},
-              [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
+            [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
             ]}
           />
           {<div
@@ -327,7 +326,7 @@ class Stage extends React.Component {
               outline: '2px solid ' + interactionModeColor,
               visibility: showGlassOnStage(this.props.interactionMode) ? 'hidden' : 'visible',
               opacity: showGlassOnStage(this.props.interactionMode) ? 0 : 1},
-              [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
+            [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
             ]}>
             <CodeEditor
               ref="codeeditor"

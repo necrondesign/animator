@@ -9,9 +9,8 @@
     },
     "typescript.format.enable": false,
     "typescript.tsdk": "node_modules/typescript/lib",
-    "tslint.jsEnable": true,
-    "tslint.alwaysShowRuleFailuresAsWarnings": true,
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
     "editor.codeActionsOnSave": {
-      "source.fixAll.tslint": true
+      "source.fixAll.eslint": "explicit"
     }
 }

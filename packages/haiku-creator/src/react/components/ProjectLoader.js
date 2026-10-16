@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as path from 'path';
 import Palette from 'haiku-ui-common/lib/Palette';
 import ProductMarkSVG from 'haiku-ui-common/lib/react/icons/ProductMarkSVG';
 

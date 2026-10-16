@@ -1,6 +1,6 @@
-let clc = require('cli-color');
+const clc = require('cli-color');
 
-let SPACER = '\n=============================================\n';
+const SPACER = '\n=============================================\n';
 
 module.exports = {
   log (msg) {

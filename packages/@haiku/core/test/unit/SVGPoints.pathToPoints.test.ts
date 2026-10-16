@@ -1,4 +1,3 @@
-/* tslint:disable:max-line-length */
 
 import SVGPoints from '@core/helpers/SVGPoints';
 import * as tape from 'tape';

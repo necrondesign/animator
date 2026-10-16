@@ -10,7 +10,7 @@ tape('describeError', (t) => {
   t.end();
 });
 
-tape('ErrorReporter queues reports until the error channel is attached', async(t) => {
+tape('ErrorReporter queues reports until the error channel is attached', async (t) => {
   const reporter = new ErrorReporter();
   const received: ErrorReport[] = [];
 

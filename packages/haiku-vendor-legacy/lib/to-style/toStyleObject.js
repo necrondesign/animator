@@ -103,7 +103,7 @@ function toStyleObject(styles, config, prepend, result) {
                     propValue = fnPropValue;
                 }
             }
-            // tslint:disable-next-line:triple-equals
+            // eslint-disable-next-line eqeqeq
             if (parseFloat(propValue) == propValue) {
                 propValue = parseFloat(propValue);
             }

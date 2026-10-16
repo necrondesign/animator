@@ -271,7 +271,7 @@ Expression.safeJsonParse = (str) => {
 Expression.flexibleJsonParse = (str) => {
   const body = `\nreturn ${str.trim()};\n`;
   try {
-    const fn = new Function(body); // eslint-disable-line no-new-func
+    const fn = new Function(body);
     const out = fn();
     return out;
   } catch (exception) {

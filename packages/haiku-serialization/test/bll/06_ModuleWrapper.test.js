@@ -1,11 +1,10 @@
-const async = require('async');
 const tape = require('tape');
 const path = require('path');
 const fse = require('haiku-fs-extra');
 
 const Project = require('./../../src/bll/Project');
 const File = require('./../../src/bll/File');
-const Element = require('./../../src/bll/Element');
+require('./../../src/bll/Element');
 
 const waitUntilFileProbablyWroteToDisk = (fn) => {
   return setTimeout(fn, 1000); // Disk writes happen on a 500ms interval
@@ -23,19 +22,19 @@ tape('ModuleWrapper', (t) => {
   return Project.setup(folder, 'test', websocket, platform, userconfig, fileOptions, envoyOptions, (err, project) => {
     return project.setCurrentActiveComponent('main', {from: 'test'}, (err) => {
       if (err) {
- throw err;
-}
+        throw err;
+      }
       fse.outputFileSync(path.join(folder, 'designs/Circle.svg'), CIRCLE_SVG_1);
       const ac0 = project.getCurrentActiveComponent();
       return ac0.instantiateComponent('designs/Circle.svg', {}, {from: 'test'}, (err, mana) => {
         if (err) {
- throw err;
-}
+          throw err;
+        }
         return waitUntilFileProbablyWroteToDisk(() => {
           return File.read(folder, ac0.fetchActiveBytecodeFile().relpath, (err, contents) => {
             if (err) {
- throw err;
-}
+              throw err;
+            }
 
             // Simulate what happens when @haiku/core is missing
             const corePath = require.resolve('@haiku/core');

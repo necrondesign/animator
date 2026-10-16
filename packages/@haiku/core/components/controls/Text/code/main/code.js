@@ -1,4 +1,4 @@
-let Haiku = require('@haiku/core');
+const Haiku = require('@haiku/core');
 
 module.exports = {
   metadata: {
@@ -35,46 +35,46 @@ module.exports = {
         'sizeMode.x': {0: {value: 1}},
         'sizeMode.y': {0: {value: 1}},
         'sizeMode.z': {0: {value: 1}},
-        'sizeAbsolute.x': { 0: {
+        'sizeAbsolute.x': {0: {
           value: Haiku.inject(function (width) {
             return width;
           }, 'width'),
-        } },
-        'sizeAbsolute.y': { 0: {
+        }},
+        'sizeAbsolute.y': {0: {
           value: Haiku.inject(function (height) {
             return height;
           }, 'height'),
-        } },
+        }},
       },
       'haiku:HaikuControlsTextSVGContext': {
         'sizeMode.x': {0: {value: 1}},
         'sizeMode.y': {0: {value: 1}},
         'sizeMode.z': {0: {value: 1}},
-        'sizeAbsolute.x': { 0: {
+        'sizeAbsolute.x': {0: {
           value: Haiku.inject(function (width) {
             return width;
           }, 'width'),
-        } },
-        'sizeAbsolute.y': { 0: {
+        }},
+        'sizeAbsolute.y': {0: {
           value: Haiku.inject(function (height) {
             return height;
           }, 'height'),
-        } },
+        }},
       },
       'haiku:HaikuControlsSvgTextElement': {
         'sizeMode.x': {0: {value: 1}},
         'sizeMode.y': {0: {value: 1}},
         'sizeMode.z': {0: {value: 1}},
-        'sizeAbsolute.x': { 0: {
+        'sizeAbsolute.x': {0: {
           value: Haiku.inject(function (width) {
             return width;
           }, 'width'),
-        } },
-        'sizeAbsolute.y': { 0: {
+        }},
+        'sizeAbsolute.y': {0: {
           value: Haiku.inject(function (height) {
             return height;
           }, 'height'),
-        } },
+        }},
         color: {
           0: {
             value: Haiku.inject(function (color) {

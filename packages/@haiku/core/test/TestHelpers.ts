@@ -12,7 +12,7 @@ interface Global {
 }
 
 // Set up global rAF early (prior to imports) to ensure correct behavior in tests.
-declare var global: Global;
+declare let global: Global;
 global.window = global;
 
 import HaikuDOMAdapter from '@core/adapters/dom/HaikuDOMAdapter';

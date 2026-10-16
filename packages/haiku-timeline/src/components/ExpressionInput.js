@@ -85,7 +85,6 @@ function toValueDescriptor ({bookendValue, computedValue}) {
 
   // Don't show a literal 'null' string inside the input field
   if (computedValue === null || computedValue === undefined) {
-    // tslint:disable-next-line:no-parameter-reassignment
     computedValue = '';
   }
 
@@ -1171,7 +1170,7 @@ export default class ExpressionInput extends React.Component {
     const focusedRow = this.props.component && this.props.component.getFocusedRow();
 
     if (
-      !Boolean(focusedRow) ||
+      !focusedRow ||
       this.state.editingMode === EDITOR_MODES.MULTI_LINE ||
       this.state.editedValue.kind === EXPR_KINDS.MACHINE
     ) {

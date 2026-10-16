@@ -110,23 +110,23 @@ class ConfirmGroupUngroup extends React.Component {
             <label style={{marginTop: 5}} htmlFor="not-show-again">Don't show this again.</label>
 
             <div style={{float: 'right'}}>
-            <button
-              key="group-no"
-              id="group-no"
-              onClick={this.cancelGroup}
-              style={STYLES.no}
-            >
-              <span>No</span>
-            </button>
+              <button
+                key="group-no"
+                id="group-no"
+                onClick={this.cancelGroup}
+                style={STYLES.no}
+              >
+                <span>No</span>
+              </button>
 
-            <button
-              key="group-yes"
-              id="group-yes"
-              onClick={this.confirmGroup}
-              style={STYLES.yes}
-            >
-              <span>Yes</span>
-            </button>
+              <button
+                key="group-yes"
+                id="group-yes"
+                onClick={this.confirmGroup}
+                style={STYLES.yes}
+              >
+                <span>Yes</span>
+              </button>
             </div>
           </div>
         </ModalFooter>

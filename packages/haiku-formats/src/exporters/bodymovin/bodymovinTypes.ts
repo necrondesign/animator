@@ -32,7 +32,7 @@ export type BodymovinTransform = {
   [key in TransformKey]?: unknown;
 };
 
-export interface BezierSpec {x: number[]; y: number[]; }
+export interface BezierSpec {x: number[]; y: number[];}
 
 export interface Keyframe<T> {
   [AnimationKey.Time]: number;

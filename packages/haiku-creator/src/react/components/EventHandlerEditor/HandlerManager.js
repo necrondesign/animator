@@ -112,8 +112,8 @@ class HandlerManager {
 
   _isNewCustomEvent (eventName) {
     return !this.applicableEventHandlers
-    .reduce((acc, element) => acc.concat(element.options.map(o => o.value)), [])
-    .includes(eventName);
+      .reduce((acc, element) => acc.concat(element.options.map((o) => o.value)), [])
+      .includes(eventName);
   }
 
   /**

@@ -1,5 +1,5 @@
-let parseCode = require('./parseCode');
-let wrapInHaikuInject = require('./wrapInHaikuInject');
+const parseCode = require('./parseCode');
+const wrapInHaikuInject = require('./wrapInHaikuInject');
 
 function functionToASTExpression (fn) {
   const str = fn.toString().trim();

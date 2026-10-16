@@ -133,7 +133,7 @@ class RowManager extends React.PureComponent<RowManagerProps> {
     if (
       this.props.group.rows[0] &&
       this.props.group.rows[0].element.getComponentId() !== this.props.currentDraggingComponent
-      ) {
+    ) {
       event.preventDefault();
       this.setState({canReceiveDrag: true});
     }

@@ -1,4 +1,3 @@
-/* tslint:disable:no-shadowed-variable */
 import * as async from 'async';
 import {PRODUCT_NAME} from 'haiku-common/lib/branding';
 import * as path from 'path';
@@ -24,9 +23,8 @@ import Watcher from './Watcher';
 import MasterGitProject from './MasterGitProject';
 import MasterModuleProject from './MasterModuleProject';
 import getExporterListener from './envoy/getExporterListener';
-import saveExport from './publish-hooks/saveExport';
 import {createProjectFiles} from '@haiku/sdk-client/lib/createProjectFiles';
-import {ExporterFormat, EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
+import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import {
   getHaikuCoreVersion,
   fetchProjectConfigInfo,
@@ -197,13 +195,13 @@ export default class Master extends EventEmitter {
     this.websocket = (global.process.env.NODE_ENV === 'test')
       ? new MockWebsocket()
       : new Websocket(
-      `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
-      this.folder,
-      'controllee',
-      'master',
-      WebSocket,
-      process.env.HAIKU_WS_SECURITY_TOKEN,
-    );
+        `ws://${process.env.HAIKU_PLUMBING_HOST}:${process.env.HAIKU_PLUMBING_PORT}`,
+        this.folder,
+        'controllee',
+        'master',
+        WebSocket,
+        process.env.HAIKU_WS_SECURITY_TOKEN,
+      );
 
     fetchProjectConfigInfo(this.folder, (_, userconfig) => {
       this.initialUserconfig = userconfig;

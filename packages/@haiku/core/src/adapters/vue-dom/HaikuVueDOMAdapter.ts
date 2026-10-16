@@ -1,4 +1,4 @@
-/* tslint:disable:max-line-length */
+
 /**
  * Copyright (c) Haiku 2016-2018. All rights reserved.
  */
@@ -84,7 +84,6 @@ const allProps = (vueComponent) => {
   );
 };
 
-// tslint:disable-next-line:function-name
 export default function HaikuVueDOMAdapter (haikuComponentFactory): {} {
   return {
     props: {

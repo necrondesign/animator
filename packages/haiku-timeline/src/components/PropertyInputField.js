@@ -101,7 +101,7 @@ export default class PropertyInputField extends React.Component {
           <PropertyInputFieldValueDisplay
             timeline={this.props.timeline}
             row={this.props.row}
-            />
+          />
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-let FUNCTION_NODE_TYPES = {
+const FUNCTION_NODE_TYPES = {
   FunctionExpression: true,
   ClassMethod: true,
   ArrowFunctionExpression: true,

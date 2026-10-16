@@ -8,7 +8,7 @@ interface Global {
   haiku: any;
 }
 
-declare var global: Global;
+declare let global: Global;
 
 tape(
   'globals',

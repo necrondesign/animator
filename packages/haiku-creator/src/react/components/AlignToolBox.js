@@ -160,64 +160,64 @@ class AlignToolBox extends React.PureComponent {
           </button>
         </div>
         <div style={{margin: '5px 3px 2px 0'}}>Distribute:</div>
-          <div style={{height: 27}}>
-            <button
-              onClick={this.performDistributeHTop}
-              key="btn-dist-v-left"
-              title="Distribute vertical-left"
-              style={STYLES.alignDistributeBtn}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeHTop />
-              </span>
-            </button>
-            <button
-              onClick={this.performDistributeHMid}
-              key="btn-dist-v-mid"
-              title="Distribute vertical-center"
-              style={STYLES.alignDistributeBtn}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeHMid />
-              </span>
-            </button>
-            <button
-              onClick={this.performDistributeHBottom}
-              key="btn-dist-v-right"
-              title="Distribute vertical-right"
-              style={{
-                ...STYLES.alignDistributeBtn,
-                marginRight: 18,
-              }}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeHBottom />
-              </span>
-            </button>
-            <button
-              onClick={this.performDistributeVLeft}
-              key="btn-dist-h-top"
-              title="Distribute horizontal-top"
-              style={STYLES.alignDistributeBtn}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeVLeft />
-              </span>
-            </button>
-            <button
-              onClick={this.performDistributeVMid}
-              key="btn-dist-h-mid"
-              title="Distribute horizontal-middle"
-              style={STYLES.alignDistributeBtn}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeVMid />
-              </span>
-            </button>
-            <button
-              onClick={this.performDistributeVRight}
-              key="btn-dist-h-bottom"
-              title="Distribute horizontal-bottom"
-              style={STYLES.alignDistributeBtn}>
-              <span style={STYLES.alignDistributeIconWrapper}>
-                <AlignDistributeIcons.DistributeVRight />
-              </span>
-            </button>
+        <div style={{height: 27}}>
+          <button
+            onClick={this.performDistributeHTop}
+            key="btn-dist-v-left"
+            title="Distribute vertical-left"
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeHTop />
+            </span>
+          </button>
+          <button
+            onClick={this.performDistributeHMid}
+            key="btn-dist-v-mid"
+            title="Distribute vertical-center"
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeHMid />
+            </span>
+          </button>
+          <button
+            onClick={this.performDistributeHBottom}
+            key="btn-dist-v-right"
+            title="Distribute vertical-right"
+            style={{
+              ...STYLES.alignDistributeBtn,
+              marginRight: 18,
+            }}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeHBottom />
+            </span>
+          </button>
+          <button
+            onClick={this.performDistributeVLeft}
+            key="btn-dist-h-top"
+            title="Distribute horizontal-top"
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeVLeft />
+            </span>
+          </button>
+          <button
+            onClick={this.performDistributeVMid}
+            key="btn-dist-h-mid"
+            title="Distribute horizontal-middle"
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeVMid />
+            </span>
+          </button>
+          <button
+            onClick={this.performDistributeVRight}
+            key="btn-dist-h-bottom"
+            title="Distribute horizontal-bottom"
+            style={STYLES.alignDistributeBtn}>
+            <span style={STYLES.alignDistributeIconWrapper}>
+              <AlignDistributeIcons.DistributeVRight />
+            </span>
+          </button>
         </div>
         <div style={{margin: '9px 3px 2px 0'}}>
           <label>
@@ -239,17 +239,17 @@ class AlignToolBox extends React.PureComponent {
         body={this.popoverBody}
       >
         <button
-            key="show-align-panel-button"
-            aria-label="Show align options"
-            data-tooltip={true}
-            data-tooltip-bottom-right={true}
-            id="show-align-panel-button"
-            onClick={this.clickPopover}
-            style={STYLES.alignDistributeBtn}>
-            <span style={{...STYLES.alignDistributeIconWrapper, transform: 'scale(0.5)', opacity: 0.602}}>
-              <AlignDistributeIcons.AlignVLeft />
-            </span>
-          </button>
+          key="show-align-panel-button"
+          aria-label="Show align options"
+          data-tooltip={true}
+          data-tooltip-bottom-right={true}
+          id="show-align-panel-button"
+          onClick={this.clickPopover}
+          style={STYLES.alignDistributeBtn}>
+          <span style={{...STYLES.alignDistributeIconWrapper, transform: 'scale(0.5)', opacity: 0.602}}>
+            <AlignDistributeIcons.AlignVLeft />
+          </span>
+        </button>
       </Popover>
     );
   }

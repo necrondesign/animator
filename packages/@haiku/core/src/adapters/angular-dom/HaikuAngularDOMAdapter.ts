@@ -23,7 +23,6 @@ import {BytecodeNode} from '../../api';
 import HaikuComponent from '../../HaikuComponent';
 import {randomString} from '../../helpers/StringUtils';
 
-// tslint:disable-next-line:function-name
 export default function HaikuAngularDOMAdapter (
   selector, haikuComponentFactory, optionalRawBytecode?): ModuleWithProviders {
   @Component({
@@ -206,7 +205,7 @@ export default function HaikuAngularDOMAdapter (
 
       // Reuse existing mounted component if one exists
       if (!this.haiku) {
-        this.haiku = haikuAdapter( // eslint-disable-line
+        this.haiku = haikuAdapter(
           this.mount.nativeElement,
           this.haikuConfig,
         );

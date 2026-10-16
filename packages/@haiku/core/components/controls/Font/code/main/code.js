@@ -1,4 +1,4 @@
-let Haiku = require('@haiku/core');
+const Haiku = require('@haiku/core');
 
 module.exports = {
   metadata: {

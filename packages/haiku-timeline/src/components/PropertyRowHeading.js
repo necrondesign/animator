@@ -67,11 +67,11 @@ export default class PropertyRowHeading extends React.Component {
           lineHeight: 1,
           right: 0,
           color: (this.props.row.isHovered())
-          ? Palette.SUNSTONE
-          : Palette.ROCK,
+            ? Palette.SUNSTONE
+            : Palette.ROCK,
           transform: this.props.humanName === 'background color'
-          ? 'translateY(-2px)'
-          : 'translateY(3px)',
+            ? 'translateY(-2px)'
+            : 'translateY(3px)',
         }}>
         {this.renderIcon()}
         <span

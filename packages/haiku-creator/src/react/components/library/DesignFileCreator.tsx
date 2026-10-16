@@ -123,14 +123,14 @@ class DesignFileCreator extends React.PureComponent<any, any> {
 
   render () {
     return (
-        <div style={STYLES.container}>
-          <p><i>Create a design file to start:</i></p>
-          <div>
-            {isMac() && this.sketchButton}
-            {this.figmaButton}
-            {this.illustratorButton}
-          </div>
+      <div style={STYLES.container}>
+        <p><i>Create a design file to start:</i></p>
+        <div>
+          {isMac() && this.sketchButton}
+          {this.figmaButton}
+          {this.illustratorButton}
         </div>
+      </div>
     );
   }
 }

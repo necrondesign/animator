@@ -344,7 +344,7 @@ tape(
 
       // GRAY SQUARE WITH GRAY BORDER
       [
-        // tslint:disable:max-line-length
+        // eslint-disable @stylistic/max-len
         xmlToMana(`
         <svg width="46px" height="50px" viewBox="0 0 46 50" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <!-- Generator: sketchtool 44.1 (41455) - http://www.bohemiancoding.com/sketch -->
@@ -361,7 +361,7 @@ tape(
             </g>
         </svg>
       `),
-        // tslint:enable:max-line-length
+        // eslint-enable @stylistic/max-len
         {
           elementName: 'svg',
           attributes: {
@@ -453,7 +453,7 @@ tape(
 
       // DOCTYPE declaration should not crash
       [
-        // tslint:disable:max-line-length
+        // eslint-disable @stylistic/max-len
         xmlToMana(`
           <?xml version="1.0" encoding="UTF-8" standalone="no"?>
           <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -461,7 +461,7 @@ tape(
               <ellipse cx="192.864" cy="190.365" rx="71.408" ry="58.444" style="fill:rgb(235,235,235);"/>
           </svg>
       `),
-        // tslint:enable:max-line-length
+        // eslint-enable @stylistic/max-len
         {elementName: 'svg',
           attributes: {
             viewBox: '0 0 400 400',

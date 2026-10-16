@@ -93,34 +93,34 @@ export default class Gauge extends React.Component {
 
     return (
       <div
-      id="gauge-wrapper"
-      style={{
-        height: 23,
-        backgroundColor: Palette.COAL,
-        position: 'sticky',
-        top: 12,
-        marginLeft: this.props.timeline.getPropertiesPixelWidth() + this.props.timelineOffsetPadding,
-        width: this.props.timeline.calculateFullTimelineWidth(),
-        zIndex: zIndex.gauge.base,
-        fontSize: 10,
-        borderBottom: '1px solid ' + Palette.FATHER_COAL,
-        color: Palette.ROCK_MUTED,
-      }}
-      onMouseDown={this.props.onMouseDown}
-      >
-      <span
+        id="gauge-wrapper"
         style={{
-          display: 'inline-block',
-          width: '15px',
-          position: 'absolute',
-          left: '-8px',
-          height: 'inherit',
-          border: 'inherit',
-          backgroundColor: 'inherit',
+          height: 23,
+          backgroundColor: Palette.COAL,
+          position: 'sticky',
+          top: 12,
+          marginLeft: this.props.timeline.getPropertiesPixelWidth() + this.props.timelineOffsetPadding,
+          width: this.props.timeline.calculateFullTimelineWidth(),
+          zIndex: zIndex.gauge.base,
+          fontSize: 10,
+          borderBottom: '1px solid ' + Palette.FATHER_COAL,
+          color: Palette.ROCK_MUTED,
         }}
-       />
-       {out}
-    </div>
+        onMouseDown={this.props.onMouseDown}
+      >
+        <span
+          style={{
+            display: 'inline-block',
+            width: '15px',
+            position: 'absolute',
+            left: '-8px',
+            height: 'inherit',
+            border: 'inherit',
+            backgroundColor: 'inherit',
+          }}
+        />
+        {out}
+      </div>
     );
   }
 }

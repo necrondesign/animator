@@ -4,9 +4,7 @@
   "description": "Haiku SDK for Client",
   "main": "lib/index.js",
   "scripts": {
-    "lint": "tslint -p tsconfig.all.json -t stylish",
-    "lint-report": "yarn lint -t checkstyle -o checkstyle-result.xml",
-    "fix": "yarn lint --fix",
+    "lint": "eslint .",
     "ts": "cross-env NODE_ENV=test ts-node -T -r haiku-testing/isolate-home -r tsconfig-paths/register -P tsconfig.all.json",
     "test": "yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' | tap-spec",
     "test-report": "nyc yarn ts ./node_modules/.bin/tape 'test/**/*.test.ts' > test-result.tap",
@@ -45,8 +43,6 @@
     "tape": "^4.9.0",
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0",
-    "tslint": "^5.11.0",
-    "tslint-config-haiku": "^1.0.16",
     "typescript": "5.9.3"
   }
 }

@@ -4,19 +4,14 @@ const {default: haikuInfo} = require('haiku-plumbing/lib/haikuInfo');
 const path = require('path');
 const logger = require('haiku-serialization/src/utils/LoggerInstance');
 
-global.eval = function () {
-  // noop: eval is forbidden
-};
+// Deliberately replaces eval with a no-op in this process: project code must never be evaluated here.
+// eslint-disable-next-line no-eval
+global.eval = function () {};
 
-let env;
-let haiku;
-let args;
-let flags;
-
-env = envInfo();
-haiku = haikuInfo();
-args = env.args;
-flags = env.flags;
+const env = envInfo();
+const haiku = haikuInfo();
+const args = env.args;
+const flags = env.flags;
 
 if (flags.mode !== 'headless') {
   haiku.mode = 'creator';
