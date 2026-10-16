@@ -12,7 +12,7 @@ import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 let url = `file://${path.join(__dirname, '..', 'index.html')}`;
 
 const params = {
-  email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
+  email: 'dev@localhost',
   folder: process.env.HAIKU_PROJECT_FOLDER,
   plumbing: process.env.HAIKU_PLUMBING_URL,
 };

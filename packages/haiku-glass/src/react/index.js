@@ -2,14 +2,11 @@ import {ipcRenderer} from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import * as qs from 'qs';
-import {DISABLED_ERROR_REPORTING_DSN, shouldEmitErrors} from 'haiku-common/lib/environments';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Glass from './Glass';
-import {SentryReporter} from 'haiku-sdk-creator/lib/bll/Error';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {fetchProjectConfigInfo} from '@haiku/sdk-client/lib/ProjectDefinitions';
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
 // We are in a webview; use query string parameters for boot-up configuration
 const search = (window.location.search || '').split('?')[1] || '';
@@ -18,16 +15,6 @@ const config = Object.assign({}, params);
 if (config.dotenv) {
   Object.assign(global.process.env, config.dotenv);
 }
-
-global.sentryReporter = new SentryReporter();
-window.Raven.config(DISABLED_ERROR_REPORTING_DSN, {
-  environment: process.env.NODE_ENV,
-  release: process.env.HAIKU_RELEASE_VERSION,
-  dataCallback: global.sentryReporter.callback.bind(global.sentryReporter),
-  shouldSendCallback: shouldEmitErrors,
-});
-
-window.Raven.install();
 
 try {
   if (!config.folder) {
@@ -47,28 +34,10 @@ try {
       ? new Websocket(_fixPlumbingUrl(config.plumbing), config.folder, 'controllee', 'glass', null, config.socket.token)
       : new MockWebsocket(ipcRenderer);
 
-    // Add extra context to Sentry reports, this info is also used by carbonite.
-    const folderHelper = config.folder.split('/').reverse();
-
-    window.Raven.setExtraContext({
-      organizationName: folderHelper[1] || 'unknown',
-      projectName: folderHelper[0] || 'unknown',
-      projectPath: config.folder,
-    });
-
-    window.Raven.setUserContext({
-      email: config.email,
-    });
-
-    mixpanel.mergeToPayload({
-      distinct_id: config.email,
-    });
-
     window.isWebview = config.webview;
 
     ReactDOM.render(
       <Glass
-        mixpanel={mixpanel}
         envoy={config.envoy}
         userconfig={userconfig}
         websocket={websocket}
@@ -79,7 +48,6 @@ try {
     );
   });
 } catch (e) {
-  Raven.captureException(e, () => {
-    throw e;
-  });
+  // Creator shows console errors of this webview as notices (see webviewConsole.js).
+  console.error(e);
 }

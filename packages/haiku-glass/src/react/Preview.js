@@ -63,7 +63,6 @@ export default class Preview extends React.Component {
         loop: true,
         interactionMode: InteractionMode.GLASS_PREVIEW,
         autoplay: true,
-        mixpanel: false,
         contextMenu: 'disabled',
         hooks: {
           'action:before': handleActionBefore,

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as lodash from 'lodash';
 import * as CodeMirror from 'codemirror';
-import {clipboard} from 'electron';
+import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
 import * as stripindent from 'strip-indent';
 import marshalParams from '@haiku/core/lib/reflection/marshalParams';
 import * as parseExpression from 'haiku-serialization/src/ast/parseExpression';
@@ -676,11 +676,20 @@ export default class ExpressionInput extends React.Component {
     this.setState({autoCompletions: []});
   }
 
+  /**
+   * Resolves with true if the clipboard text was committed as the value of the selected property row.
+   */
   willHandlePasteEvent () {
     const selectedRow = this.props.component.getSelectedRow();
-    const text = clipboard.readText();
+    if (!selectedRow || !selectedRow.isProperty()) {
+      return Promise.resolve(false);
+    }
 
-    if (!selectedRow || !selectedRow.isProperty() || !text) {
+    return clipboard.readText().then((text) => this.commitPastedText(selectedRow, text), () => false);
+  }
+
+  commitPastedText (selectedRow, text) {
+    if (!text) {
       return false;
     }
 

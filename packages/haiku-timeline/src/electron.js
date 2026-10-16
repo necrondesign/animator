@@ -15,7 +15,7 @@ if (!app) {
 }
 
 const params = {
-  email: 'matthew+SENTRY-TESTING-USER@haiku.ai',
+  email: 'dev@localhost',
   folder: process.env.HAIKU_PROJECT_FOLDER,
   plumbing: process.env.HAIKU_PLUMBING_URL,
 };

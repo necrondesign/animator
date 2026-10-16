@@ -6,12 +6,11 @@ import RowManager from './RowManager';
 export interface ComponentRowsProps {
   rowHeight: number;
   propertiesPixelWidth: number;
-  mixpanel: any;
-  getActiveComponent (): any;
-  showEventHandlersEditor (): void;
-  onDoubleClickToMoveGauge (): void;
-  setEditingRowTitleStatus (): void;
-  showBezierEditor (): void;
+  getActiveComponent(): any;
+  showEventHandlersEditor(): void;
+  onDoubleClickToMoveGauge(): void;
+  setEditingRowTitleStatus(): void;
+  showBezierEditor(): void;
 }
 
 export default class ComponentRows extends React.Component<ComponentRowsProps> {
@@ -80,7 +79,6 @@ export default class ComponentRows extends React.Component<ComponentRowsProps> {
             group={group}
             rowHeight={this.props.rowHeight}
             getActiveComponent={this.props.getActiveComponent}
-            mixpanel={this.props.mixpanel}
             reflection={Math.max(0, (groups.length - 2) - indexOfGroup)}
             showEventHandlersEditor={this.props.showEventHandlersEditor}
             onDragStart={this.enterDragState}

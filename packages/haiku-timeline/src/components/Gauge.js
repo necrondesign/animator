@@ -3,7 +3,6 @@ import formatSeconds from 'haiku-ui-common/lib/helpers/formatSeconds';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as Timeline from 'haiku-serialization/src/bll/Timeline';
 import zIndex from './styles/zIndex';
-import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
 
 export default class Gauge extends React.Component {
   constructor (props) {

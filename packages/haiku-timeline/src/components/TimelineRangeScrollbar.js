@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as lodash from 'lodash';
 import {DraggableCore} from 'react-draggable';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import TimelineRangeScrollbarPlayheadIndicator from './TimelineRangeScrollbarPlayheadIndicator';
 
 const THROTTLE_TIME = 17; // ms

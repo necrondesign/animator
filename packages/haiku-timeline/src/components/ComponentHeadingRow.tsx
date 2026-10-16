@@ -1,7 +1,6 @@
 // @ts-ignore
 import * as Element from 'haiku-serialization/src/bll/Element';
 // @ts-ignore
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import DownCarrotSVG from 'haiku-ui-common/lib/react/icons/DownCarrotSVG';
 import DragGrip from 'haiku-ui-common/lib/react/icons/DragGrip';
@@ -143,9 +142,7 @@ export default class ComponentHeadingRow extends React.Component<ComponentHeadin
   };
 
   toggleLock = () => {
-    this.props.row.element.toggleLocked({from: 'timeline'}, () => {
-      mixpanel.haikuTrack('creator:timeline:layer:lock-toggled');
-    });
+    this.props.row.element.toggleLocked({from: 'timeline'}, () => {});
   };
 
   onDragStart = (event: React.DragEvent<any>) => {

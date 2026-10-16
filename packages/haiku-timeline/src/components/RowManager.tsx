@@ -17,7 +17,6 @@ export interface RowManagerProps {
   onDrop (): void;
   timelinePropertiesWidth: number;
   reflection: number;
-  mixpanel: any;
   forceCollapse: boolean;
   currentDraggingComponent: string;
   onDragStart (componentId: string): void;
@@ -148,7 +147,6 @@ class RowManager extends React.PureComponent<RowManagerProps> {
     const activeComponent = this.props.getActiveComponent();
 
     logger.info(`z-drop ${this.props.currentDraggingComponent} at`, this.props.reflection);
-    this.props.mixpanel.haikuTrack('creator:timeline:z-shift');
 
     activeComponent.zShiftIndices(
       this.props.currentDraggingComponent,

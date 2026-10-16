@@ -28,11 +28,9 @@ import Marquee from './Marquee';
 import PropertiesPanelResizer from './PropertiesPanelResizer';
 import {InteractionMode, isPreviewMode} from 'haiku-ui-common/lib/interactionModes';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
-import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
 import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User';
 import {EXPORTER_CHANNEL} from 'haiku-sdk-creator/lib/exporter';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import zIndex from './styles/zIndex';
 import Globals from 'haiku-ui-common/lib/Globals';
 
@@ -61,7 +59,6 @@ const DEFAULTS = {
   isPreviewModeActive: false,
   isRepeat: true,
   flush: false,
-  userDetails: null,
   trackedExporterRequests: [],
   showBezierEditor: false,
 };
@@ -166,54 +163,52 @@ class Timeline extends React.Component {
   };
 
   instantiateMarquee () {
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
-      const area = document.querySelector('#property-rows');
-      if (!area) {
-        return setTimeout(this.instantiateMarquee.bind(this), 100);
-      }
-
-      const marquee = new Marquee({
-        area,
-        onStart: (event) => {
-          // FIXME: horrible and non-scalable hack, we should figure out a better solution
-          // This event triggers on `mousedown`, we make the assumption that a
-          // mousedown + mouse movement on one of the elements below is a drag,
-          // therefore we stop the marquee selection by returning `false`.
-          return !(
-            event.clientX < this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() ||
-            typeof event.target.className !== 'string' ||
-            event.target.className.includes('js-avoid-marquee-init')
-          );
-        },
-        onChange: lodash.throttle((finalArea) => {
-          if (
-            finalArea.height < MARQUEE_THRESHOLD &&
-            finalArea.width < MARQUEE_THRESHOLD
-          ) {
-            return;
-          }
-
-          const component = this.getActiveComponent();
-
-          Keyframe.marqueeSelect({
-            component,
-            area: finalArea,
-            offset: {
-              horizontal: component.getCurrentTimeline().getScrollLeft(),
-            },
-            viewCoordinatesProvider: this.getKeyframeCoordinates,
-          });
-        }, MARQUEE_THROTTLE_TIME),
-        onFinish: () => {
-          Keyframe.epandRowsOfSelectedKeyframes({
-            component: this.getActiveComponent(),
-            from: 'timeline',
-          });
-        },
-      });
-
-      marquee.start();
+    const area = document.querySelector('#property-rows');
+    if (!area) {
+      return setTimeout(this.instantiateMarquee.bind(this), 100);
     }
+
+    const marquee = new Marquee({
+      area,
+      onStart: (event) => {
+        // FIXME: horrible and non-scalable hack, we should figure out a better solution
+        // This event triggers on `mousedown`, we make the assumption that a
+        // mousedown + mouse movement on one of the elements below is a drag,
+        // therefore we stop the marquee selection by returning `false`.
+        return !(
+          event.clientX < this.getActiveComponent().getCurrentTimeline().getPropertiesPixelWidth() ||
+          typeof event.target.className !== 'string' ||
+          event.target.className.includes('js-avoid-marquee-init')
+        );
+      },
+      onChange: lodash.throttle((finalArea) => {
+        if (
+          finalArea.height < MARQUEE_THRESHOLD &&
+          finalArea.width < MARQUEE_THRESHOLD
+        ) {
+          return;
+        }
+
+        const component = this.getActiveComponent();
+
+        Keyframe.marqueeSelect({
+          component,
+          area: finalArea,
+          offset: {
+            horizontal: component.getCurrentTimeline().getScrollLeft(),
+          },
+          viewCoordinatesProvider: this.getKeyframeCoordinates,
+        });
+      }, MARQUEE_THROTTLE_TIME),
+      onFinish: () => {
+        Keyframe.epandRowsOfSelectedKeyframes({
+          component: this.getActiveComponent(),
+          from: 'timeline',
+        });
+      },
+    });
+
+    marquee.start();
   }
 
   componentDidMount () {
@@ -225,12 +220,6 @@ class Timeline extends React.Component {
         port: this.props.envoy.port,
         host: this.props.envoy.host,
         WebSocket: window.WebSocket,
-      });
-
-      this.envoyClient.get(ERROR_CHANNEL).then((error) => {
-        if (global.sentryReporter) {
-          global.sentryReporter.envoy = error;
-        }
       });
     }
 
@@ -418,8 +407,12 @@ class Timeline extends React.Component {
         case 'global-menu:paste':
           // Delegate paste only if the user is not editing something here
           if (document.hasFocus()) {
-            if (!this.isTextInputFocused() && !this.refs.expressionInput.willHandlePasteEvent()) {
-              this.props.websocket.send(relayable);
+            if (!this.isTextInputFocused()) {
+              this.refs.expressionInput.willHandlePasteEvent().then((handled) => {
+                if (!handled) {
+                  this.props.websocket.send(relayable);
+                }
+              });
             }
           } else {
             this.props.websocket.send(relayable);
@@ -773,11 +766,6 @@ class Timeline extends React.Component {
               }
             },
           );
-          user.getUser().then(
-            (userDetails) => {
-              this.setState({userDetails});
-            },
-          );
         },
       );
     }
@@ -1056,13 +1044,11 @@ class Timeline extends React.Component {
   };
 
   copySelectedCurve () {
-    this.props.mixpanel.haikuTrack('creator:timeline:copy-curve');
     this._lastCopiedCurve = this.getActiveComponent().getFirstSelectedCurve();
   }
 
   pasteSelectedCurve () {
     if (this._lastCopiedCurve) {
-      this.props.mixpanel.haikuTrack('creator:timeline:paste-curve');
       this.getActiveComponent().changeCurveOnSelectedKeyframes(
         this._lastCopiedCurve,
         {from: 'timeline'},
@@ -1138,10 +1124,7 @@ class Timeline extends React.Component {
             marginRight: 5,
           }}
         >
-          {
-            experimentIsEnabled(Experiment.LocalAssetExport) &&
-            <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
-          }
+          <TrackedExporterRequests trackedExporterRequests={this.state.trackedExporterRequests} />
         </div>
       </div>
     );
@@ -1263,7 +1246,6 @@ class Timeline extends React.Component {
 
   onCommitValue = (committedValue, row, ms) => {
     logger.info('commit at', ms, 'on', row.dump());
-    this.props.mixpanel.haikuTrack('creator:timeline:create-keyframe');
     row.createKeyframe(committedValue, ms, {from: 'timeline'});
   };
 
@@ -1459,7 +1441,6 @@ class Timeline extends React.Component {
             <ComponentRows
               rowHeight={this.state.rowHeight}
               getActiveComponent={this.getActiveComponent}
-              mixpanel={this.props.mixpanel}
               showEventHandlersEditor={this.showEventHandlersEditor}
               onDoubleClickToMoveGauge={this.moveGaugeOnDoubleClick}
               setEditingRowTitleStatus={this.setEditingRowTitleStatus}

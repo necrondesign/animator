@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import StatesSVG from 'haiku-ui-common/lib/react/icons/StatesSVG';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 export default class PropertyRowHeading extends React.Component {
   constructor (props) {

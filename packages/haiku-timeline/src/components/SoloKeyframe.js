@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 export default class SoloKeyframe extends React.Component {
   constructor (props) {
@@ -75,7 +74,7 @@ export default class SoloKeyframe extends React.Component {
 
   storeViewPosition = (domElement) => {
     this.domRef = domElement;
-    if (domElement && experimentIsEnabled(Experiment.TimelineMarqueeSelection)) {
+    if (domElement) {
       requestAnimationFrame(() => {
         this.props.keyframe.storeViewPosition({
           rect: domElement.getBoundingClientRect(),
@@ -93,34 +92,19 @@ export default class SoloKeyframe extends React.Component {
       <span
         ref={this.storeViewPosition}
         id={`solo-keyframe-${this.props.keyframe.getUniqueKey()}`}
-        style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+        style={{
           position: 'absolute',
           left: leftPx + 3,
           top: 10,
           transform: 'scale(1.7)',
           transition: 'opacity 130ms linear',
           zIndex: 1002,
-        } : {
-          position: 'absolute',
-          left: leftPx,
-          outline: '1px solid orange',
-          // width: 9,
-          height: 24,
-          top: -3,
-          transform: 'scale(1.7)',
-          transition: 'opacity 130ms linear',
-          zIndex: 1002,
         }}>
         <span
           className="keyframe-diamond"
-          style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+          style={{
             cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move',
             display: 'flex',
-          } : {
-            position: 'absolute',
-            top: 5,
-            // left: 1,
-            cursor: (this.props.keyframe.isWithinCollapsedRow()) ? 'pointer' : 'move',
           }}>
           <KeyframeSVG color={Palette[this.props.keyframe.getLeftKeyframeColorState()]} />
         </span>

@@ -3,7 +3,6 @@ import * as Color from 'color';
 import Palette from 'haiku-ui-common/lib/Palette';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 
 export default class ConstantBody extends React.Component {
   constructor (props) {
@@ -99,32 +98,18 @@ export default class ConstantBody extends React.Component {
           mouseEvent.stopPropagation();
           this.props.keyframe.handleMouseUp(mouseEvent, {...Globals}, {isViaConstantBodyView: true});
         }}
-        style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+        style={{
           position: 'absolute',
           left: pxOffsetLeft + 4,
           width: pxOffsetRight - pxOffsetLeft,
           height: this.props.rowHeight - 10,
           top: 5,
-        } : {
-          position: 'absolute',
-          left: pxOffsetLeft + 4,
-          width: pxOffsetRight - pxOffsetLeft,
-          height: this.props.rowHeight,
         }}>
         {(this.props.keyframe.isWithinCollapsedRow())
           ? ''
-          : <span style={experimentIsEnabled(Experiment.TimelineMarqueeSelection) ? {
+          : <span style={{
             height: 3,
             top: 7,
-            position: 'absolute',
-            zIndex: 2,
-            width: '100%',
-            backgroundColor: (this.props.keyframe.isSelectedBody())
-                ? Color(Palette.LIGHTEST_PINK).fade(0.5)
-                : Palette.DARKER_GRAY,
-          } : {
-            height: 3,
-            top: 12,
             position: 'absolute',
             zIndex: 2,
             width: '100%',

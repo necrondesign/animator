@@ -7,7 +7,6 @@ import TimelineDraggable from './TimelineDraggable';
 import KeyframeSVG from 'haiku-ui-common/lib/react/icons/KeyframeSVG';
 import Globals from 'haiku-ui-common/lib/Globals';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import BezierDerivativeGraph from 'haiku-ui-common/lib/react/Bezier/BezierDerivativeGraph';
 
 import {
@@ -121,7 +120,7 @@ export default class TransitionBody extends React.Component {
 
   storeViewPosition = (domElement) => {
     this.domRef = domElement;
-    if (experimentIsEnabled(Experiment.TimelineMarqueeSelection) && domElement) {
+    if (domElement) {
       requestAnimationFrame(() => {
         this.props.keyframe.storeViewPosition({
           rect: domElement.getBoundingClientRect(),

@@ -42,14 +42,14 @@ import {
 import SVGPoints from '@haiku/core/lib/helpers/SVGPoints';
 import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUtils';
 import Globals from 'haiku-ui-common/lib/Globals';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
-import {clipboard, shell, ipcRenderer} from 'electron';
+import {shell, ipcRenderer} from 'electron';
+import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
 
 import * as fse from 'haiku-fs-extra';
 import * as moment from 'moment';
 import {HOMEDIR_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
-import {ERROR_CHANNEL} from 'haiku-sdk-creator/lib/bll/Error';
+import {extractSvgMarkup, nextPastedSvgRelpath} from '../utils/clipboardSvg';
 
 // @electron/remote only works inside an Electron renderer (it throws on require in plain Node, e.g. unit tests
 // under JSDOM), so load it when it's actually used.
@@ -496,12 +496,6 @@ export class Glass extends React.Component {
         host: this.props.envoy.host,
         WebSocket: window.WebSocket,
       });
-
-      this.envoyClient.get(ERROR_CHANNEL).then((error) => {
-        if (global.sentryReporter) {
-          global.sentryReporter.envoy = error;
-        }
-      });
     }
 
     const resetKeyStates = () => {
@@ -553,7 +547,7 @@ export class Glass extends React.Component {
         return;
       }
 
-      if (experimentIsEnabled(Experiment.PinchToZoomInGlass) && (evt.ctrlKey || evt.metaKey)) {
+      if ((evt.ctrlKey || evt.metaKey)) {
         return this.handlePinchToZoom(evt);
       }
 
@@ -580,7 +574,6 @@ export class Glass extends React.Component {
           break;
 
         case 'global-menu:zoom-in': {
-          mixpanel.haikuTrack('creator:glass:zoom-in');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomIn(1 + SHORTCUT_ZOOM_FACTOR);
@@ -589,7 +582,6 @@ export class Glass extends React.Component {
         }
 
         case 'global-menu:zoom-out': {
-          mixpanel.haikuTrack('creator:glass:zoom-out');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().zoomOut(1 + SHORTCUT_ZOOM_FACTOR);
@@ -598,7 +590,6 @@ export class Glass extends React.Component {
         }
 
         case 'global-menu:reset-viewport': {
-          mixpanel.haikuTrack('creator:glass:reset-viewport');
           const component = this.getActiveComponent();
           if (component) {
             component.getArtboard().resetZoomPan();
@@ -716,53 +707,7 @@ export class Glass extends React.Component {
           break;
 
         case 'instantiate-component':
-          const component = this.getActiveComponent();
-
-          if (component) {
-            Element.where({component, _isSelected: true}).forEach((element) => {
-              element.unselectSoftly({from: 'glass'});
-            });
-
-            component.instantiateComponent(
-              message.relpath,
-              message.coords || {},
-              {from: 'glass'},
-              (err, mana) => {
-                if (err) {
-                  if (err.code === 'ENOENT') {
-                    console.error('We couldn\'t find that component. 😩 Please try again in a few moments. If you still see this error, contact Haiku for support.');
-                  } else {
-                    console.error(err.message);
-                  }
-                  return;
-                }
-
-                let foundTextNode = false;
-
-                Template.visitWithoutDescendingIntoSubcomponents(mana, (node) => {
-                  if (
-                    node &&
-                    node.elementName === 'text' ||
-                    node.elementName === 'tspan'
-                  ) {
-                    foundTextNode = true;
-                  }
-                });
-
-                if (foundTextNode && !this.didAlreadyWarnAboutTextNodes) {
-                  this.didAlreadyWarnAboutTextNodes = true;
-
-                  // The '[notice]' substring tells Creator to display a toast
-                  console.info(`
-                    [notice] ⚠️ You placed an element that contains text.
-                    Since fonts on your system may not be available everywhere,
-                    we recommend converting all text to outlines.
-                    `.trim().replace(/\s+/g, ' '),
-                  );
-                }
-              },
-            );
-          }
+          this.instantiateComponentInActiveComponent(message.relpath, message.coords);
           break;
 
         case 'edit-component':
@@ -847,7 +792,6 @@ export class Glass extends React.Component {
     this._renderCount = this._renderCount || 0;
     if (
       !this.state.isMouseDown ||
-      !experimentIsEnabled(Experiment.Snapping) ||
       ElementSelectionProxy.snaps.length === 0 ||
       Globals.isSpecialKeyDown() ||
       Globals.isSpaceKeyDown ||
@@ -934,7 +878,6 @@ overlays.push({
 
   handleUndo (payload) {
     if (this.project) {
-      mixpanel.haikuTrack('creator:glass:undo');
       const directlySelectedComponentId = Element.directlySelected && Element.directlySelected.componentId;
       const component = this.getActiveComponent();
       Element.unselectAllElements({component}, {from: 'glass'});
@@ -956,7 +899,6 @@ overlays.push({
 
   handleRedo (payload) {
     if (this.project) {
-      mixpanel.haikuTrack('creator:glass:redo');
       const directlySelectedComponentId = Element.directlySelected && Element.directlySelected.componentId;
       const component = this.getActiveComponent();
       Element.unselectAllElements({component}, {from: 'glass'});
@@ -976,18 +918,114 @@ overlays.push({
     }
   }
 
+  instantiateComponentInActiveComponent (relpath, coords) {
+    const component = this.getActiveComponent();
+
+    if (component) {
+      Element.where({component, _isSelected: true}).forEach((element) => {
+        element.unselectSoftly({from: 'glass'});
+      });
+
+      component.instantiateComponent(
+        relpath,
+        coords || {},
+        {from: 'glass'},
+        (err, mana) => {
+          if (err) {
+            if (err.code === 'ENOENT') {
+              console.error('We couldn\'t find that design file. Please try again in a few moments.');
+            } else {
+              console.error(err.message);
+            }
+            return;
+          }
+
+          let foundTextNode = false;
+
+          Template.visitWithoutDescendingIntoSubcomponents(mana, (node) => {
+            if (
+              node &&
+              node.elementName === 'text' ||
+              node.elementName === 'tspan'
+            ) {
+              foundTextNode = true;
+            }
+          });
+
+          if (foundTextNode && !this.didAlreadyWarnAboutTextNodes) {
+            this.didAlreadyWarnAboutTextNodes = true;
+
+            // The '[notice]' substring tells Creator to display a toast
+            console.info(`
+              [notice] ⚠️ You placed an element that contains text.
+              Since fonts on your system may not be available everywhere,
+              we recommend converting all text to outlines.
+              `.trim().replace(/\s+/g, ' '),
+            );
+          }
+        },
+      );
+    }
+  }
+
+  /**
+   * Remembers what the system clipboard held when elements were copied inside the editor, so a later paste can tell
+   * whether the user has since copied something else (e.g. "Copy as SVG" in Figma).
+   */
+  rememberSystemClipboard () {
+    clipboard.readText().then((text) => {
+      this.systemClipboardAtLastCopy = text;
+    }, () => {});
+  }
+
+  /**
+   * Resolves with SVG markup from the system clipboard if it was put there after the last in-editor copy, else null.
+   */
+  getNewSvgFromSystemClipboard () {
+    return clipboard.readText().then((text) => {
+      if (text === this.systemClipboardAtLastCopy) {
+        return null;
+      }
+      return extractSvgMarkup(text);
+    }, () => null);
+  }
+
+  pasteSvgMarkup (svg) {
+    const relpath = nextPastedSvgRelpath(this.props.folder);
+    fse.outputFile(path.join(this.props.folder, relpath), svg, (err) => {
+      if (err) {
+        console.error(`Could not save the pasted SVG: ${err.message}`);
+        return;
+      }
+      this.instantiateComponentInActiveComponent(relpath, {});
+    });
+  }
+
   handleCut () {
-    mixpanel.haikuTrack('creator:glass:cut');
+    this.rememberSystemClipboard();
     this.fetchProxyElementForSelection().cut({from: 'glass'});
   }
 
   handleCopy () {
-    mixpanel.haikuTrack('creator:glass:copy');
+    this.rememberSystemClipboard();
     this.fetchProxyElementForSelection().copy({from: 'glass'});
   }
 
   handlePaste () {
-    mixpanel.haikuTrack('creator:glass:paste');
+    if (this.isPreviewMode() || !this.getActiveComponent()) {
+      return this.pasteCopiedElements();
+    }
+
+    this.getNewSvgFromSystemClipboard().then((svg) => {
+      if (svg) {
+        this.pasteSvgMarkup(svg);
+      } else {
+        this.pasteCopiedElements();
+      }
+    });
+  }
+
+  pasteCopiedElements () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy) {
       const pasteables = ElementSelectionProxy.getPasteables();
@@ -1010,7 +1048,6 @@ overlays.push({
     }
 
     if (this.getActiveComponent()) {
-      mixpanel.haikuTrack('creator:glass:delete-element');
       const proxy = this.fetchProxyElementForSelection();
       proxy.remove(this.getActiveComponent().project.getMetadata());
     }
@@ -1018,7 +1055,6 @@ overlays.push({
 
   handleSelectAll () {
     if (this.getActiveComponent()) {
-      mixpanel.haikuTrack('creator:glass:select-all');
       this.getActiveComponent().selectAll({}, {from: 'glass'}, () => {});
     }
   }
@@ -1034,14 +1070,12 @@ overlays.push({
       });
 
       proxy.group({from: 'glass'});
-      mixpanel.haikuTrack('creator:glass:grouped');
     }
   }
 
   handleGroup () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy && proxy.canGroup()) {
-      mixpanel.haikuTrack('creator:glass:group');
 
       const ac = this.getActiveComponent();
       if (proxy.selection.some(
@@ -1064,14 +1098,12 @@ overlays.push({
     const proxy = this.fetchProxyElementForSelection();
     if (proxy && proxy.canUngroup()) {
       proxy.ungroup({from: 'glass'});
-      mixpanel.haikuTrack('creator:glass:ungrouped');
     }
   }
 
   handleUngroup () {
     const proxy = this.fetchProxyElementForSelection();
     if (proxy && proxy.canUngroup()) {
-      mixpanel.haikuTrack('creator:glass:ungroup');
       if (this.getActiveComponent().elementHasTransitionOrExpression(proxy.selection[0].getComponentId())) {
         this.props.websocket.send({
           type: 'broadcast',
@@ -1118,10 +1150,6 @@ overlays.push({
     Element.unselectAllElements({
       component: this.getActiveComponent(),
     }, {from: 'glass'});
-
-    mixpanel.haikuTrack('creator:glass:create-component', {
-      title,
-    });
 
     let translation;
     if (proxy.hasAnythingInSelectionButNotArtboard()) {
@@ -1185,9 +1213,6 @@ overlays.push({
 
       this.project.findActiveComponentBySource(relpath, (findAcError, ac) => {
         if (!findAcError && ac && ac !== this.getActiveComponent()) {
-          mixpanel.haikuTrack('creator:glass:edit-component', {
-            title: ac.getTitle(),
-          });
 
           ac.setAsCurrentActiveComponent({from: 'glass'}, (setCurrentAcError) => {
             if (setCurrentAcError) {
@@ -1585,10 +1610,6 @@ overlays.push({
           } else if (!Globals.isShiftKeyDown && !Globals.isAltKeyDown) { // none
             this.deselectAllOtherElementsIfTargetNotAmongThem(elementTargeted, () => {
               this.ensureElementIsSelected(elementTargeted, finish);
-
-              if (!experimentIsEnabled(Experiment.DirectSelectionOfPrimitives)) {
-                return;
-              }
 
               this.setState({directSelectionAnchorActivation: null});
 
@@ -2386,7 +2407,6 @@ overlays.push({
         );
       } else if (!this.isPreviewMode()) {
         if (
-          experimentIsEnabled(Experiment.DirectSelectionOfPrimitives) &&
           Element.directlySelected &&
           this.selectedOriginalClickState &&
           this.selectedOriginalClickState.attributes
@@ -3155,9 +3175,13 @@ overlays.push({
     event.preventDefault();
     event.stopPropagation();
 
-    PopoverMenu.launch({
-      event,
-      items: this.getContextMenuItems(),
+    // Reading the clipboard is asynchronous; check it first so "Paste" can be enabled for SVG copied elsewhere.
+    this.getNewSvgFromSystemClipboard().then((svg) => {
+      this.hasSvgToPaste = Boolean(svg);
+      PopoverMenu.launch({
+        event,
+        items: this.getContextMenuItems(),
+      });
     });
   }
 
@@ -3354,7 +3378,6 @@ overlays.push({
     items.push({
       label: 'Create Component',
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:launch-create-component-modal');
         if (proxy.hasNothingInSelection()) {
           this.setState({
             conglomerateComponentOptions: {
@@ -3408,7 +3431,6 @@ overlays.push({
       label: isWindows() ? 'Show in File Explorer' : 'Show in Finder',
       enabled: proxy.isSelectionFinderOpenable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:open-in-finder');
         shell.openPath(proxy.getAbspath());
       },
     });
@@ -3419,7 +3441,6 @@ overlays.push({
         label: 'Edit in Sketch',
         enabled: proxy.isSelectionSketchEditable(),
         onClick: () => {
-          mixpanel.haikuTrack('creator:glass:edit-in-sketch');
           shell.openPath(path.join(this.props.folder, proxy.getSketchAssetPath()));
         },
       });
@@ -3429,7 +3450,6 @@ overlays.push({
       label: 'Edit in Figma',
       enabled: proxy.isSelectionFigmaEditable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:edit-in-figma');
         shell.openExternal(proxy.getFigmaAssetLink());
       },
     });
@@ -3438,7 +3458,6 @@ overlays.push({
       label: 'Edit in Illustrator',
       enabled: proxy.isSelectionIllustratorEditable(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:edit-in-illustrator');
         shell.openPath(path.join(this.props.folder, proxy.getIllustratorAssetPath()));
       },
     });
@@ -3463,7 +3482,7 @@ overlays.push({
 
     items.push({
       label: 'Paste',
-      enabled: proxy.canPaste(),
+      enabled: proxy.canPaste() || this.hasSvgToPaste,
       onClick: (event) => {
         this.handlePaste();
       },
@@ -3475,7 +3494,6 @@ overlays.push({
       label: 'Group',
       enabled: proxy.canGroup(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:create-group');
         this.handleGroupDebounced();
       },
     });
@@ -3504,7 +3522,6 @@ overlays.push({
       label: 'Forward',
       enabled: proxy.canBringForward(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:bring-forward');
         proxy.bringForward();
       },
     });
@@ -3513,7 +3530,6 @@ overlays.push({
       label: 'Backward',
       enabled: proxy.canSendBackward(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:send-backward');
         proxy.sendBackward();
       },
     });
@@ -3522,7 +3538,6 @@ overlays.push({
       label: 'Bring to Front',
       enabled: proxy.canBringToFront(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:bring-to-front');
         proxy.bringToFront();
       },
     });
@@ -3531,7 +3546,6 @@ overlays.push({
       label: 'Send to Back',
       enabled: proxy.canSendToBack(),
       onClick: () => {
-        mixpanel.haikuTrack('creator:glass:send-to-back');
         proxy.sendToBack();
       },
     });
@@ -3542,7 +3556,6 @@ overlays.push({
       label: 'Copy SVG',
       enabled: proxy.canCopySVG(),
       onClick: (event) => {
-        mixpanel.haikuTrack('creator:glass:copy-svg');
         clipboard.writeText(proxy.copySVG());
       },
     });
@@ -3551,7 +3564,6 @@ overlays.push({
       label: 'HTML Snapshot',
       enabled: proxy.canHTMLSnapshot(),
       onClick: (event) => {
-        mixpanel.haikuTrack('creator:glass:html-snapshot');
         this.getActiveComponent().htmlSnapshot((err, html) => {
           if (err) {
             return;
