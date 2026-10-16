@@ -61,6 +61,10 @@ function expressionToOASTComponent (exp, key, keyChain) {
   }
 
   if (typeof exp === 'function') {
+    // Runtime wrappers (e.g. migrated event handlers) carry the specification of the function to write.
+    if (exp.__rfo) {
+      return RFOToFunctionAST(exp.__rfo, key);
+    }
     return functionToASTExpression(exp);
   }
 

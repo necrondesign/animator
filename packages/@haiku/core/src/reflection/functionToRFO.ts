@@ -223,6 +223,13 @@ function topLevelArrow (str: string): number {
 }
 
 export default function functionToRFO (fn) {
+  // Wrappers made by the runtime (e.g. migrated event handlers) carry the specification of the function they stand for.
+  if (fn.__rfo) {
+    return {
+      __function: fn.injectee ? {...fn.__rfo, injectee: true} : fn.__rfo,
+    };
+  }
+
   let str = fn.toString().trim();
 
   // HACK: Remove paren wrapping if any was provided

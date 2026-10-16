@@ -29,8 +29,91 @@ export const enum PlaybackFlag {
   SEEK = 'seek',
 }
 
-const makePlaybackProc = (body: string): Function => {
-  return new Function('$time', body);
+type PlaybackToken = string | number;
+type TimeFunction = (time: number) => number;
+
+/**
+ * Compiles an arithmetic playback expression over $time (numbers, $time, + - * / % **, parentheses) into a function,
+ * without eval, so it also works under a strict Content-Security-Policy. Returns undefined for anything else.
+ */
+export const compilePlaybackExpression = (tokens: PlaybackToken[]): TimeFunction | undefined => {
+  let position = 0;
+  const peek = () => tokens[position];
+  const fail = () => {
+    throw new Error('unsupported playback expression');
+  };
+
+  const primary = (): TimeFunction => {
+    const token = tokens[position++];
+    if (typeof token === 'number') {
+      return () => token;
+    }
+    if (token === '$time') {
+      return (time) => time;
+    }
+    if (token === '(') {
+      const inner = expression();
+      if (tokens[position++] !== ')') {
+        fail();
+      }
+      return inner;
+    }
+    return fail();
+  };
+
+  const unary = (): TimeFunction => {
+    if (peek() === '-') {
+      position++;
+      const operand = unary();
+      return (time) => -operand(time);
+    }
+    if (peek() === '+') {
+      position++;
+      return unary();
+    }
+    return primary();
+  };
+
+  const power = (): TimeFunction => {
+    const base = unary();
+    if (peek() === '**') {
+      position++;
+      const exponent = power();
+      return (time) => base(time) ** exponent(time);
+    }
+    return base;
+  };
+
+  const term = (): TimeFunction => {
+    let left = power();
+    while (peek() === '*' || peek() === '/' || peek() === '%') {
+      const operator = tokens[position++];
+      const l = left;
+      const r = power();
+      left = operator === '*' ? (time) => l(time) * r(time)
+        : operator === '/' ? (time) => l(time) / r(time)
+        : (time) => l(time) % r(time);
+    }
+    return left;
+  };
+
+  const expression = (): TimeFunction => {
+    let left = term();
+    while (peek() === '+' || peek() === '-') {
+      const operator = tokens[position++];
+      const l = left;
+      const r = term();
+      left = operator === '+' ? (time) => l(time) + r(time) : (time) => l(time) - r(time);
+    }
+    return left;
+  };
+
+  try {
+    const compiled = expression();
+    return position === tokens.length ? compiled : undefined;
+  } catch (exception) {
+    return undefined;
+  }
 };
 
 const PLAYBACK_FLAGS = {
@@ -618,19 +701,7 @@ export default class HaikuTimeline extends HaikuBase {
         }
       }
 
-      const expr = finals.map((val) => {
-        if (PLAYBACK_FLAGS[val]) {
-          return '$time';
-        }
-        return val;
-      }).join(' ');
-
-      let proc;
-      try {
-        proc = makePlaybackProc(`return ${expr};`);
-      } catch (exception) {
-        // no-op
-      }
+      const proc = compilePlaybackExpression(finals.map((val) => (PLAYBACK_FLAGS[val] ? '$time' : val)));
 
       const out = {
         proc,

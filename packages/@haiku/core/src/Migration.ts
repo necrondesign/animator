@@ -362,6 +362,8 @@ export const runMigrationsPrePhase = (component: IHaikuComponent, options: Migra
   }
 };
 
+const CANONICAL_HANDLER_PARAMS = ['component', 'element', 'target', 'event'];
+
 export const runMigrationsPostPhase = (component: IHaikuComponent, options: MigrationOptions, version: string) => {
   const bytecode = component.bytecode;
 
@@ -475,7 +477,8 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     const rfo = handler.__rfo || functionToRFO(handler).__function;
     let params = rfo.params;
     let body: string = rfo.body;
-    let changed = false;
+    let bodyChanged = false;
+    let paramsChanged = false;
 
     if (requiresUpgrade(coreVersion, UpgradeVersionRequirement.TimelineDefaultFrames)) {
       (['.seek(', '.gotoAndPlay(', '.gotoAndStop(']).forEach((methodSignature) => {
@@ -484,7 +487,7 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
             continue;
           }
 
-          changed = true;
+          bodyChanged = true;
 
           // We have matched e.g. this.getDefaultTimeline().seek( at the string index of ".seek(".
           // Using the assumption that the method arguments do not contain string arguments with parentheses inside,
@@ -507,17 +510,35 @@ export const runMigrationsPostPhase = (component: IHaikuComponent, options: Migr
     }
 
     if (params.length < 4) {
-      params = ['component', 'element', 'target', 'event'];
-      changed = true;
+      params = CANONICAL_HANDLER_PARAMS;
+      paramsChanged = true;
     }
 
-    if (changed) {
-      bytecode.eventHandlers[eventSelector][eventName].handler = reifyRFO({
-        ...rfo,
-        params,
-        body,
-      });
+    if (!bodyChanged && !paramsChanged) {
+      return;
     }
+
+    const migrated = {...rfo, params, body};
+    let migratedHandler;
+    if (bodyChanged) {
+      // Rewriting the source needs eval, which a strict Content-Security-Policy forbids.
+      try {
+        migratedHandler = reifyRFO(migrated);
+      } catch (exception) {
+        console.warn(`[haiku core] could not migrate the ${eventName} handler of ${eventSelector}`, exception);
+      }
+    }
+    if (!migratedHandler) {
+      // Without rewriting the source: call the original function with the arguments its parameters are named after.
+      const names = rfo.params;
+      migratedHandler = function (component, element, target, event) {
+        const argumentsByName = {component, element, target, event};
+        return handler.apply(this, names.map((name) => argumentsByName[name]));
+      };
+    }
+    // Serializing the handler (e.g. in the editor) writes the migrated source.
+    migratedHandler.__rfo = migrated;
+    bytecode.eventHandlers[eventSelector][eventName].handler = migratedHandler;
   });
 
   if (needsRerender) {

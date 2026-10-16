@@ -50,6 +50,13 @@ components and this runtime:
 
 <br>
 
+#### Content-Security-Policy
+
+Components exported by the editor (`code/*/code.js`) contain real functions, so they run on pages with a strict
+Content-Security-Policy (no `'unsafe-eval'`), including legacy event handler migration and playback directives such
+as `"loop+100"`. Only `component.evaluate('<expression string>')` and functions stored as data (the legacy JSON bytecode
+format) need `'unsafe-eval'`.
+
 #### Without a bundler
 
 `yarn bundle` writes browser builds to `dist/` that expose globals, e.g. for a plain HTML page:
