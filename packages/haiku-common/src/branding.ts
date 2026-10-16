@@ -13,7 +13,7 @@ export const PRODUCT_NAME = 'motion-side';
 export const PRODUCT_PROTOCOL = 'motion-side';
 
 // Where users find the source code, report problems and read about the project.
-export const REPOSITORY_URL = 'https://github.com/necrondesign/animator';
+export const REPOSITORY_URL = 'https://github.com/necrondesign/motion-side';
 export const ISSUES_URL = `${REPOSITORY_URL}/issues`;
 
 // AGPL/attribution: the product is a fork of Haiku Animator.

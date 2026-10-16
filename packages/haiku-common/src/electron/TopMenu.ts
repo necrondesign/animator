@@ -1,12 +1,10 @@
 import {app, Menu, MenuItemConstructorOptions, shell} from 'electron';
 import {assign, isEqual} from 'lodash';
-import {PRODUCT_NAME, REPOSITORY_URL} from '../branding';
-import {getAccountUrl} from '../environments';
+import {ISSUES_URL, PRODUCT_NAME, REPOSITORY_URL} from '../branding';
 import {isMac} from '../environments/os';
 import {isWindows} from '../environments/os';
 import {Experiment, experimentIsEnabled} from '../experiments';
 import {PlumbingProject} from '../types';
-import {TourUtils} from '../types/enums';
 
 app.setName(PRODUCT_NAME);
 
@@ -28,7 +26,6 @@ export interface TopMenuEventSender {
 export interface TopMenuOptions {
   isProjectOpen: boolean;
   isSaving: boolean;
-  isUserAuthenticated: boolean;
   projectsList: PlumbingProject[];
   subComponents: SubComponent[];
   undoState: UndoState;
@@ -212,11 +209,19 @@ export default class TopMenu {
 
     projectSubmenu.push(
       {
-        label: 'New',
+        label: 'New…',
         accelerator: 'CmdOrCtrl+N',
-        enabled: !options.isSaving && !!options.isUserAuthenticated,
+        enabled: !options.isSaving,
         click: () => {
-          this.sender.send('global-menu:show-new-project-modal');
+          this.sender.send('global-menu:new-project');
+        },
+      },
+      {
+        label: 'Open…',
+        accelerator: 'CmdOrCtrl+O',
+        enabled: !options.isSaving,
+        click: () => {
+          this.sender.send('global-menu:open-project');
         },
       },
       {type: 'separator'},
@@ -239,35 +244,33 @@ export default class TopMenu {
       },
     );
 
-    if (experimentIsEnabled(Experiment.LocalAssetExport)) {
-      projectSubmenu.push(
-        {
-          label: 'Export…',
-          submenu: [
-            {
-              label: 'Video',
-              click: () => this.emitExportRequest('mp4', 30),
-              enabled: this.options.isProjectOpen,
-            },
-            {
-              label: 'GIF (medium quality)',
-              click: () => this.emitExportRequest('gif', 15),
-              enabled: this.options.isProjectOpen,
-            },
-            {
-              label: 'GIF (high quality)',
-              click: () => this.emitExportRequest('gif', 30),
-              enabled: this.options.isProjectOpen,
-            },
-            {
-              label: 'Lottie',
-              click: () => this.emitExportRequest('json', 60),
-              enabled: this.options.isProjectOpen,
-            },
-          ],
-        },
-      );
-    }
+    projectSubmenu.push(
+      {
+        label: 'Export…',
+        submenu: [
+          {
+            label: 'Video',
+            click: () => this.emitExportRequest('mp4', 30),
+            enabled: this.options.isProjectOpen,
+          },
+          {
+            label: 'GIF (medium quality)',
+            click: () => this.emitExportRequest('gif', 15),
+            enabled: this.options.isProjectOpen,
+          },
+          {
+            label: 'GIF (high quality)',
+            click: () => this.emitExportRequest('gif', 30),
+            enabled: this.options.isProjectOpen,
+          },
+          {
+            label: 'Lottie',
+            click: () => this.emitExportRequest('json', 60),
+            enabled: this.options.isProjectOpen,
+          },
+        ],
+      },
+    );
 
     projectSubmenu.push(
       {type: 'separator'},
@@ -403,40 +406,17 @@ export default class TopMenu {
         label: 'Developer',
         submenu: developerMenuItems,
       }, {
-        label: 'Community',
-        submenu: [
-          {
-            label: 'Open Source Community on Slack',
-            click: () => {
-              shell.openExternal('https://join.slack.com/t/haiku-community/shared_invite/zt-4u3snz0w-vcL8qttFFHvlrZNl8NSmPg');
-            },
-          },
-          {
-            label: 'YouTube',
-            click: () => {
-              shell.openExternal('https://www.youtube.com/channel/UCFNlUrip_yGA8Ljk7QcwYog');
-            },
-          },
-          {
-            label: 'Twitter',
-            click: () => {
-              shell.openExternal('https://www.twitter.com/haikuforteams');
-            },
-          },
-        ],
-      }, {
         label: 'Help',
         submenu: [
           {
-            label: 'Docs',
+            label: 'Source Code and Documentation',
             click: () => {
-              shell.openExternal('https://docs.haiku.ai/');
+              shell.openExternal(REPOSITORY_URL);
             },
           }, {
-            label: 'Take Tour',
-            enabled: !!this.options.isUserAuthenticated && !!this.options.projectsList.find((project) => project.projectName === TourUtils.ProjectName),
+            label: 'Report an Issue',
             click: () => {
-              this.sender.send('global-menu:start-tour');
+              shell.openExternal(ISSUES_URL);
             },
           },
         ],

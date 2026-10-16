@@ -3,30 +3,12 @@ import {getExperimentConfig} from './config';
 /**
  * Canonical experiment IDs for features and experiments.
  * TODO: Switch to numeric experiment IDs when possible.
- * @see {@link https://git.io/vdyLb}
  * @enum {string}
  */
 export enum Experiment {
-  ShowSubElementsInJitMenu = 'ShowSubElementsInJitMenu',
-  AdvancedMultiTransform = 'AdvancedMultiTransform',
-  OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
-  DirectSelectionOfPrimitives = 'DirectSelectionOfPrimitives',
-  IpcIntegrityCheck = 'IpcIntegrityCheck',
-  CrashOnIpcIntegrityCheckFailure = 'CrashOnIpcIntegrityCheckFailure',
-  OrderedActionStack = 'OrderedActionStack',
-  CodeEditor = 'CodeEditor',
-  WarnOnUndefinedStateVariables = 'WarnOnUndefinedStateVariables',
-  TimelineMarqueeSelection = 'TimelineMarqueeSelection',
-  LocalAssetExport = 'LocalAssetExport',
   AllowBitmapImages = 'AllowBitmapImages',
-  SizeInsteadOfScaleWhenPossible = 'SizeInsteadOfScaleWhenPossible',
-  Snapping = 'Snapping',
-  PinchToZoomInGlass = 'PinchToZoomInGlass',
-  PreserveFrontMatterInCode = 'PreserveFrontMatterInCode',
-  ExpandTimelinePropertiesFromStageChanges = 'ExpandTimelinePropertiesFromStageChanges',
-  DumpBase64Images = 'DumpBase64Images',
+  OutliningElementsOnStageFromStage = 'OutliningElementsOnStageFromStage',
   WindowMenu = 'WindowMenu',
-  AutoTweenNewKeyframes = 'AutoTweenNewKeyframes',
 }
 
 /**

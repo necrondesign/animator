@@ -37,14 +37,3 @@ export const getEnvironmentType = () => {
 
 export const isProduction = () => getEnvironmentType() === EnvironmentType.Production;
 export const isDevelopment = () => getEnvironmentType() === EnvironmentType.Development;
-
-export const getUrl = (path: string) => `${global.process.env.HAIKU_WWW || 'https://www.haiku.ai/'}${path}`;
-export const getAccountUrl = (path: string) =>
-  `${global.process.env.HAIKU_ACCOUNT || 'https://account.haiku.ai/'}${path}`;
-
-// Remote error reporting is disabled: this fork sends no crash reports. Raven is still
-// configured (with a placeholder DSN that points nowhere) only because the local error
-// dialog hangs off its hooks; it will be replaced by a local handler.
-export const shouldEmitErrors = () => false;
-
-export const DISABLED_ERROR_REPORTING_DSN = 'https://00000000000000000000000000000000@localhost/0';

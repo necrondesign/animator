@@ -21,7 +21,6 @@
     "Sasha Joseph <sasha@haiku.ai>"
   ],
   "devDependencies": {
-    "@haiku/sdk-inkstone": "5.1.2",
     "@types/color": "^3.0.0",
     "@types/react-color": "^2.14.0",
     "@types/decamelize": "^1.2.0",
