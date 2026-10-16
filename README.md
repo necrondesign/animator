@@ -67,7 +67,7 @@ You can also skip the interactive prompt and start with good defaults with:
 
     $ yarn go
 
-You can also set some overriding environment variables (e.g. `HAIKU_API`) by making a `.env` file in the mono root. Refer to `.env.example` for an example.
+Environment variables can also be set in `~/.haiku/.env` (one `NAME=value` per line).
 
 ### Build installers
 
@@ -131,7 +131,7 @@ with `d` being duration between `logger.time` and `logger.timeEnd`. To do a subs
 
 ## Contributing
 
-Open an issue or a pull request at [necrondesign/animator](https://github.com/necrondesign/animator).
+Open an issue or a pull request at [necrondesign/motion-side](https://github.com/necrondesign/motion-side).
 
 
 ## License

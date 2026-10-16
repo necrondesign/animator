@@ -46,7 +46,6 @@
     "@haiku/cli": "5.1.2",
     "@haiku/core": "5.1.2",
     "@haiku/sdk-client": "5.1.2",
-    "@haiku/sdk-inkstone": "5.1.2",
     "haiku-common": "5.1.2",
     "haiku-creator": "5.1.2",
     "haiku-formats": "5.1.2",
@@ -173,7 +172,6 @@
     "files": [
       "package.json",
       "node_modules/**/*",
-      "changelog/public/*",
       "*.js",
       "!**/{README,readme,test,__tests__,tests,powered-test,example,examples,demo,demos}",
       "!node_modules/.bin",
@@ -196,7 +194,6 @@
       "!node_modules/haiku-glass/src${/*}",
       "!node_modules/@haiku/sdk-client/src${/*}",
       "!node_modules/haiku-sdk-creator/src${/*}",
-      "!node_modules/@haiku/sdk-inkstone/src${/*}",
       "!node_modules/haiku-timeline/src${/*}",
       "!node_modules/haiku-testing${/*}",
       "!node_modules/haiku-ui-common/src${/*}",

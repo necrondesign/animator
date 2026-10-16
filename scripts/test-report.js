@@ -1,6 +1,4 @@
 const async = require('async');
-const {readJsonSync} = require('fs-extra');
-const {join} = require('path');
 const cp = require('child_process');
 const log = require('./helpers/log');
 const allPackages = require('./helpers/packages')();
@@ -25,13 +23,6 @@ async.each(allPackages, (pack, next) => {
     next();
   });
 }, () => {
-  try {
-    readJsonSync(join(global.process.cwd(), 'changelog', 'public', 'latest.json'));
-  } catch (err) {
-    log.err('caught error during attempt to deserialize changelog');
-    hadError = true;
-  }
-
   if (hadError) {
     global.process.exit(1);
   }

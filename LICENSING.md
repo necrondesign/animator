@@ -68,8 +68,8 @@
    All rights reserved.») удалён из `haiku-glass/test/projects` и `@haiku/core/demo`.
    Новые фикстуры и демо — только свои или под совместимой лицензией; чужие файлы
    с «All rights reserved» в репозиторий не добавляем.
-10. **Облачные сервисы Haiku мертвы.** Эндпоинты из `.env.example` (`HAIKU_API`,
-    `HAIKU_SHARE` и т.д.) и бакеты Haiku (например, `haiku-secrets` в
+10. **Облачные сервисы Haiku мертвы.** Их эндпоинты (`HAIKU_API`, `HAIKU_SHARE`,
+    `*.haiku.ai` и т.д.; клиент `@haiku/sdk-inkstone` удалён в 2026-10) и бакеты Haiku (например, `haiku-secrets` в
     `scripts/distro-download-secrets.js`) нам не принадлежат. Не обращаться к ним,
     не пытаться получить к ним доступ и не выдавать свой сервис за них.
 

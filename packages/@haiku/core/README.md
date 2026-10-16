@@ -164,7 +164,7 @@ accepted for backward compatibility but are ignored.
 
 ## Bugs / Feature Requests / Troubleshooting
 
-Please use [GitHub Issues](https://github.com/necrondesign/animator/issues).
+Please use [GitHub Issues](https://github.com/necrondesign/motion-side/issues).
 
 <br>
 
