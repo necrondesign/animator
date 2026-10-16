@@ -13,7 +13,6 @@ const polygonOverlap = require('polygon-overlap');
 const logger = require('./../utils/LoggerInstance');
 const BaseModel = require('./BaseModel');
 const TransformCache = require('./TransformCache');
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 
 /**
  * Tag names with no presentational context on their own. These are usually found inside <defs>, but technically don't
@@ -1027,7 +1026,7 @@ class Element extends BaseModel {
       }
     }
 
-    if (doRecurse && experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
+    if (doRecurse) {
       const deeprows = [];
       this.visitDescendants((descendantElement) => {
         if (!descendantElement.shouldBeDisplayed()) {
@@ -1237,10 +1236,7 @@ class Element extends BaseModel {
   rehydrate ({maxRehydrationDepth}) {
     if (
       this.getDepthAmongElements() <= maxRehydrationDepth ||
-      (
-        experimentIsEnabled(Experiment.ShowSubElementsInJitMenu) &&
-        this.hasInternalPropertiesDefinedCached()
-      )
+      this.hasInternalPropertiesDefinedCached()
     ) {
       this.rehydrateChildren({maxRehydrationDepth});
     }
@@ -1436,46 +1432,44 @@ class Element extends BaseModel {
       }
     }
 
-    if (experimentIsEnabled(Experiment.ShowSubElementsInJitMenu)) {
-      // Expose properties of our sub-element in the timeline
-      if (!this.isRootElement() && !this.isComponent()) {
-        if (this.children && this.children.length > 0) {
-          this.children.forEach((child) => {
-            const name = child.getSafeDomFriendlyName();
+    // Expose properties of our sub-element in the timeline
+    if (!this.isRootElement() && !this.isComponent()) {
+      if (this.children && this.children.length > 0) {
+        this.children.forEach((child) => {
+          const name = child.getSafeDomFriendlyName();
 
-            // Exclude elements that are either 'useless' or should be
-            // represented elsewhere in the displayed element tree,
-            // or which don't warrant display at all (text nodes)
-            if (
-              !Property.BUILTIN_DOM_SCHEMAS[name] ||
-              child.isTextNode()
-            ) {
-              return false;
-            }
+          // Exclude elements that are either 'useless' or should be
+          // represented elsewhere in the displayed element tree,
+          // or which don't warrant display at all (text nodes)
+          if (
+            !Property.BUILTIN_DOM_SCHEMAS[name] ||
+            child.isTextNode()
+          ) {
+            return false;
+          }
 
-            // Don't include useless children, and collapse sets of useless
-            // children into a single node, to keep the menu as simple as we can
-            const insert = this.grabNextUsefulMenuInsert(child);
+          // Don't include useless children, and collapse sets of useless
+          // children into a single node, to keep the menu as simple as we can
+          const insert = this.grabNextUsefulMenuInsert(child);
 
-            if (insert) {
-              const {
-                key,
-                label,
-                options,
-                element,
-              } = insert;
+          if (insert) {
+            const {
+              key,
+              label,
+              options,
+              element,
+            } = insert;
 
-              grouped[key] = {
-                type: 'element',
-                element,
-                // Alpha ordering HACK; see groupedOptionsObjectToList
-                prefix: `zzzzz_element_${label}`,
-                label: `‹› ${label}`,
-                options,
-              };
-            }
-          });
-        }
+            grouped[key] = {
+              type: 'element',
+              element,
+              // Alpha ordering HACK; see groupedOptionsObjectToList
+              prefix: `zzzzz_element_${label}`,
+              label: `‹› ${label}`,
+              options,
+            };
+          }
+        });
       }
     }
 

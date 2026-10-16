@@ -4,7 +4,6 @@ const async = require('async');
 const WebSocket = require('ws');
 const lodash = require('lodash');
 const jss = require('json-stable-stringify');
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 const EnvoyClient = require('haiku-sdk-creator/lib/envoy/EnvoyClient').default;
 const EnvoyLogger = require('haiku-sdk-creator/lib/envoy/EnvoyLogger').default;
 const {GLASS_CHANNEL} = require('haiku-sdk-creator/lib/glass');
@@ -412,7 +411,7 @@ class Project extends BaseModel {
       metadata,
       (handleActionResolution) => tx((err, out) => {
         // Should only called if there is *not* an error, but sticking with err-first convention anyway.
-        if (experimentIsEnabled(Experiment.IpcIntegrityCheck) && metadata.integrity !== false) {
+        if (metadata.integrity !== false) {
           const integrity = this.describeIntegrity();
 
           if (metadata.integrity && this.isRemoteRequest(metadata)) {
@@ -425,15 +424,13 @@ class Project extends BaseModel {
                   ${this.getAlias()} (our result):
                     ${mismatch[1]}
               `);
-              if (experimentIsEnabled(Experiment.CrashOnIpcIntegrityCheckFailure)) {
-                let message = `Unable to update component (${method} in ${this.getAlias()})`;
+              let message = `Unable to update component (${method} in ${this.getAlias()})`;
 
-                if (process.env.NODE_ENV !== 'production') {
-                  message = `CRASH! Stop editing now and open dev tools (Cmd+Option+I). ${message}`;
-                }
-
-                throw new Error(message);
+              if (process.env.NODE_ENV !== 'production') {
+                message = `CRASH! Stop editing now and open dev tools (Cmd+Option+I). ${message}`;
               }
+
+              throw new Error(message);
             }
           }
 
@@ -499,17 +496,6 @@ class Project extends BaseModel {
       folder: this.getFolder(),
       method: 'masterHeartbeat',
       params: [this.getFolder()],
-    }, cb);
-  }
-
-  saveProject (project, saveOptions = {}, cb) {
-    return this.websocket.request({
-      folder: this.getFolder(),
-      method: 'saveProject',
-      params: [
-        project,
-        saveOptions,
-      ],
     }, cb);
   }
 

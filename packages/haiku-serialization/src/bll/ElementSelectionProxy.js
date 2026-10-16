@@ -7,7 +7,6 @@ const {default: Layout3D} = require('@haiku/core/lib/Layout3D');
 const {default: HaikuElement} = require('@haiku/core/lib/HaikuElement');
 const {default: composedTransformsToTimelineProperties} = require('haiku-common/lib/layout/composedTransformsToTimelineProperties');
 const {default: invertMatrix} = require('haiku-vendor-legacy/lib/gl-mat4/invert');
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 const {Figma} = require('./Figma');
 const Sketch = require('./Sketch');
 const Illustrator = require('./Illustrator');
@@ -155,9 +154,7 @@ class ElementSelectionProxy extends BaseModel {
   }
 
   canControlHandles () {
-    return this.hasAnythingInSelection() && (
-      this.doesManageSingleElement() || experimentIsEnabled(Experiment.AdvancedMultiTransform)
-    );
+    return this.hasAnythingInSelection();
   }
 
   pushCachedTransform (key) {
@@ -1024,7 +1021,7 @@ class ElementSelectionProxy extends BaseModel {
 
     // handle snapping
     // don't snap if user is holding cmd key (like Sketch)
-    if (!globals.isCommandKeyDown && experimentIsEnabled(Experiment.Snapping)) {
+    if (!globals.isCommandKeyDown) {
       let bbox;
       if (this._lastBbox !== undefined) {
         bbox = ((bbox, delta) => {
@@ -1596,30 +1593,28 @@ class ElementSelectionProxy extends BaseModel {
         return accumulator;
       }, {});
 
-      if (experimentIsEnabled(Experiment.SizeInsteadOfScaleWhenPossible)) {
-        if (element.isComponent()) {
-          const addressables = element.getComponentAddressables();
-          const baseProxyTransform = getBaseTransform();
+      if (element.isComponent()) {
+        const addressables = element.getComponentAddressables();
+        const baseProxyTransform = getBaseTransform();
 
-          if (
-            addressables.width &&
-            addressables.width.typedef === 'number'
-          ) {
-            propertyGroupNorm.width = {value: Math.abs(layoutSpec.size.x * scaleX / baseProxyTransform.scale.x)};
-            // Note: here and below, scale.x and scale.y are guaranteed to exist as properties of propertyGroup[Norm]
-            // because composedTransformsToTimelineProperties was called with explicit = true.
-            propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'] || 1)};
-            shouldTick = true;
-          }
+        if (
+          addressables.width &&
+          addressables.width.typedef === 'number'
+        ) {
+          propertyGroupNorm.width = {value: Math.abs(layoutSpec.size.x * scaleX / baseProxyTransform.scale.x)};
+          // Note: here and below, scale.x and scale.y are guaranteed to exist as properties of propertyGroup[Norm]
+          // because composedTransformsToTimelineProperties was called with explicit = true.
+          propertyGroupNorm['scale.x'] = {value: Math.sign(propertyGroup['scale.x'] || 1)};
+          shouldTick = true;
+        }
 
-          if (
-            addressables.height &&
-            addressables.height.typedef === 'number'
-          ) {
-            propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)};
-            propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'] || 1)};
-            shouldTick = true;
-          }
+        if (
+          addressables.height &&
+          addressables.height.typedef === 'number'
+        ) {
+          propertyGroupNorm.height = {value: Math.abs(layoutSpec.size.y * scaleY / baseProxyTransform.scale.y)};
+          propertyGroupNorm['scale.y'] = {value: Math.sign(propertyGroup['scale.y'] || 1)};
+          shouldTick = true;
         }
       }
 

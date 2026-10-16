@@ -35,7 +35,7 @@ tape('Figma.request makes a proper request', (t) => {
   t.plan(2);
 
   const figma = new Figma({token, requestLib ({uri, headers}) {
-    t.ok(headers.Authorization.includes(token), 'headers includes the correct token');
+    t.equal(headers['X-Figma-Token'], token, 'sends the personal access token in X-Figma-Token');
     t.ok(uri.includes(fileKey), 'URI is correct');
   }});
 
@@ -46,7 +46,7 @@ tape('Figma.request allows a param to disable authentication', (t) => {
   t.plan(1);
 
   const figma = new Figma({token, requestLib ({uri, headers}) {
-    t.notOk(headers.Authorization, 'headers do not include a token');
+    t.notOk(headers['X-Figma-Token'], 'headers do not include a token');
   }});
 
   figma.request({uri: fileKey, auth: false});
@@ -87,17 +87,6 @@ tape('Figma.getSVGLinks', async (t) => {
   } catch (e) {
     t.error(e);
   }
-});
-
-tape('Figma.buildAuthenticationLink', (t) => {
-  const {url, state} = Figma.buildAuthenticationLink(fileKey);
-  const parsedURL = new URL(url);
-  const redirectURI = new URL(parsedURL.searchParams.get('redirect_uri'));
-
-  t.equal(parsedURL.pathname, `/oauth`, 'points to the /oauth path in Figma');
-  t.equal(redirectURI.protocol, 'haiku:', 'redirect_uri uses the haiku:// protocol');
-  t.ok(url.includes(state), 'url includes the returned state');
-  t.end();
 });
 
 tape('Figma.buildFigmaLink', (t) => {

@@ -1,7 +1,5 @@
 const lodash = require('lodash');
 
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
-
 const BaseModel = require('./BaseModel');
 const Lock = require('./Lock');
 const logger = require('./../utils/LoggerInstance');
@@ -267,6 +265,17 @@ class ActionStack extends BaseModel {
       }
     }
 
+    // Creating a component from a selection records the undoable on the *parent* component and then opens the new
+    // component for editing. If the top entry would undo the creation of the component we're currently in, take it:
+    // the caller must then switch back to the parent (see `reopenParent`). (upstream issue #1089)
+    if (
+      last &&
+      last.method === 'unconglomerateComponent' &&
+      last.params[2] === ac.getSceneName()
+    ) {
+      return Object.assign(stack.pop(), {reopenParent: true});
+    }
+
     // If we have an active component, but haven't found any entries in
     // the stack to match it, then we should do nothing since the top of
     // the stack may contain a doable for another component, which would
@@ -323,8 +332,7 @@ class ActionStack extends BaseModel {
   }
 
   shouldOrderRemoteUpdate (metadata) {
-    return experimentIsEnabled(Experiment.OrderedActionStack) &&
-      metadata.hasOwnProperty('actionStackIndex') &&
+    return metadata.hasOwnProperty('actionStackIndex') &&
       this.project.isRemoteRequest(metadata);
   }
 
@@ -453,7 +461,13 @@ class ActionStack extends BaseModel {
       // We need to slice off the 'relpath' parameter (sorry)
       return ac[method](...params.slice(1), (err, out) => {
         release();
-        return cb(err, out);
+
+        if (err || !undoable.reopenParent) {
+          return cb(err, out);
+        }
+
+        // We just removed the component the user was editing; go back to the component it was created in.
+        return ac.setAsCurrentActiveComponent({from: this.project.getAlias()}, (switchErr) => cb(switchErr, out));
       });
     });
   }

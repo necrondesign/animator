@@ -17,7 +17,6 @@ const logger = require('./../utils/LoggerInstance');
 const CryptoUtils = require('./../utils/CryptoUtils');
 const ensureTrailingSlash = require('../utils/ensureTrailingSlash');
 const toTitleCase = require('./helpers/toTitleCase');
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 const Lock = require('./Lock');
 const SustainedWarningChecker = require('haiku-common/lib/sustained-checker/SustainedWarningChecker').default;
 
@@ -2328,9 +2327,7 @@ class ActiveComponent extends BaseModel {
 
     // Check sustained warnings should be done after cache clear
     // We use emit so only creator will perform sustained warning check
-    if (experimentIsEnabled(Experiment.WarnOnUndefinedStateVariables)) {
-      this.emitDebouncedCheckSustainedWarning();
-    }
+    this.emitDebouncedCheckSustainedWarning();
 
     // If we were passed a "hot component" or asked to request a full flush render, forward this to our underlying
     // instances to ensure correct rendering. This can be skipped if softReload() was called in the
@@ -2533,7 +2530,6 @@ class ActiveComponent extends BaseModel {
       contextMenu: 'disabled', // Don't show the right-click context menu since our editing tools use right-click
       overflowX: 'visible',
       overflowY: 'visible',
-      mixpanel: false, // Don't track events in mixpanel while the component is being built
       interactionMode: this.interactionMode,
       hotEditingMode: true, // Don't clone the bytecode/template so we can mutate it in-place
       clock: {
@@ -3733,10 +3729,8 @@ class ActiveComponent extends BaseModel {
                 if (element) {
                   element.rehydrateRows();
                   Row.where({component: this, element}).forEach((row) => {
-                    if (experimentIsEnabled(Experiment.ExpandTimelinePropertiesFromStageChanges)) {
-                      if (row.property && keyframeUpdates[timelineName][componentId][row.property.name]) {
-                        row.expand(metadata);
-                      }
+                    if (row.property && keyframeUpdates[timelineName][componentId][row.property.name]) {
+                      row.expand(metadata);
                     }
                   });
                 }
@@ -3805,17 +3799,15 @@ class ActiveComponent extends BaseModel {
                 false, // fallbackToInitialKeyframeIfProvided
               );
 
-              if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
-                Bytecode.addDefaultCurveIfNecessary(
-                  bytecode,
-                  timelineName,
-                  selector,
-                  keyframeMs,
-                  propertyName,
-                  componentId,
-                  this.getElementNameOfComponentId(componentId),
-                );
-              }
+              Bytecode.addDefaultCurveIfNecessary(
+                bytecode,
+                timelineName,
+                selector,
+                keyframeMs,
+                propertyName,
+                componentId,
+                this.getElementNameOfComponentId(componentId),
+              );
             }
           }
         }
@@ -4044,17 +4036,15 @@ class ActiveComponent extends BaseModel {
         false, // fallbackToInitialKeyframeIfProvided
       );
 
-      if (experimentIsEnabled(Experiment.AutoTweenNewKeyframes)) {
-        Bytecode.addDefaultCurveIfNecessary(
-          bytecode,
-          timelineName,
-          Template.buildHaikuIdSelector(componentId),
-          keyframeStartMs,
-          propertyName,
-          componentId,
-          elementName,
-        );
-      }
+      Bytecode.addDefaultCurveIfNecessary(
+        bytecode,
+        timelineName,
+        Template.buildHaikuIdSelector(componentId),
+        keyframeStartMs,
+        propertyName,
+        componentId,
+        elementName,
+      );
 
       done();
     }, cb);

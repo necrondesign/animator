@@ -1208,6 +1208,7 @@ export class BodymovinExporter extends BaseExporter implements ExporterInterface
       case SvgTag.Image:
       case SvgTag.Img:
         this.handleImageLayer(node, parentNode);
+        break;
       case SvgTag.Use:
         this.handleTransclusion(node, parentNode);
         break;

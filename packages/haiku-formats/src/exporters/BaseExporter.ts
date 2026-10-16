@@ -38,7 +38,6 @@ export default class BaseExporter {
     const component = factory(
       null,
       {
-        mixpanel: false,
         contextMenu: 'disabled',
         hotEditingMode: true,
         autoplay: false,

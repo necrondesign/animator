@@ -3,15 +3,12 @@ const {URL, URLSearchParams} = require('url');
 const request = require('request');
 const fse = require('haiku-fs-extra');
 const path = require('path');
-const {inkstone} = require('@haiku/sdk-inkstone');
 const logger = require('../utils/LoggerInstance');
-const randomAlphabetical = require('../utils/randomAlphabetical');
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 const {sanitize} = require('../utils/fileManipulation');
 
 const API_BASE = 'https://api.figma.com/v1/';
 const FIGMA_URL = 'https://www.figma.com/';
-const FIGMA_CLIENT_ID = process.env.FIGMA_CLIENT_ID || 'tmhDo4V12I3fEiQ9OG8EHh';
+const FIGMA_TOKEN_HELP_URL = 'https://help.figma.com/hc/en-us/articles/8085703771159-Manage-personal-access-tokens';
 const IS_FIGMA_FILE_RE = /\.figma$/;
 const IS_FIGMA_FOLDER_RE = /\.figma\.contents/;
 const FIGMA_DEFAULT_FILENAME = 'Untitled';
@@ -73,7 +70,6 @@ class Figma {
     let assetBaseFolder;
 
     logger.info('[figma] about to import document with id ' + id);
-    mixpanel.haikuTrack('creator:figma:fileImport:start');
 
     return new Promise((resolve, reject) => {
       this.fetchDocument(id)
@@ -90,7 +86,6 @@ class Figma {
         .then((elements) => this.getSVGContents(elements))
         .then((elements) => this.writeSVGInDisk(elements, assetBaseFolder))
         .then((elements) => {
-          mixpanel.haikuTrack('creator:figma:fileImport:success');
           resolve(elements.length);
         })
         .catch(reject);
@@ -252,7 +247,8 @@ class Figma {
   }
 
   request ({uri, auth = true}) {
-    const headers = auth ? {Authorization: 'Bearer ' + this.token} : {};
+    // Personal access tokens are sent in X-Figma-Token (OAuth tokens would use Authorization: Bearer).
+    const headers = auth ? {'X-Figma-Token': this.token} : {};
 
     return new Promise((resolve, reject) => {
       this._requestLib({uri, headers}, (error, response, body) => {
@@ -300,36 +296,6 @@ class Figma {
    */
   static buildFigmaLink (fileID, fileName = '') {
     return `${FIGMA_URL}file/${fileID}/${fileName}`;
-  }
-
-  /**
-   * Build a OAuth link
-   * @returns {string}
-   */
-  static buildAuthenticationLink () {
-    const state = randomAlphabetical(15);
-    const redirectURI = `haiku://oauth/figma&scope=file_read&state=${state}&response_type=code`;
-    const url = `${FIGMA_URL}oauth?client_id=${FIGMA_CLIENT_ID}&redirect_uri=${redirectURI}`;
-    return {url, state};
-  }
-
-  /**
-   * Request inkstone for a Figma access token
-   * @param {Object} params
-   * @param {string} params.code
-   * @param {string} params.state
-   * @param {string} params.stateCheck
-   */
-  static getAccessToken ({code, state, stateCheck}) {
-    return new Promise((resolve, reject) => {
-      if (state !== stateCheck) {
-        reject({status: 403, err: 'Invalid state code'});
-      }
-
-      inkstone.integrations.getFigmaAccessToken(code, (error, response) => {
-        error ? reject(error) : resolve(response);
-      });
-    });
   }
 
   /**
@@ -399,4 +365,4 @@ class Figma {
   }
 }
 
-module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME, MAX_ITEMS_TO_IMPORT};
+module.exports = {Figma, PHONY_FIGMA_FILE, FIGMA_DEFAULT_FILENAME, MAX_ITEMS_TO_IMPORT, FIGMA_TOKEN_HELP_URL};

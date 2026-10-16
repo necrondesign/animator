@@ -2,7 +2,6 @@ const decamelize = require('decamelize');
 const titlecase = require('titlecase');
 const {getFallback} = require('@haiku/core/lib/HaikuComponent');
 const BaseModel = require('./BaseModel');
-const {Experiment, experimentIsEnabled} = require('haiku-common/lib/experiments');
 
 function decam (s) {
   return decamelize(s).replace(/[\W_]/g, ' ');
