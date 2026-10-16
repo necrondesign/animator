@@ -1061,12 +1061,11 @@ export default class Creator extends React.Component {
   openProjectFolder (folder) {
     rememberRecentProject(folder);
     this.launchFolder(
-      // Load up the necessary metadata in Plumbing to launch normally. The organization value is the placeholder local
-      // projects have always used; it is part of the generated npm package name, so changing it renames packages.
+      // Load up the necessary metadata in Plumbing to launch normally. Local projects have no organization; the npm
+      // package name comes from the folder name (see getNpmPackageName).
       {
         projectPath: folder,
         authorName: PRODUCT_NAME,
-        organizationName: 'Haiku',
         projectName: path.basename(folder),
         branchName: 'master',
       },

@@ -10,8 +10,8 @@ import {
     getAuthorNameOrFallback,
     getCopyrightNotice,
     getHaikuCoreVersion,
+    getNpmPackageName,
     getOrganizationNameOrFallback,
-    getProjectNameLowerCase,
     getProjectNameSafeShort,
     getReactProjectName,
 } from './ProjectDefinitions';
@@ -30,19 +30,19 @@ export function createProjectFiles (
     logger.info('[project folder] building project content', projectOptions.projectPath);
 
     const projectNameSafe = getProjectNameSafeShort(projectOptions.projectName);
-    const projectNameLowerCase = getProjectNameLowerCase(projectOptions.projectName);
     const reactProjectName = getReactProjectName(projectOptions.projectName);
 
     const organizationName = getOrganizationNameOrFallback(projectOptions.organizationName);
-    const organizationNameLowerCase = organizationName.toLowerCase();
 
     const authorName = getAuthorNameOrFallback(projectOptions.authorName);
 
     const haikuCoreVersion = getHaikuCoreVersion(); // This json object should be loaded at the top
-    const npmPackageName = `@haiku/${organizationNameLowerCase}-${projectNameLowerCase}`;
     const copyrightNotice = getCopyrightNotice(organizationName);
 
     const packageJson = fse.readJsonSync(path.join(projectOptions.projectPath, 'package.json'), {throws: false});
+    // Existing projects keep their package name (renaming would break apps that already installed them); new projects
+    // are named after their folder.
+    const npmPackageName = (packageJson && packageJson.name) || getNpmPackageName(projectOptions.projectName);
 
     return fetchProjectConfigInfo(projectOptions.projectPath, (err: any, userconfig: any) => {
       if (err) {
@@ -153,7 +153,10 @@ export function createProjectFiles (
           `);
       }
 
-      fse.outputFileSync(path.join(projectOptions.projectPath, 'README.md'), dedent`
+      // README and LICENSE belong to the project's authors: create them once, never overwrite their edits.
+      const readmePath = path.join(projectOptions.projectPath, 'README.md');
+      if (!fse.existsSync(readmePath)) {
+        fse.outputFileSync(readmePath, dedent`
           # ${projectNameSafe}
 
           This project was created with [motion-side](https://github.com/necrondesign/motion-side), based on Haiku Animator.
@@ -176,10 +179,14 @@ export function createProjectFiles (
 
           Please refer to LICENSE.txt.
         `);
+      }
 
-      fse.outputFileSync(path.join(projectOptions.projectPath, 'LICENSE.txt'), dedent`
-        ${copyrightNotice}
-      `);
+      const licensePath = path.join(projectOptions.projectPath, 'LICENSE.txt');
+      if (!fse.existsSync(licensePath)) {
+        fse.outputFileSync(licensePath, dedent`
+          ${copyrightNotice}
+        `);
+      }
 
         // But a bunch of ancillary files we take full control of and overwrite despite what the user did
       fse.outputFileSync(path.join(projectOptions.projectPath, 'index.js'), dedent`

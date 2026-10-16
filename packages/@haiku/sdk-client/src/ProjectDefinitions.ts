@@ -1,4 +1,3 @@
-import * as dedent from 'dedent';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 
@@ -9,6 +8,7 @@ export const FALLBACK_ORG_NAME = 'Unknown';
 export const FALLBACK_PROJECT_NAME = 'Unknown';
 export const FALLBACK_AUTHOR_NAME = 'Haiku User';
 export const DEFAULT_BRANCH_NAME = 'master';
+export const FALLBACK_NPM_PACKAGE_NAME = 'motion-side-project';
 
 export const getHaikuCoreVersion = () => {
   const CORE_PACKAGE_JSON = fse.readJsonSync(
@@ -32,6 +32,20 @@ export const getSafeProjectName = (name: string) =>
 
 export const getProjectNameSafeShort = (name: string) => getSafeProjectName(name).slice(0, 20);
 
+/**
+ * npm package name for a new project, derived from the project (folder) name: lowercase, URL-safe characters only,
+ * no leading dot or underscore, at most 214 characters. E.g. "My Card" -> "my-card".
+ */
+export const getNpmPackageName = (projectName: string) => {
+  const name = (projectName || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9._~-]+/g, '-')
+    .replace(/^[-._]+|[-.]+$/g, '')
+    .slice(0, 214)
+    .replace(/[-.]+$/, '');
+  return name || FALLBACK_NPM_PACKAGE_NAME;
+};
+
 export const getProjectNameLowerCase = (name: string) => getSafeProjectName(name).toLowerCase();
 
 export const getReactProjectName = (name: string) => `React_${getSafeProjectName(name)}`;
@@ -43,9 +57,10 @@ export const getAngularSelectorName = (name: string) => getSafeProjectName(name)
 export const getStandaloneName = (organizationName: string, name: string) =>
   `HaikuComponent_${organizationName}_${getProjectNameSafeShort(name)}`;
 
-export const getCopyrightNotice = (organizationName: string) => dedent`
-${`Copyright (c) ${(new Date()).getFullYear()} ${organizationName}. All rights reserved.`}
-`;
+export const getCopyrightNotice = (organizationName: string) => {
+  const holder = organizationName && organizationName !== FALLBACK_ORG_NAME ? organizationName : 'the project authors';
+  return `Copyright (c) ${(new Date()).getFullYear()} ${holder}. All rights reserved.`;
+};
 
 export const getOrganizationNameOrFallback = (organizationName: string) => {
   return organizationName || FALLBACK_ORG_NAME;
