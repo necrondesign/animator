@@ -3,7 +3,8 @@
  */
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+// React 18+ client API (ReactDOM.render was removed in React 19).
+import {createRoot} from 'react-dom/client';
 import {DEFAULTS} from '../../Config';
 import getParsedProperty from '../../helpers/getParsedProperty';
 import {randomString} from '../../helpers/StringUtils';
@@ -22,13 +23,14 @@ export interface HaikuComponentState {
 export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRawBytecode): {} {
   class HaikuReactComponentInternal extends React.Component<HaikuComponentProps, HaikuComponentState> {
     static React = React;
-    static ReactDOM = ReactDOM;
     // This setting is required to do proper setup for placeholder/inject vanities
     static isHaikuAdapter = true;
     haiku;
     mount;
     state;
     props;
+    // React roots rendering surrogates into placeholder nodes, unmounted with this component.
+    placeholderRoots = new Map();
 
     constructor (props) {
       super(props);
@@ -39,9 +41,9 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
       };
     }
 
-    componentWillReceiveProps (nextPropsRaw) {
-      if (this.haiku) {
-        const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(nextPropsRaw);
+    componentDidUpdate (prevProps) {
+      if (this.haiku && prevProps !== this.props) {
+        const haikuConfig = this.buildHaikuCompatibleConfigFromRawProps(this.props);
         this.haiku.assignConfig(haikuConfig);
       }
     }
@@ -50,6 +52,19 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
       if (this.haiku) {
         this.haiku.callUnmount();
       }
+      // Unmount after the current render, as React doesn't allow unmounting a root while rendering.
+      const roots = Array.from(this.placeholderRoots.values());
+      this.placeholderRoots.clear();
+      setTimeout(() => roots.forEach((root: any) => root.unmount()), 0);
+    }
+
+    renderIntoPlaceholder (node, surrogate) {
+      let root = this.placeholderRoots.get(node);
+      if (!root) {
+        root = createRoot(node);
+        this.placeholderRoots.set(node, root);
+      }
+      root.render(surrogate);
     }
 
     componentDidMount () {
@@ -91,7 +106,7 @@ export default function HaikuReactDOMAdapter (haikuComponentFactory, optionalRaw
                   node = div;
                 }
                 node.style.visibility = 'hidden';
-                ReactDOM.render(surrogate, node);
+                this.renderIntoPlaceholder(node, surrogate);
                 window.requestAnimationFrame(() => {
                   element.__memory.placeholder.surrogate = surrogate;
                   node.style.visibility = 'visible';

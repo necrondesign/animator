@@ -2,9 +2,9 @@
 
 [![NPM](https://nodei.co/npm/@haiku/core.png)](https://nodei.co/npm/@haiku/core/)
 
-Animator Core is the runtime and rendering engine for [Haiku Animator](https://www.haikuforteams.com/) and the components you create with Animator.  This engine is a dependency for any Haiku Animator components that are run on the web.
+Animator Core is the runtime and rendering engine for [motion-side](https://github.com/necrondesign/motion-side) (based on Haiku Animator) and the components you create with it.  This engine is a dependency for any Haiku Animator components that are run on the web.
 
-Note that for iOS and Android, Haiku Animator [also supports exporting to Lottie](https://docs.haikuforteams.com/embedding-and-using-haiku/lottie.html).  Animator Core is only used when rendering Animator components for the web.
+Note that for iOS and Android, the editor also exports to Lottie.  Animator Core is only used when rendering Animator components for the web.
 
 <br>
 <p align="center">
@@ -29,43 +29,35 @@ Animator Core is compatible with all major modern web browsers: Firefox, Chrome,
 
 ### Hackable + compatible with existing codebases
 
-Animator Core provides a simple and familiar API for runtime manipulation of components that were built in Animator. You can play and pause animations, react to events, and even pass in dynamic data. (See the [docs](https://docs.haikuforteams.com/embedding-and-using-haiku/haiku-core-api.html) for more info.)
+Animator Core provides a simple and familiar API for runtime manipulation of components that were built in Animator. You can play and pause animations, react to events, and even pass in dynamic data.
 
 <br>
 
 ### Getting started
 
-Creating an Animator component begins in Haiku Animator:
+Every project made in [motion-side](https://github.com/necrondesign/motion-side) is an npm package that contains its
+components and this runtime:
 
-1. Design a component in Animator — or ask your designer for a component's Animator share URL
-2. Install the Haiku CLI: `$ yarn global add @haiku/cli` or `$ npm i @haiku/cli --global`
-3. Add that component to an existing React or web codebase: `$ haiku install @haiku/yourusername-yourcomponent`
-4. Seamlessly update the component as its design changes: `$ haiku upgrade [projectname] [--version=rev]`
-
-**Dev tip:** If you have Animator installed, you can also `$ npm link` or `$ yarn link` your Animator components to make them available to your codebase toolchain's hot reloading hooks. Animator projects live in `~/.haiku/projects`.
+1. Design a component in motion-side.
+2. Install the project folder into your app: `$ npm install <path to the project folder>`
+3. Use it — the editor's Export window shows the exact snippets for your project:
+   - plain JavaScript: `require('<package>')(document.getElementById('mount'))`
+   - React 18 or 19: `import Animation from '<package>/react'` and render `<Animation />`
+   - Vue: `import Animation from '<package>/vue'`
 
 <br>
 
 #### Direct installation
 
-If you want to install and develop with Animator Core directly, you can do so with:
-
-    $ npm install @haiku/core
-
-Or via yarn:
-
-    $ yarn add @haiku/core
-
-Animator Core is also available via Haiku's CDN:
-
-    <!-- specific version -->
-    <script src="https://code.haiku.ai/scripts/core/HaikuCore.VERSION.js"></script>
+To develop with the runtime directly, use this repository's `packages/@haiku/core` (it is not published to npm by
+this fork).
 
 <br>
 
 ### API / Docs
 
-For our full documentation (a work in progress), please see [docs.haikuforteams.com](https://docs.haikuforteams.com/). We welcome your contributions [on Github](https://github.com/HaikuTeam/docs).
+The original Haiku documentation site is gone. The type definitions in `src/api/index.ts` describe the component API,
+and the examples below cover the common cases.
 
 <br>
 
