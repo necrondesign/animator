@@ -3,7 +3,6 @@ import Tooltip from './Tooltip';
 import {shell} from 'electron';
 import {TOUR_STYLES} from '../../styles/tourShared';
 import * as steps from './Steps';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {TourUtils} from 'haiku-common/lib/types/enums';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 
@@ -58,7 +57,6 @@ class Tour extends React.Component {
     if (this.tourChannel) {
       this.tourChannel.start();
       this.hasTriggeredTourRender = true;
-      mixpanel.haikuTrack('tour', {state: 'started'});
     } else {
       // If envoy it's taking more than expected to return the tourChannel,
       // try again in 500 ms
@@ -100,11 +98,6 @@ class Tour extends React.Component {
 
   finish (createFile, skipped) {
     this.tourChannel.finish(createFile);
-    mixpanel.haikuTrack('tour', {
-      state: 'skipped',
-      step: this.state.stepData.current,
-      title: this.state.component,
-    });
   }
 
   hide () {
@@ -112,14 +105,6 @@ class Tour extends React.Component {
   }
 
   showStep (newState) {
-    if (this.state.stepData.current < newState.stepData.current) {
-      mixpanel.haikuTrack('tour', {
-        state: 'step completed',
-        step: this.state.stepData.current,
-        title: this.state.component,
-      });
-    }
-
     this.setState(newState);
   }
 

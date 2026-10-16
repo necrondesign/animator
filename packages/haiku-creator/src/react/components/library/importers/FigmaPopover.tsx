@@ -30,7 +30,7 @@ class FigmaPopover extends React.PureComponent<any, any> {
         body={
           <FigmaForm
             figma={this.props.figma}
-            onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+            onSetFigmaToken={this.props.onSetFigmaToken}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onPopoverHide={this.hidePopover}
           />

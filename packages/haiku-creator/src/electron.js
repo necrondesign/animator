@@ -3,15 +3,12 @@ import * as path from 'path';
 import {parse, pathToFileURL} from 'url';
 import {inherits} from 'util';
 
-import {BrowserWindow, app, ipcMain, net, protocol, systemPreferences, session} from 'electron';
+import {BrowserWindow, app, clipboard, ipcMain, net, protocol, systemPreferences} from 'electron';
 import * as qs from 'qs';
 
-import * as fs from 'fs';
-
-import {isProxied, ProxyType} from 'haiku-common/lib/proxies';
 import TopMenu from 'haiku-common/lib/electron/TopMenu';
+import {CLIPBOARD_READ_TEXT, CLIPBOARD_WRITE_TEXT} from 'haiku-ui-common/lib/electron/clipboard';
 import {PRODUCT_NAME, PRODUCT_PROTOCOL} from 'haiku-common/lib/branding';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import {isMac} from 'haiku-common/lib/environments/os';
@@ -25,71 +22,7 @@ if (!app) {
 app.setName(PRODUCT_NAME);
 app.setAsDefaultProtocolClient(PRODUCT_PROTOCOL);
 
-const {dialog} = require('electron');
-
 const PROJECT_PROTOCOL = 'web+haikuroot';
-
-/**
- * Asks the user to create or open a project folder, unless one was given via HAIKU_PROJECT_FOLDER (as `yarn start`
- * scenarios and automated tests do). Returns the chosen absolute path; exits the app if the user cancels.
- * Must run after the app is ready.
- *
- * Interim start flow kept from the open-source release: plumbing special-cases a preselected folder and bypasses
- * all network hooks. A proper start screen will replace these dialogs.
- */
-function chooseProjectFolder () {
-  if (global.process.env.HAIKU_PROJECT_FOLDER) {
-    return global.process.env.HAIKU_PROJECT_FOLDER;
-  }
-
-  const exitApp = () => {
-    app.exit(0);
-  };
-
-  const mode = dialog.showMessageBoxSync({
-    message: `Welcome to ${PRODUCT_NAME}!`,
-    type: 'question',
-    buttons: ['New project...', 'Open project...', 'Exit'],
-  });
-
-  if (mode === 0) {
-    // New project: insist on an empty directory.
-    while (true) {
-      dialog.showMessageBoxSync({
-        message: 'On the coming screen, select an empty directory for this project.',
-        type: 'info',
-        buttons: ['OK'],
-      });
-
-      const files = dialog.showOpenDialogSync({properties: ['openDirectory', 'showHiddenFiles', 'createDirectory']});
-      if (!files || !files.length) {
-        return exitApp();
-      }
-
-      if (fs.readdirSync(files[0]).length === 0) {
-        return files[0];
-      }
-    }
-  }
-
-  if (mode === 1) {
-    dialog.showMessageBoxSync({
-      message: `On the coming screen, select a directory containing a ${PRODUCT_NAME} or Haiku Animator project. ` +
-        '\r\n\r\nFor legacy commercial Haiku projects, check ~/.haiku/projects',
-      type: 'info',
-      buttons: ['OK'],
-    });
-
-    const files = dialog.showOpenDialogSync({properties: ['openDirectory', 'showHiddenFiles']});
-    if (!files || !files.length) {
-      return exitApp();
-    }
-
-    return files[0];
-  }
-
-  return exitApp();
-}
 
 // Haiku main window
 let browserWindow = null;
@@ -156,14 +89,11 @@ if (!haiku.plumbing.url) {
 }
 
 function createWindow () {
-  // The folder selected at startup is handed to plumbing through the 'haiku' message (see did-finish-load).
-  haiku.folder = chooseProjectFolder();
-  if (!haiku.folder) {
-    return;
-  }
+  // A folder given at startup (HAIKU_PROJECT_FOLDER, as `yarn start` scenarios and tests use) opens directly;
+  // otherwise the Creator window shows the start screen. Handed to the renderer in the 'haiku' message.
+  haiku.folder = global.process.env.HAIKU_PROJECT_FOLDER || undefined;
 
   logger.view = 'main';
-  mixpanel.haikuTrack('app:initialize');
 
   browserWindow = new BrowserWindow({
     title: PRODUCT_NAME,
@@ -193,6 +123,10 @@ function createWindow () {
   };
 
   topmenu.create(topmenuOptions);
+
+  // Renderers (Creator, Glass, Timeline) reach the clipboard through these handlers.
+  ipcMain.handle(CLIPBOARD_READ_TEXT, () => clipboard.readText());
+  ipcMain.handle(CLIPBOARD_WRITE_TEXT, (_, text) => clipboard.writeText(String(text)));
 
   ipcMain.on('topmenu:update', (_, nextTopmenuOptions) => {
     topmenu.update(nextTopmenuOptions);
@@ -233,20 +167,11 @@ function createWindow () {
   // Sending our haiku configuration into the view so it can correctly set up
   // its own websocket connections to our plumbing server, etc.
   browserWindow.webContents.on('did-finish-load', () => {
-    session.fromPartition('persist:name').resolveProxy(haiku.plumbing.url).then((proxy) => {
-      haiku.proxy = {
-        // Proxy URL will come through in PAC syntax, e.g. `PROXY secure.megacorp.com:3128`
-        // @see {@link https://en.wikipedia.org/wiki/Proxy_auto-config}
-        url: proxy.replace(`${ProxyType.Proxied} `, ''),
-        active: isProxied(proxy),
-      };
-
-      browserWindow.webContents.send('haiku', haiku);
-      if (global.process.env.HAIKU_INITIAL_URL) {
-        handleUrl(global.process.env.HAIKU_INITIAL_URL);
-        delete global.process.env.HAIKU_INITIAL_URL;
-      }
-    });
+    browserWindow.webContents.send('haiku', haiku);
+    if (global.process.env.HAIKU_INITIAL_URL) {
+      handleUrl(global.process.env.HAIKU_INITIAL_URL);
+      delete global.process.env.HAIKU_INITIAL_URL;
+    }
   });
 
   browserWindow.on('closed', () => {

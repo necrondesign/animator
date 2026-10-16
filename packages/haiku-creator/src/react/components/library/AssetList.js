@@ -20,7 +20,7 @@ class AssetList extends React.Component {
               asset={asset}
               indent={this.props.indent}
               figma={this.props.figma}
-              onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+              onSetFigmaToken={this.props.onSetFigmaToken}
               onImportFigmaAsset={this.props.onImportFigmaAsset}
               onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
               conglomerateComponent={this.props.conglomerateComponent}

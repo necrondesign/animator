@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as path from 'path';
 import Palette from 'haiku-ui-common/lib/Palette';
-import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
+import ProductMarkSVG from 'haiku-ui-common/lib/react/icons/ProductMarkSVG';
 
 const STYLES = {
   fullScreenCenterWrap: {
@@ -93,7 +93,7 @@ class ProjectLoader extends React.PureComponent {
         id="js-helper-project-loader"
       >
         <span style={{zIndex: 1}}>
-          <div style={{width: 150, margin: '0 auto'}}><AnimatorSVG /></div>
+          <div style={{width: 150, margin: '0 auto'}}><ProductMarkSVG /></div>
           <div className="load-bar" />
           <div style={{marginTop: 30, zIndex: 1}}>{this.props.message}</div>
           <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.props.softwareVersion}</div>
@@ -110,7 +110,7 @@ class ProjectLoader extends React.PureComponent {
     //     id="js-helper-project-loader"
     //   >
     //     <div style={STYLES.loadingScreen} ref={this.persistMount}>
-    //       <div style={STYLES.logo}><AnimatorSVG/></div>
+    //       <div style={STYLES.logo}><ProductMarkSVG/></div>
     //     </div>
     //     {this.props.children}
     //   </div>

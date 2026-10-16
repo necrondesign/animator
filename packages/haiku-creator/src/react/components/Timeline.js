@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {handleWebviewConsoleMessage} from './webviewConsole';
 import * as qs from 'qs';
 import * as assign from 'lodash.assign';
 import * as path from 'path';
@@ -65,23 +66,7 @@ export default class Timeline extends React.Component {
     this.webview.style.zIndex = 1;
 
     this.webview.addEventListener('console-message', (event) => {
-      switch (event.level) {
-        case 0:
-          if (event.message.slice(0, 8) === '[notice]') {
-            const message = event.message.replace('[notice]', '').trim();
-            this.props.createNotice({type: 'info', title: 'Notice', message});
-          }
-          break;
-
-        case 2:
-          this.props.createNotice({
-            type: 'error',
-            title: 'Error',
-            message: event.message,
-          });
-
-          break;
-      }
+      handleWebviewConsoleMessage(event, this.props.createNotice, 'timeline');
     });
 
     this.webview.addEventListener('dom-ready', () => {

@@ -13,9 +13,9 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface FigmaImporterProps {
-  onPopoverHide (): void;
-  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
-  onAskForFigmaAuth (): void;
+  onPopoverHide(): void;
+  onImportFigmaAsset(url: string, warnOnComplexFile?: boolean): void;
+  onSetFigmaToken(token?: string): void;
   figma: any;
   style: React.CSSProperties;
 }
@@ -42,7 +42,7 @@ class FigmaImporter extends React.PureComponent<FigmaImporterProps> {
         {this.state.isFormVisible && (
           <FigmaForm
             figma={this.props.figma}
-            onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+            onSetFigmaToken={this.props.onSetFigmaToken}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
             onPopoverHide={this.props.onPopoverHide}
           />

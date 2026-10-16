@@ -64,15 +64,6 @@ const STYLES = {
     height: 'calc(100% - 36px)',
     width: 'calc(100% - 36px)', // ADDSTATEINSPECTOR
   },
-  proBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 94,
-    padding: '3px 5px',
-    fontSize: 10,
-    lineHeight: 1,
-    borderRadius: 4,
-  },
   logo: {
     width: 19,
     marginTop: 6,
@@ -104,21 +95,10 @@ class SideBar extends React.Component {
     // The State Inspector UI only makes sense in the context of a component,
     // hence the conditional presence-check before rendering it
     const activeComponent = this.props.projectModel && this.props.projectModel.getCurrentActiveComponent();
-    const {trialDaysRemaining} = this.props;
 
     return (
       <div style={STYLES.container} className="layout-box" id="sidebar">
         <div style={[STYLES.bar, {paddingLeft: this.state.isFullscreen ? 9 : 74}]} className="frame">
-          {trialDaysRemaining > 0 &&
-            <div
-              style={[STYLES.proBadge, this.state.isFullscreen && {left: 34}]}
-              aria-label={trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''} in your free trial`}
-              data-tooltip={true}
-              data-tooltip-bottom={true}>
-              {trialDaysRemaining + ` day${trialDaysRemaining === 1 ? '' : 's'} remain${trialDaysRemaining === 1 ? 's' : ''}`}
-            </div>
-          }
-          
         </div>
         <div style={STYLES.nav}>
           <div style={[

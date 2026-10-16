@@ -1,6 +1,5 @@
 import * as Color from 'color';
 // @ts-ignore
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as React from 'react';
 // @ts-ignore
@@ -49,10 +48,10 @@ const STYLES: React.CSSProperties = {
 };
 
 export interface FileImporterProps {
-  onFileDrop (paths: string[]): void;
-  conglomerateComponent (options: any): void;
-  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
-  onAskForFigmaAuth (): void;
+  onFileDrop(paths: string[]): void;
+  conglomerateComponent(options: any): void;
+  onImportFigmaAsset(url: string, warnOnComplexFile?: boolean): void;
+  onSetFigmaToken(token?: string): void;
   figma: any;
 }
 
@@ -63,7 +62,6 @@ class FileImporter extends React.PureComponent<FileImporterProps> {
 
   showPopover = () => {
     this.setState({isPopoverOpen: true});
-    mixpanel.haikuTrack('creator:file-importer:open-all');
   };
 
   hidePopover = () => {
@@ -113,7 +111,7 @@ class FileImporter extends React.PureComponent<FileImporterProps> {
           <FigmaImporter
             figma={this.props.figma}
             onImportFigmaAsset={this.props.onImportFigmaAsset}
-            onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+            onSetFigmaToken={this.props.onSetFigmaToken}
             style={STYLES.popover.text}
             onPopoverHide={this.hidePopover}
           />

@@ -1,7 +1,7 @@
+import {shell} from 'electron';
 // @ts-ignore
-import {Figma} from 'haiku-serialization/src/bll/Figma';
+import {Figma, FIGMA_TOKEN_HELP_URL} from 'haiku-serialization/src/bll/Figma';
 // @ts-ignore
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import * as React from 'react';
 import {BTN_STYLES} from '../../../styles/btnShared';
@@ -35,6 +35,14 @@ const STYLES: React.CSSProperties = {
     ...BTN_STYLES.rightBtns,
     ...BTN_STYLES.btnPrimaryAlt,
   },
+  helpLink: {
+    color: Palette.SUNSTONE,
+    textDecoration: 'underline',
+    cursor: 'pointer',
+    display: 'block',
+    textTransform: 'initial',
+    marginBottom: '10px',
+  },
   error: {
     color: Palette.RED,
     float: 'left',
@@ -45,9 +53,9 @@ const STYLES: React.CSSProperties = {
 
 export interface FigmaFormProps {
   figma: any;
-  onAskForFigmaAuth (): void;
-  onImportFigmaAsset (url: string, warnOnComplexFile?: boolean): void;
-  onPopoverHide (): void;
+  onSetFigmaToken(token?: string): void;
+  onImportFigmaAsset(url: string, warnOnComplexFile?: boolean): void;
+  onPopoverHide(): void;
 }
 
 export interface FigmaFormState {
@@ -63,12 +71,46 @@ class FigmaForm extends React.PureComponent<FigmaFormProps, FigmaFormState> {
     error: null,
   };
 
-  componentDidMount () {
-    if (!this.props.figma.token) {
-      this.props.onAskForFigmaAuth();
-    }
+  onTokenSubmit = (submitEvent: React.FormEvent<HTMLFormElement>) => {
+    submitEvent.preventDefault();
+    const token = this.inputRef.value.trim();
 
-    mixpanel.haikuTrack('creator:file-importer:open-figma');
+    if (token) {
+      this.setState({error: null});
+      this.props.onSetFigmaToken(token);
+    } else {
+      this.setState({error: 'Paste a token first'});
+    }
+  };
+
+  openTokenHelp = () => {
+    shell.openExternal(FIGMA_TOKEN_HELP_URL);
+  };
+
+  renderTokenForm () {
+    return (
+      <form
+        onSubmit={this.onTokenSubmit}
+        style={{...STYLES.form, height: '140px'}}
+      >
+        <label style={STYLES.inputTitle}>Figma personal access token</label>
+        <span style={STYLES.helpLink} onClick={this.openTokenHelp}>How to create a token</span>
+        <input
+          key="figma-token"
+          autoFocus={true}
+          type="password"
+          style={STYLES.urlInput}
+          placeholder="figd_…"
+          ref={(inputRef) => {
+            this.inputRef = inputRef;
+          }}
+        />
+        {this.state.error && (
+          <span style={STYLES.error}>{this.state.error}</span>
+        )}
+        <input style={STYLES.formButton} type="submit" value="Save" />
+      </form>
+    );
   }
 
   onFormSubmit = (submitEvent: React.FormEvent<HTMLFormElement>) => {
@@ -86,7 +128,7 @@ class FigmaForm extends React.PureComponent<FigmaFormProps, FigmaFormState> {
   render () {
     return (
       <div>
-        {this.state.isMessageVisible ? (
+        {!this.props.figma.token ? this.renderTokenForm() : this.state.isMessageVisible ? (
           <div
             style={{...STYLES.form, textTransform: 'none', height: '130px', minWidth: '200px'}}
           >
@@ -102,10 +144,11 @@ class FigmaForm extends React.PureComponent<FigmaFormProps, FigmaFormState> {
           >
             <label style={STYLES.inputTitle}>Project URL</label>
             <input
+              key="figma-url"
               autoFocus={true}
               type="text"
               style={STYLES.urlInput}
-              placeholder="http://figma.com/file/id/name"
+              placeholder="https://www.figma.com/design/id/name"
               ref={(inputRef) => {
                 this.inputRef = inputRef;
               }}

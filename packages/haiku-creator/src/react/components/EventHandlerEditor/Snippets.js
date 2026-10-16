@@ -1,6 +1,5 @@
 /* global monaco */
 import * as React from 'react';
-import {shell} from 'electron';
 import Palette from 'haiku-ui-common/lib/Palette';
 import PopoverMenu from 'haiku-ui-common/lib/electron/PopoverMenu';
 
@@ -79,13 +78,7 @@ class Snippets extends React.PureComponent {
       {
         label: 'Open Link',
         onClick: () => {
-          this.insertSnippet('window.open("https://www.haiku.ai", "_self", "location=yes")');
-        },
-      },
-      {
-        label: 'Docs ↗',
-        onClick: () => {
-          shell.openExternal('https://docs.haiku.ai/using-haiku/summonables.html');
+          this.insertSnippet('window.open("https://example.com", "_self", "location=yes")');
         },
       },
     ];

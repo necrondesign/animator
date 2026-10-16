@@ -1,7 +1,6 @@
 import {shell} from 'electron';
 import {isMac} from 'haiku-common/lib/environments/os';
 // @ts-ignore
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 // @ts-ignore
 import * as sketchUtils from 'haiku-serialization/src/utils/sketchUtils';
 import Palette from 'haiku-ui-common/lib/Palette';
@@ -39,7 +38,6 @@ class DesignFileCreator extends React.PureComponent<any, any> {
   sketchImport = () => {
     const {primaryAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
-    mixpanel.haikuTrack('creator:library:import:sketch');
     this.props.onStart();
 
     return this.props.websocket.request(
@@ -61,7 +59,6 @@ class DesignFileCreator extends React.PureComponent<any, any> {
   illustratorImport = () => {
     const {defaultIllustratorAssetPath} = this.props.projectModel.getNameVariations();
     const projectPath = this.props.projectModel.getFolder();
-    mixpanel.haikuTrack('creator:library:import:illustrator');
     this.props.onStart();
 
     return this.props.websocket.request(
@@ -108,7 +105,7 @@ class DesignFileCreator extends React.PureComponent<any, any> {
       <FigmaPopover
         onImportFigmaAsset={this.props.onImportFigmaAsset}
         onPopoverHide={this.props.onPopoverHide}
-        onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+        onSetFigmaToken={this.props.onSetFigmaToken}
         figma={this.props.figma}
       >
         <button

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {render} from 'react-dom';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
-import * as MockWebsocket from 'haiku-serialization/src/ws/MockWebsocket';
 import Creator from './react/Creator';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 
@@ -21,16 +20,15 @@ export default function dom (haiku) {
     },
   };
 
-  const websocket = haiku.plumbing && !haiku.proxy.active
-    ? new Websocket(
-        _fixPlumbingUrl(haiku.plumbing.url),
-        haiku.folder,
-        'commander',
-        'creator',
-        null,
-        haiku.socket.token,
-      )
-    : new MockWebsocket();
+  // Plumbing listens on 127.0.0.1, which Chromium never routes through a system proxy.
+  const websocket = new Websocket(
+    _fixPlumbingUrl(haiku.plumbing.url),
+    haiku.folder,
+    'commander',
+    'creator',
+    null,
+    haiku.socket.token,
+  );
 
   websocket.on('close', () => {
     const currentWindow = remote.getCurrentWindow();

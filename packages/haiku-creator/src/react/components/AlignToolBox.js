@@ -1,7 +1,6 @@
 import * as Radium from 'radium';
 import * as React from 'react';
 import * as Popover from 'react-popover';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {BTN_STYLES} from '../styles/btnShared';
 import {AlignDistributeIcons} from 'haiku-ui-common/lib/react/OtherIcons';
@@ -52,12 +51,10 @@ class AlignToolBox extends React.PureComponent {
 
   showPopover () {
     this.setState({isPopoverOpen: true});
-    mixpanel.haikuTrack('creator:align-tool-box:open');
   }
 
   hidePopover () {
     this.setState({isPopoverOpen: false});
-    mixpanel.haikuTrack('creator:align-tool-box:close');
   }
 
   performAlign (xEdge, yEdge) {

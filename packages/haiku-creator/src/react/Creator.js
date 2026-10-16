@@ -1,8 +1,8 @@
-import {shell, ipcRenderer, clipboard, webFrame} from 'electron';
+import {shell, ipcRenderer, webFrame} from 'electron';
+import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
 import * as remote from '@electron/remote';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {StyleRoot} from 'radium';
 import {CSSTransition} from 'react-transition-group';
 import * as lodash from 'lodash';
 import * as EventEmitter from 'event-emitter';
@@ -12,8 +12,8 @@ import * as Project from 'haiku-serialization/src/bll/Project';
 import * as File from 'haiku-serialization/src/bll/File';
 import * as Asset from 'haiku-serialization/src/bll/Asset';
 import EventHandlerEditor from './components/EventHandlerEditor';
-import AuthenticationUI from './components/AuthenticationUI';
-import ProjectBrowser from './components/ProjectBrowser';
+import StartScreen, {chooseExistingProjectFolder, chooseNewProjectFolder, rememberRecentProject} from './components/StartScreen';
+import {ISSUES_URL, PRODUCT_NAME} from 'haiku-common/lib/branding';
 import SideBar from './components/SideBar';
 import Library from './components/library/Library';
 import StateInspector from './components/StateInspector/StateInspector';
@@ -24,40 +24,27 @@ import Toast from './components/notifications/Toast';
 import Tour from './components/Tour/Tour';
 import {DASH_STYLES} from './styles/dashShared';
 import ProjectLoader from './components/ProjectLoader';
-import ProxyHelpScreen from './components/ProxyHelpScreen';
-import ProxySettingsScreen from './components/ProxySettingsScreen';
-import ChangelogModal from './components/ChangelogModal';
-import NewProjectModal from './components/NewProjectModal';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {EXPORTER_CHANNEL, ExporterFormat} from 'haiku-sdk-creator/lib/exporter';
-import {USER_CHANNEL, UserSettings} from 'haiku-sdk-creator/lib/bll/User'; // eslint-disable-line no-unused-vars
-import {PROJECT_CHANNEL} from 'haiku-sdk-creator/lib/bll/Project';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {SERVICES_CHANNEL} from 'haiku-sdk-creator/lib/services';
-import {ERROR_CHANNEL, isUserlandCulprit} from 'haiku-sdk-creator/lib/bll/Error';
+import {ERROR_CHANNEL, describeError} from 'haiku-sdk-creator/lib/bll/Error';
+import {USER_CHANNEL} from 'haiku-sdk-creator/lib/bll/User';
 import {
   InteractionMode,
   isPreviewMode,
 } from 'haiku-ui-common/lib/interactionModes';
 import Palette from 'haiku-ui-common/lib/Palette';
-import AnimatorSVG from 'haiku-ui-common/lib/react/icons/AnimatorSVG';
-import ActivityMonitor from '../utils/activityMonitor.js';
 import * as requestElementCoordinates from 'haiku-serialization/src/utils/requestElementCoordinates';
-import {buildProxyUrl, describeProxyFromUrl} from 'haiku-common/lib/proxies';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
 import * as opn from 'opn';
 import ConfirmGroupUngroupPopup from './components/Popups/ConfirmGroupUngroup';
-import {FailWhale} from './components/Popups/FailWhale';
-import {getAccountUrl, shouldEmitErrors} from 'haiku-common/lib/environments';
 import Globals from 'haiku-ui-common/lib/Globals';
-import {inkstone} from '@haiku/sdk-inkstone';
 
 // Useful debugging originator of calls in shared model code
 process.env.HAIKU_SUBPROCESS = 'creator';
 
 const pkg = require('./../../package.json');
-
-const mixpanel = require('haiku-serialization/src/utils/Mixpanel');
 
 const {dialog} = remote;
 
@@ -71,18 +58,14 @@ if (webFrame) {
 }
 
 const MENU_ACTION_DEBOUNCE_TIME = 100;
-const FORK_OPERATION_TIMEOUT = 2000;
-const MAX_FORK_ATTEMPTS = 15;
+const MAX_VISIBLE_NOTICES = 5;
+const NOTICE_RERENDER_INTERVAL_MS = 500;
 const FIGMA_IMPORT_TIMEOUT = 1000 * 60 * 5; /* 5 minutes */
 
 export default class Creator extends React.Component {
   constructor (props) {
     super(props);
 
-    this.authenticateUser = this.authenticateUser.bind(this);
-    this.resendEmailConfirmation = this.resendEmailConfirmation.bind(this);
-    this.authenticationComplete = this.authenticationComplete.bind(this);
-    this.loadProjects = this.loadProjects.bind(this);
     this.launchProject = this.launchProject.bind(this);
     this.removeNotice = this.removeNotice.bind(this);
     this.createNotice = this.createNotice.bind(this);
@@ -96,7 +79,6 @@ export default class Creator extends React.Component {
     this.setGlassInteractionToEditMode = this.setGlassInteractionToEditMode.bind(this);
     this.setGlassInteractionToCodeEditorMode = this.setGlassInteractionToCodeEditorMode.bind(this);
     this.togglePreviewMode = this.togglePreviewMode.bind(this);
-    this.clearAuth = this.clearAuth.bind(this);
     this.tryToChangeCurrentActiveComponent = this.tryToChangeCurrentActiveComponent.bind(this);
     this.launchFolder = this.launchFolder.bind(this);
     this.switchActiveNav = this.switchActiveNav.bind(this);
@@ -107,7 +89,6 @@ export default class Creator extends React.Component {
     this.handleShowConfirmGroupPopup = this.handleShowConfirmGroupPopup.bind(this);
     this.hideConfirmGroupUngroupPopup = this.hideConfirmGroupUngroupPopup.bind(this);
     this.layout = new EventEmitter();
-    this.activityMonitor = new ActivityMonitor(window, this.onActivityReport.bind(this));
     // Keep tracks of not found identifiers and notice id
     this.identifiersNotFound = [];
     this.identifiersNotFoundNotice = undefined;
@@ -125,37 +106,20 @@ export default class Creator extends React.Component {
       projectObject: null,
       projectModel: null, // Instance of the Project model
       dashboardVisible: !this.props.folder,
-      readyForAuth: false,
-      hasLoadedOnce: false,
-      isUserAuthenticated: false,
-      username: null,
-      isAdmin: false,
       notices: [],
       softwareVersion: pkg.version,
       didPlumbingNoticeCrash: false,
       activeNav: 'library',
-      projectsList: [],
       doShowProjectLoader: false,
       projectLaunching: false,
       tearingDown: false,
       interactionMode: InteractionMode.GLASS_EDIT,
       artboardDimensions: null,
-      showChangelogModal: false,
-      expiredTrialNonPro: false,
-      // This is a sensible default to avoid flashes of offline warnings.
-      // (The Envoy server will protect us from any potential abuse.)
-      allowOffline: true,
-      isOnline: true,
-      areProjectsLoading: false,
-      showProxySettings: false,
       servicesEnvoyClient: null,
-      projectToDuplicate: null,
       showEventHandlerEditor: false,
       eventHandlerEditorOptions: {},
       showConfirmGroupUngroupPopup: false,
       groupOrUngroup: 'group',
-      showFailWhale: false,
-      failWhaleUniqueId: null,
     };
 
     this.envoyOptions = {
@@ -169,24 +133,22 @@ export default class Creator extends React.Component {
     // can be forwarded to file. They're also used to configure the Project model itself.
     this.fileOptions = {};
 
-    // Callback for post-authentication
-    this._postAuthCallback = undefined;
-
-    const win = remote.getCurrentWindow();
-
     if (process.env.DEV === '1' || process.env.DEV === 'creator') {
-      win.openDevTools();
+      remote.getCurrentWebContents().openDevTools();
     }
 
-    window.onerror = (message) => {
+    // Uncaught errors and unhandled rejections in this window are shown as notices; they are never sent anywhere.
+    const showUncaughtError = (error) => {
       this.createNotice({
-        message,
+        message: describeError(error).message,
         type: 'error',
         title: 'Oh no!',
         closeText: 'Okay',
         lightScheme: true,
       });
     };
+    window.addEventListener('error', (event) => showUncaughtError(event.error || event.message));
+    window.addEventListener('unhandledrejection', (event) => showUncaughtError(event.reason));
 
     document.addEventListener('mousemove', (nativeEvent) => {
       this._lastMouseX = nativeEvent.clientX;
@@ -263,11 +225,6 @@ export default class Creator extends React.Component {
     ipcRenderer.on('global-menu:open-text-editor', lodash.debounce(() => {
       logger.info(`[creator] global-menu:open-text-editor`);
       this.openTextEditor();
-    }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
-
-    ipcRenderer.on('global-menu:show-changelog', lodash.debounce(() => {
-      logger.info(`[creator] global-menu:show-changelog`);
-      this.showChangelogModal();
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:set-active-component', lodash.debounce((ipcEvent, scenename) => {
@@ -408,16 +365,14 @@ export default class Creator extends React.Component {
       }
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
-    ipcRenderer.on('open-url:fork', (_, forkPath) => {
-      // Incoming path should have format: /:organizationName/:projectName
-      const matches = forkPath.match(/^\/(\w+)\/(\w+)$/);
-      if (matches) {
-        this.forkProject(matches[1], matches[2]);
-      }
+    ipcRenderer.on('global-menu:new-project', () => {
+      chooseNewProjectFolder().then((folder) => this.switchToProjectFolder(folder), (error) => {
+        this.createNotice({type: 'error', title: 'Unable to create project', message: error.message});
+      });
     });
 
-    ipcRenderer.on('global-menu:show-new-project-modal', () => {
-      this.showNewProjectModal();
+    ipcRenderer.on('global-menu:open-project', () => {
+      chooseExistingProjectFolder().then((folder) => this.switchToProjectFolder(folder));
     });
 
     ipcRenderer.on('global-menu:preview', () => {
@@ -451,16 +406,6 @@ export default class Creator extends React.Component {
       false,
     );
 
-    // Add event listeners for when the network connectivity status of the browser changes.
-    const checkOnlineStatus = () => this.checkOnlineStatus();
-    window.addEventListener('online', checkOnlineStatus);
-    window.addEventListener('offline', checkOnlineStatus);
-
-    // For good measure, periodically check if we're online every five minutes. The online/offline events are
-    // inherently flaky (they use navigator.onLine, which never returns false negatives but frequently returns false
-    // positives).
-    window.setInterval(checkOnlineStatus, 5 * 60 * 1000);
-
     // Flexibly keep track of states in the various subviews as broadcasted to us.
     // TODO: Move to Envoy. Put here to avoid boiling the ocean on multi-component.
     // This is a dictionary of state changes broadcasted to us via the subviews.
@@ -483,13 +428,6 @@ export default class Creator extends React.Component {
       window.view = this; // Easy to run same instruction in different tools
     }
   }
-
-  explorePro = (source) => {
-    if (source) {
-      mixpanel.haikuTrack(`creator:upgrade-cta-click:${source}`);
-    }
-    shell.openExternal(getAccountUrl('checkout'));
-  };
 
   isTextInputFocused () {
     const tagName = (
@@ -622,116 +560,6 @@ export default class Creator extends React.Component {
     }
   }
 
-  checkOnlineStatus () {
-    // In case this gets called too early.
-    if (!this.user) {
-      return;
-    }
-
-    this.user.checkOnline().then((isOnline) => {
-      this.setState({isOnline});
-    });
-  }
-
-  handleEnvoyUserReady () {
-    if (!this.user) {
-      return;
-    }
-
-    // kick off initial report
-    this.onActivityReport(true, true);
-
-    this.user.on(`${USER_CHANNEL}:load`, ({user, organization}) => {
-      mixpanel.mergeToPayload({distinct_id: user.Username});
-      mixpanel.haikuTrack('creator:opened');
-      window.Raven.setUserContext({email: user.Username});
-      window.Raven.setExtraContext({organizationName: organization.Name});
-      this.user.checkPrivateProjectLimit().then((privateProjectLimit) => {
-        this.setState({
-          privateProjectLimit,
-          username: user.Username,
-          isAdmin: user.IsAdmin,
-          organizationName: organization.Name,
-        });
-
-        this.setState({isUserAuthenticated: true});
-      });
-
-
-      this.checkOnlineStatus();
-
-      this.user.isTrialExpired().then((isTrialExpired) => {
-        this.setState({
-          expiredTrialNonPro: isTrialExpired,
-        });
-      });
-
-      this.user.getOrganization().then((org) => {
-        const pro = org.Role !== inkstone.organization.Role.FREE;
-        if (!pro) {
-          this.user.getTrialDaysRemaining().then((trialDaysRemaining) => {
-            this.setState({trialDaysRemaining});
-          });
-        }
-      });
-    });
-
-    this.user.load().then(({user, organization}) => {
-
-      this.setState({
-        readyForAuth: true,
-        isUserAuthenticated: user && organization,
-      }, () => {
-        if (this.state.isUserAuthenticated && typeof this._postAuthCallback === 'function') {
-          this._postAuthCallback();
-          delete this._postAuthCallback;
-        } else if (this.props.folder) {
-          // Launch folder directly - i.e. allow a 'subl' like experience without having to go
-          // through the projects index
-          const handleFailure = (launchError) => {
-            if (launchError) {
-              logger.error(launchError);
-              this.setState({folderLoadingError: launchError});
-              return this.createNotice({
-                type: 'error',
-                title: 'Oh no!',
-                message: 'We were unable to open the folder. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
-                closeText: 'Okay',
-                lightScheme: true,
-              });
-            }
-          };
-
-          this.launchFolder(
-            // Load up the necessary metadata in Plumbing to launch normally.
-            {
-              projectPath: this.props.folder,
-              authorName: 'user@haiku.ai',
-              organizationName: 'Haiku',
-              projectName: path.basename(this.props.folder),
-              branchName: 'master',
-            },
-            handleFailure,
-          );
-        }
-      });
-    });
-
-    this.user.getConfig(UserSettings.LastViewedChangelog).then((changelogVersion) => {
-      let lastViewedChangelog = changelogVersion;
-
-      // If the user doesn't have a lastViewedChangelog config set, set it to the
-      // current version (ie don't show the changelog). This is usually the case
-      // for brand new users.
-      if (!lastViewedChangelog) {
-        lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
-        this.user.setConfig(UserSettings.LastViewedChangelog, lastViewedChangelog);
-      }
-
-      this.setState({lastViewedChangelog});
-    });
-  }
-
   componentDidMount () {
     this.props.websocket.on('broadcast', (message) => {
       switch (message.name) {
@@ -771,83 +599,40 @@ export default class Creator extends React.Component {
       }
     });
 
-    this.activityMonitor.startWatchers();
-
     this.envoyClient = new EnvoyClient(this.envoyOptions);
 
     this.envoyClient.get(EXPORTER_CHANNEL).then((exporterChannel) => {
       this.envoyExporter = exporterChannel;
       ipcRenderer.on('global-menu:save-as', (_, extension, request) => {
-        switch (extension) {
-          case 'gif':
-            request.format = ExporterFormat.AnimatedGif;
-            break;
-          case 'mp4':
-            request.format = ExporterFormat.Video;
-            break;
-          case 'json':
-            request.format = ExporterFormat.Bodymovin;
-            break;
-        }
-
-        dialog.showSaveDialog({
-          defaultPath: this.state.projectObject ? `*/${this.state.projectObject.projectName}` : undefined,
-          filters: [{
-            name: request.format, extensions: [extension],
-          }],
-        }).then(({canceled, filePath}) => {
-          if (canceled || !filePath) {
-            return;
-          }
-
-          request.filename = filePath;
-          exporterChannel.save(request);
-        });
+        this.exportAs(extension, request.framerate);
       });
     });
 
     this.envoyClient.get(ERROR_CHANNEL).then(
       (error) => {
-        if (global.sentryReporter) {
-          global.sentryReporter.envoy = error;
-        }
+        // Errors reported by the plumbing process (see haiku-plumbing/src/errorReporting.js).
         this.error = error;
-        this.error.on(`${ERROR_CHANNEL}:error`, ({uniqueId, message, culprit}) => {
-          if (shouldEmitErrors() && !isUserlandCulprit(culprit)) {
-            this.setState({
-              showFailWhale: true,
-              failWhaleUniqueId: uniqueId || this.state.failWhaleUniqueId,
-            });
-          } else {
-            this.createNotice({
-              message,
-              type: 'error',
-              title: 'Error',
-            });
-          }
+        this.error.on(`${ERROR_CHANNEL}:error`, ({message}) => {
+          this.createNotice({
+            message,
+            type: 'error',
+            title: 'Error',
+          });
         });
       },
     );
 
-    this.envoyClient.get(USER_CHANNEL).then(
-      (user) => {
-        this.user = user;
-        this.handleEnvoyUserReady();
-      },
-    );
+    // The user channel is only used for local settings (e.g. "don't show again" choices, a Figma token) kept in
+    // ~/.haiku/registry.json; there are no accounts.
+    this.envoyClient.get(USER_CHANNEL).then((user) => {
+      this.user = user;
 
-    // Use a lengthy timeout for project channel, which does some CRUD.
-    this.envoyClient.get(PROJECT_CHANNEL).then(
-
-      (project) => {
-        this.envoyProject = project;
-        project.on(`${PROJECT_CHANNEL}:saved`, (projectObject) => {
-          if (this.state.projectObject && this.state.projectObject.projectName === projectObject.projectName) {
-            this.setState({projectObject, projectFolder: projectObject.projectPath});
-          }
-        });
-      },
-    );
+      // A folder given at startup (HAIKU_PROJECT_FOLDER) opens directly, skipping the start screen. Plumbing's
+      // services are reachable once Envoy answers, so this is a safe moment to launch.
+      if (this.props.folder) {
+        this.openProjectFolder(this.props.folder);
+      }
+    });
 
     this.envoyClient.get(SERVICES_CHANNEL, {timeout: FIGMA_IMPORT_TIMEOUT}).then((servicesEnvoyClient) => {
       this.setState({servicesEnvoyClient});
@@ -874,7 +659,6 @@ export default class Creator extends React.Component {
     this.tourChannel.off('tour:requestElementCoordinates', this.handleFindElementCoordinates);
     this.tourChannel.off('tour:requestWebviewCoordinates', this.handleFindWebviewCoordinates);
     this.tourChannel.off('tour:requestShowStep', this.setGlassInteractionToEditMode);
-    this.activityMonitor.stopWatchers();
   }
 
   handleConnectedProjectModelStateChange ({from, folder, what, value}) {
@@ -959,29 +743,6 @@ export default class Creator extends React.Component {
     );
   }
 
-  mixpanelReportPreviewMode (interactionMode) {
-    let interactionName = '';
-    switch (interactionMode) {
-      case InteractionMode.GLASS_EDIT:
-        interactionName = 'edit';
-        break;
-      case InteractionMode.GLASS_PREVIEW:
-        interactionName = 'preview';
-        break;
-      case InteractionMode.CODE_EDITOR:
-        interactionName = 'code-editor';
-        break;
-      default:
-        break;
-    }
-
-    mixpanel.haikuTrack(`creator:interaction-mode:${interactionName}`);
-  }
-
-  restart = () => {
-    ipcRenderer.send('restart');
-  };
-
   handleInteractionModeChange (interactionMode) {
     if (this.state.interactionMode === interactionMode) {
       return;
@@ -1003,8 +764,6 @@ export default class Creator extends React.Component {
     }
 
     this.lastWidgetState = {interactionMode: this.state.interactionMode, activeNav: this.state.activeNav};
-
-    this.mixpanelReportPreviewMode(interactionMode);
 
     this.setState({interactionMode}, () => {
       if (interactionMode === InteractionMode.CODE_EDITOR) {
@@ -1043,31 +802,6 @@ export default class Creator extends React.Component {
   switchActiveNav (activeNav) {
     this.setState({activeNav});
 
-    mixpanel.haikuTrack('creator:project:left-nav-switch', {
-      option: activeNav,
-    });
-  }
-
-  authenticateUser (username, password, cb) {
-    if (!this.user) {
-      return cb({
-        code: 500,
-        message: 'Unknown error.',
-      });
-    }
-
-    this.user.authenticate(username, password).then(({user, organization}) => {
-      mixpanel.haikuTrack('creator:user-authenticated', {username: user.Username});
-      ipcRenderer.send('topmenu:update', {isUserAuthenticated: true});
-    }).catch((error) => {
-      cb(error);
-    });
-  }
-
-  showProxySettings () {
-    this.setState({
-      showProxySettings: true,
-    });
   }
 
   startTourFromGlobalMenu = () => {
@@ -1093,86 +827,15 @@ export default class Creator extends React.Component {
     });
   };
 
-  resendEmailConfirmation (username) {
-    return this.props.websocket.request({method: 'resendEmailConfirmation', params: [username]}, () => {});
-  }
-
-  authenticationComplete () {
-    if (typeof this._postAuthCallback === 'function') {
-      this._postAuthCallback();
-      delete this._postAuthCallback;
-    }
-
-    this.handleEnvoyUserReady();
-
-    return this.setState({isUserAuthenticated: true});
-  }
-
-  loadProjects (silent, cb) {
-    if (!this.envoyProject) {
-      return cb(null, []);
-    }
-
-    // If "silent", do not show the loading state.
-    this.setState(silent ? {} : {areProjectsLoading: true}, () => {
-      this.envoyProject.getProjectsList().then((projectsList) => {
-        this.setState({areProjectsLoading: false, hasLoadedOnce: true, projectsList});
-        ipcRenderer.send('topmenu:update', {projectsList, isProjectOpen: false, isUserAuthenticated: this.state.isUserAuthenticated});
-        return cb(null, projectsList);
-      }).catch((error) => {
-        mixpanel.haikuTrack('creator:project-list:unable-to-retrieve', {
-          username: this.state.username,
-          organization: this.state.organizationName,
-        });
-        this.setState({areProjectsLoading: false});
-        return cb(error, []);
-      });
-    });
-  }
-
   onProjectLaunchError () {
     this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true}, () => {
       this.createNotice({
         type: 'error',
         title: 'Oh no!',
-        message: 'We couldn\'t open this project. 😩 Please ensure that your computer is connected to the Internet. If you\'re connected and you still see this message your files might still be processing. Please try again in a few moments. If you still see this error, contact Haiku for support.',
+        message: `We couldn't open this project. 😩 Please check that the folder is readable and try again. If this keeps happening, please report it at ${ISSUES_URL}.`,
         closeText: 'Okay',
         lightScheme: true,
       });
-    });
-  }
-
-  onProjectsList = (projectsList) => {
-    ipcRenderer.send('topmenu:update', {projectsList});
-  };
-
-  createProject (projectName, duplicate = false, callback) {
-    this.setState({doShowProjectLoader: true});
-    this.envoyProject.createProject(projectName).then((newProject) => {
-      if (duplicate && this.state.projectToDuplicate !== null) {
-        this.props.websocket.request(
-          {
-            method: 'duplicateProject',
-            params: [newProject, this.state.projectToDuplicate],
-          },
-          () => {
-            callback(null, newProject);
-          },
-        );
-      } else {
-        callback(null, newProject);
-      }
-    }).catch((error) => {
-      this.setState({doShowProjectLoader: false});
-      console.log(error);
-      this.createNotice({
-        type: 'error',
-        title: 'Oh no!',
-        message: 'We couldn\'t create your project. 😩 If this problem occurs again, please contact Haiku support.',
-        closeText: 'Okay',
-        lightScheme: true,
-      });
-      callback(error);
     });
   }
 
@@ -1185,22 +848,7 @@ export default class Creator extends React.Component {
       dashboardVisible: false,
     });
 
-    if (projectObject.isFork && !projectObject.forkComplete) {
-      return this.openNewlyForkedProject(projectObject, 0, () => {});
-    }
-
     const {projectName, projectPath} = projectObject;
-
-    // Add extra context to Sentry reports, this info is also used by carbonite.
-    if (window.Raven) {
-      window.Raven.setExtraContext({projectName, projectPath});
-    }
-
-    mixpanel.haikuTrack('creator:project:launching', {
-      username: this.state.username,
-      project: projectName,
-      organization: this.state.organizationName,
-    });
 
     // Async: ensure our web+haikuroot:// URLs work as expected.
     ipcRenderer.send('protocol:register', projectObject.projectPath);
@@ -1209,12 +857,6 @@ export default class Creator extends React.Component {
       if (err) {
         return this.onProjectLaunchError();
       }
-
-      window.Raven.setExtraContext({
-        organizationName: this.state.organizationName,
-        projectPath, // Re-set in case it wasn't present in the above call
-        projectName,
-      });
 
       return this.props.websocket.request({method: 'startProject', params: [projectObject]}, (startProjectError, applicationImage) => {
         if (startProjectError) {
@@ -1244,12 +886,6 @@ export default class Creator extends React.Component {
 
             // Assign, not merge, since we don't want to clobber any variables already set, like project name
             lodash.assign(projectObject, applicationImage.project);
-
-            mixpanel.haikuTrack('creator:project:launched', {
-              username: this.state.username,
-              project: projectName,
-              organization: this.state.organizationName,
-            });
 
             this.setState({
               projectModel,
@@ -1403,11 +1039,91 @@ export default class Creator extends React.Component {
     });
   }
 
-  launchFolder (projectOptions, cb) {
-    mixpanel.haikuTrack('creator:folder:launching', {
-      username: this.state.username,
-      project: projectOptions.projectName,
+  /**
+   * Opens the project in `folder` (an empty folder becomes a new project) and remembers it in the start screen's
+   * recent projects.
+   */
+  /**
+   * Opens a folder chosen from the menu, closing the current project first if one is open.
+   */
+  switchToProjectFolder (folder) {
+    if (!folder) {
+      return;
+    }
+    if (!this.state.projectModel) {
+      this.openProjectFolder(folder);
+      return;
+    }
+    ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
+    this.teardownMaster({shouldFinishTour: true}, () => this.openProjectFolder(folder));
+  }
+
+  openProjectFolder (folder) {
+    rememberRecentProject(folder);
+    this.launchFolder(
+      // Load up the necessary metadata in Plumbing to launch normally. The organization value is the placeholder local
+      // projects have always used; it is part of the generated npm package name, so changing it renames packages.
+      {
+        projectPath: folder,
+        authorName: PRODUCT_NAME,
+        organizationName: 'Haiku',
+        projectName: path.basename(folder),
+        branchName: 'master',
+      },
+      (launchError) => {
+        if (launchError) {
+          logger.error(launchError);
+          this.setState({folderLoadingError: launchError, dashboardVisible: true, doShowProjectLoader: false});
+          this.createNotice({
+            type: 'error',
+            title: 'Oh no!',
+            message: `We were unable to open ${folder}. 😢 If this keeps happening, please report it at ${ISSUES_URL}.`,
+            closeText: 'Okay',
+            lightScheme: true,
+          });
+        }
+      },
+    );
+  }
+
+  /**
+   * Asks where to save and exports the open project as a Lottie JSON ('json'), GIF ('gif') or video ('mp4').
+   * Used by the Export modal and the app menu.
+   */
+  exportAs = (extension, framerate) => {
+    if (!this.envoyExporter) {
+      return;
+    }
+
+    const request = {framerate, outlet: 'timeline'};
+    switch (extension) {
+      case 'gif':
+        request.format = ExporterFormat.AnimatedGif;
+        break;
+      case 'mp4':
+        request.format = ExporterFormat.Video;
+        break;
+      case 'json':
+        request.format = ExporterFormat.Bodymovin;
+        break;
+    }
+
+    dialog.showSaveDialog({
+      defaultPath: this.state.projectObject ? this.state.projectObject.projectName : undefined,
+      filters: [{
+        name: request.format, extensions: [extension],
+      }],
+    }).then(({canceled, filePath}) => {
+      if (canceled || !filePath) {
+        return;
+      }
+
+      request.filename = filePath;
+      this.envoyExporter.save(request);
     });
+  };
+
+  launchFolder (projectOptions, cb) {
 
     return this.launchProject(projectOptions, cb);
   }
@@ -1431,11 +1147,6 @@ export default class Creator extends React.Component {
   shouldNoticeBeSkipped (notice) {
     // Assume that any notice without a string or a react element isn't usable, so just skip it
     if (!notice || typeof notice.message !== 'string' && !React.isValidElement(notice.message)) {
-      return true;
-    }
-
-    // 'Uncaught' errors will be handled in Envoy unless we're in dev mode.
-    if (notice.type === 'error' && notice.message.startsWith('Uncaught') && shouldEmitErrors()) {
       return true;
     }
 
@@ -1469,51 +1180,34 @@ export default class Creator extends React.Component {
       return;
     }
 
+    const notices = this.state.notices;
+    const now = Date.now();
+
+    // A repeated notice only bumps the counter of the one already shown. Re-render it at most twice a second so an
+    // error raised on every frame can't cause an update death spiral.
+    const existing = notices.find((shown) => shown.type === notice.type && shown.message === notice.message);
+    if (existing) {
+      existing.count += 1;
+      if (now - existing.timestamp >= NOTICE_RERENDER_INTERVAL_MS) {
+        existing.timestamp = now;
+        this.setState({notices});
+      }
+      return existing;
+    }
+
+    if (notice.type === 'error') {
+      logger.error(notice.message);
+    }
+
+    // Don't stack up more than five notices at a time
+    if (notices.length >= MAX_VISIBLE_NOTICES) {
+      return;
+    }
+
     notice.id = Math.random() + '';
     notice.count = 1;
-    notice.timestamp = Date.now();
-
-    const notices = this.state.notices;
-
-    let found = false;
-
-    // Don't display more than five errors at a time
-    if (notices.length > 5) {
-      return;
-    }
-
-    // Throttle display to avoid creating a 60fps update death spiral
-    const last = notices[0];
-    if (last && (notice.timestamp - last.timestamp) < 500) {
-      return;
-    }
-
-    notices.forEach((existing) => {
-      if (
-        existing.type === notice.type &&
-        existing.message === notice.message
-      ) {
-        found = true;
-
-        // If we get a bunch of errors of the same kind, that's most likely a bad problem
-        if (existing.count >= 25) {
-          if (process.env.NODE_ENV === 'production') {
-            remote.getCurrentWindow().close();
-          }
-        } else {
-          existing.count += 1;
-        }
-      }
-    });
-
-    if (!found) {
-      if (notice.type === 'error') {
-        logger.error(notice.message);
-      }
-
-      notices.unshift(notice);
-    }
-
+    notice.timestamp = now;
+    notices.unshift(notice);
     this.setState({notices});
 
     return notice;
@@ -1530,12 +1224,6 @@ export default class Creator extends React.Component {
     this.setState({assetDragging: asset});
   }
 
-  onActivityReport (userWasActive) {
-    if (userWasActive && this.user) {
-      this.user.reportActivity();
-    }
-  }
-
   onTimelineMounted () {
     this.setState({isTimelineReady: true});
   }
@@ -1547,90 +1235,8 @@ export default class Creator extends React.Component {
   onNavigateToDashboard () {
     // Redundant with a future call, but ensures we will show the loading spinner ASAP.
     this.setState({tearingDown: true});
-    this.user.load().then(({user, organization}) => {
-      this.setState({
-        readyForAuth: true,
-        isUserAuthenticated: user && organization,
-      });
-      this.teardownMaster({shouldFinishTour: true});
-      ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
-    });
-  }
-
-  awaitAuthAndFire (cb) {
-    if (!this.state.readyForAuth || !this.state.isUserAuthenticated) {
-      this._postAuthCallback = cb;
-    } else {
-      cb();
-    }
-  }
-
-  showForkingError () {
-    this.setState({projectLaunching: false, doShowProjectLoader: false, dashboardVisible: true});
-    this.createNotice({
-      type: 'error',
-      title: 'Oh no!',
-      message: 'This project cannot be forked. 😢 This may have been disabled by the project\'s owner.',
-      closeText: 'Okay',
-      lightScheme: true,
-    });
-  }
-
-  forkProject (organizationName, projectName) {
-    mixpanel.haikuTrack('creator:fork-project', {organizationName, projectName});
-    const doFork = () => {
-      this.awaitAuthAndFire(() => {
-        if (!this.envoyProject) {
-          return;
-        }
-
-        this.envoyProject.forkProject(organizationName, projectName).then((haikuProject) => {
-          this.launchProject(haikuProject, (launchError) => {
-            if (launchError) {
-              this.showForkingError();
-            }
-          });
-        }).catch(() => {
-          this.showForkingError();
-        });
-      });
-    };
-
-    if (this.state.projectModel) {
-      this.teardownMaster({shouldFinishTour: true, doShowProjectLoader: true}, doFork);
-    } else {
-      this.setState({doShowProjectLoader: true});
-      doFork();
-    }
-  }
-
-  openNewlyForkedProject (haikuProject, numAttempts, cb) {
-    const forkedProjectName = haikuProject.projectName;
-    const recheck = () => {
-      if (numAttempts > MAX_FORK_ATTEMPTS) {
-        return cb(new Error('unable to open forked project'));
-      }
-
-      setTimeout(() => {
-        this.openNewlyForkedProject(haikuProject, numAttempts + 1);
-      }, FORK_OPERATION_TIMEOUT);
-    };
-
-    this.envoyProject.getProject(forkedProjectName).then((forkedProject) => {
-      if (!forkedProject.forkComplete) {
-        recheck();
-      } else {
-        setTimeout(() => {
-          this.launchProject(forkedProject, (launchError) => {
-            if (launchError) {
-              this.showForkingError();
-            }
-          });
-        }, FORK_OPERATION_TIMEOUT);
-      }
-    }).catch(() => {
-      this.showForkingError();
-    });
+    this.teardownMaster({shouldFinishTour: true});
+    ipcRenderer.send('topmenu:update', {subComponents: [], undoState: {canUndo: false, canRedo: false}, isProjectOpen: false});
   }
 
   teardownMaster ({shouldFinishTour}, cb) {
@@ -1680,8 +1286,6 @@ export default class Creator extends React.Component {
           interactionMode: InteractionMode.GLASS_EDIT, // So that the asset library will not be obscured on reentry
         });
 
-        window.Raven.setExtraContext({projectName: undefined, projectPath: undefined});
-
         if (cb) {
           cb();
         }
@@ -1696,159 +1300,9 @@ export default class Creator extends React.Component {
     }
   }
 
-  renderStartupDefaultScreen () {
-    return (
-      <div style={{position: 'absolute', width: '100%', height: '100%', backgroundColor: Palette.COAL}}>
-        <div style={{position: 'absolute', width: '50%', height: '50%', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
-          <AnimatorSVG />
-        </div>
-        <div style={{color: '#FAFCFD', textAlign: 'center', display: 'inline-block', fontSize: '14px', width: '100%', height: 50, position: 'absolute', bottom: 50, left: 0}}>{this.state.softwareVersion}</div>
-      </div>
-    );
-  }
-
-  logOut = () => {
-    if (this.user) {
-      this.user.logOut().then(() => {
-        this.clearAuth();
-        mixpanel.haikuTrack('creator:project-browser:user-menu-option-selected', {
-          option: 'logout',
-        });
-
-        ipcRenderer.send('topmenu:update', {
-          projectsList: [],
-          isSaving: false,
-          isProjectOpen: false,
-          isUserAuthenticated: false,
-          subComponents: [],
-          undoState: {canUndo: true, canRedo: true}, // allow undo/redo on login form.
-        });
-      });
-    }
-  };
-
-  clearAuth () {
-    this.setState({readyForAuth: true, isUserAuthenticated: false, username: ''});
-  }
-
   tryToChangeCurrentActiveComponent (scenename) {
     // Delegate to Stage, as it contains nonSavedContentOnCodeEditor state
     this.refs.stage.tryToChangeCurrentActiveComponent(scenename);
-  }
-
-  showChangelogModal = () => {
-    this.setState({showChangelogModal: true}, () => {
-      const lastViewedChangelog = process.env.HAIKU_RELEASE_VERSION;
-      this.setState({lastViewedChangelog});
-      this.user.setConfig(UserSettings.LastViewedChangelog, lastViewedChangelog);
-    });
-
-    mixpanel.haikuTrack('creator:changelog:shown');
-  };
-
-  renderChangelogModal () {
-    return this.state.showChangelogModal ? (
-      <ChangelogModal
-        onClose={() => {
-          this.setState({showChangelogModal: false});
-        }}
-        lastViewedChangelog={this.state.lastViewedChangelog}
-      />
-    ) : null;
-  }
-
-  showNewProjectModal (isDuplicateProjectModal = false, duplicateProjectName = '', projectToDuplicate = null) {
-    if (!this.state.isUserAuthenticated || !this.envoyProject || !this.user || this.state.expiredTrialNonPro) {
-      return;
-    }
-    this.setState({showNewProjectModal: true, isDuplicateProjectModal, duplicateProjectName, projectToDuplicate});
-    mixpanel.haikuTrack('creator:new-project:shown');
-  }
-
-  hideNewProjectModal () {
-    this.setState({showNewProjectModal: false, isDuplicateProjectModal: false, duplicateProjectName: null});
-  }
-
-  onCreateProject = (projectName, duplicate) => {
-    this.createProject(projectName, duplicate, (err, projectObject) => {
-      if (err) {
-        this.hideNewProjectModal();
-        return;
-      }
-
-      if (this.state.projectModel) {
-        this.teardownMaster(
-          {shouldFinishTour: true},
-          () => {
-            this.launchProject(projectObject, () => {});
-          },
-        );
-      } else {
-        this.launchProject(projectObject, () => {});
-      }
-    });
-  };
-
-  renderNewProjectModal () {
-    return (
-      this.state.showNewProjectModal && (
-        <NewProjectModal
-          defaultProjectName={this.state.duplicateProjectName}
-          projectsList={this.state.projectsList}
-          duplicate={this.state.isDuplicateProjectModal}
-          onCreateProject={this.onCreateProject}
-          onClose={() => {
-            this.hideNewProjectModal();
-          }}
-        />
-      )
-    );
-  }
-
-  get proxyDescriptor () {
-    // Note: in the current setup, we boot all users who are unable to connect directly to the local websocket server
-    // before they can benefit from the pre-filling of of the proxy descriptor based on the proxy upgrade request
-    // identified during bootup. If we ever figure out how to allow the socket traffic to flow through a proxy, as a
-    // consolation prize for still forcing users to go through this config, the host and port should be prefilled!
-    return describeProxyFromUrl(this.props.haiku.dotenv.http_proxy || this.props.haiku.proxy.url);
-  }
-
-  set proxyDescriptor (proxyDescriptor) {
-    this.props.websocket.request(
-      {
-        method: 'setenv',
-        params: [{
-          http_proxy: buildProxyUrl(proxyDescriptor),
-        }],
-      },
-      (error, dotenv) => {
-        if (error) {
-          mixpanel.haikuTrack('creator:proxy-settings:error', {error});
-          logger.warn('[creator] unable to persist proxy settings', error);
-          this.createNotice({
-            type: 'error',
-            title: 'Oh no!',
-            message: 'We were unable to save your proxy settings. 😢 Please close and reopen the application and try again. If you still see this message, contact Haiku for support.',
-            closeText: 'Okay',
-            lightScheme: true,
-          });
-        } else {
-          mixpanel.haikuTrack('creator:proxy-settings:saved');
-          this.createNotice({
-            type: 'info',
-            title: 'Proxy settings saved!',
-            message: 'If you are still unable to connect to Haiku, please exit Haiku and try again.',
-            closeText: 'Okay',
-            lightScheme: true,
-          });
-          Object.assign(this.props.haiku, {dotenv});
-        }
-
-        this.setState({
-          showProxySettings: false,
-        });
-      },
-    );
   }
 
   saveEventHandlers (targetElement, serializedEvents) {
@@ -1874,7 +1328,6 @@ export default class Creator extends React.Component {
 
   safelyHideEventHandlersEditor = () => {
     if (this.editor && this.editor.canBeClosedExternally()) {
-      mixpanel.haikuTrack('creator:hide-event-handlers-editor');
       this.forceHideEventHandlersEditor();
     }
   };
@@ -1884,7 +1337,6 @@ export default class Creator extends React.Component {
       return;
     }
 
-    mixpanel.haikuTrack('creator:show-event-handlers-editor');
     logger.info(`showing actions editor`, options);
 
     this.setState({
@@ -1912,25 +1364,14 @@ export default class Creator extends React.Component {
   }
 
   handleShowConfirmGroupPopup (groupOrUngroup) {
-    mixpanel.haikuTrack(`creator:show-confirm-group-ungroup-popup:${groupOrUngroup}`);
     this.setState({showConfirmGroupUngroupPopup: true, groupOrUngroup});
     this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-open', groupOrUngroup});
   }
 
   hideConfirmGroupUngroupPopup (userConfirmedGroup, groupOrUngroup) {
-    if (userConfirmedGroup) {
-      mixpanel.haikuTrack('creator:glass:group_upgroup_answer_y');
-    } else {
-      mixpanel.haikuTrack('creator:glass:group_upgroup_answer_n');
-    }
-
     this.setState({showConfirmGroupUngroupPopup: false});
     this.state.projectModel.broadcastPayload({name: 'confirm-group-ungroup-popup-closed', confirmed: userConfirmedGroup, groupOrUngroup});
   }
-
-  boundShowProxySettings = () => {
-    this.showProxySettings();
-  };
 
   conglomerateComponent = (
     {
@@ -1951,36 +1392,11 @@ export default class Creator extends React.Component {
     });
   };
 
-  get showAuthenticationUI () {
-    return this.state.readyForAuth && (!this.state.isUserAuthenticated || !this.state.username);
-  }
-
-  get showGenericLoader () {
-    return this.state.areProjectsLoading && this.state.hasLoadedOnce;
-  }
-
   shouldShowProjectLoader () {
-    return this.state.doShowProjectLoader || this.state.projectLaunching || this.showGenericLoader;
+    return this.state.doShowProjectLoader || this.state.projectLaunching;
   }
 
   render () {
-    if (this.state.showProxySettings) {
-      return (
-        <StyleRoot>
-          <ProxySettingsScreen
-            proxyDescriptor={this.proxyDescriptor}
-            onSave={(proxyDescriptor) => {
-              this.proxyDescriptor = proxyDescriptor;
-            }}
-          />
-        </StyleRoot>
-      );
-    }
-
-    if (this.props.haiku.proxy.active) {
-      return <ProxyHelpScreen />;
-    }
-
     return (
       <div style={{position: 'relative', width: '100%', height: '100%'}}>
         <CSSTransition
@@ -1991,49 +1407,22 @@ export default class Creator extends React.Component {
             {lodash.map(this.state.notices, this.renderNotice)}
           </div>
         </CSSTransition>
-        {this.renderChangelogModal()}
-        {this.renderNewProjectModal()}
         {!this.state.tearingDown && this.envoyClient &&
           <Tour
             show={!this.shouldShowProjectLoader()}
-            projectsList={this.state.projectsList}
             envoyClient={this.envoyClient}
             startTourOnMount={true}
           />
         }
-        {this.state.dashboardVisible && this.envoyClient && this.envoyProject && this.state.username && <ProjectBrowser
-          ref="ProjectBrowser"
-          explorePro={this.explorePro}
-          areProjectsLoading={this.state.areProjectsLoading}
-          isOnline={this.state.isOnline}
-          allowOffline={this.state.allowOffline}
-          envoyProject={this.envoyProject}
-          onShowProxySettings={this.boundShowProxySettings}
-          onProjectsList={this.onProjectsList}
-          onShowNewProjectModal={(...args) => {
-            this.showNewProjectModal(...args);
-          }}
-          lastViewedChangelog={this.state.lastViewedChangelog}
-          onShowChangelogModal={this.showChangelogModal}
-          privateProjectLimit={this.state.privateProjectLimit}
-          showChangelogModal={this.state.showChangelogModal}
-          expiredTrialNonPro={this.state.expiredTrialNonPro}
-          trialDaysRemaining={this.state.trialDaysRemaining}
-          username={this.state.username}
-          softwareVersion={this.state.softwareVersion}
-          organizationName={this.state.organizationName}
-          isAdmin={this.state.isAdmin}
-          loadProjects={this.loadProjects}
-          launchProject={this.launchProject}
+        {this.state.dashboardVisible && !this.shouldShowProjectLoader() && !this.state.tearingDown && <StartScreen
+          onOpenProject={(folder) => this.openProjectFolder(folder)}
           createNotice={this.createNotice}
-          logOut={this.logOut}
-          envoyClient={this.envoyClient}
-          {...this.props} />
+        />
         }
         {this.shouldShowProjectLoader() && (
           <ProjectLoader
             softwareVersion={this.state.softwareVersion}
-            message={this.showGenericLoader ? 'Loading…' : 'Initializing project…'}
+            message="Initializing project…"
           />
         )}
         {!this.state.dashboardVisible && !this.state.doShowProjectLoader && this.state.projectModel && <div style={{position: 'absolute', width: '100%', height: '100%', top: 0, left: 0}}>
@@ -2041,8 +1430,6 @@ export default class Creator extends React.Component {
             <SplitPanel split="horizontal" minSize={300} defaultSize={'62vh'}>
               <SplitPanel split="vertical" minSize={300} defaultSize={300}>
                 <SideBar
-                  isPro={this.state.privateProjectLimit == null}
-                  trialDaysRemaining={this.state.trialDaysRemaining}
                   projectModel={this.state.projectModel}
                   switchActiveNav={this.switchActiveNav}
                   onNavigateToDashboard={this.onNavigateToDashboard}
@@ -2113,11 +1500,8 @@ export default class Creator extends React.Component {
                     }
                   <Stage
                     ref="stage"
-                    supportOfflineExport={true} // supportOfflineExport is now stub/legacy logic after switching from Free Tier to Free Trial
-                    explorePro={this.explorePro}
                     folder={this.state.projectFolder}
-                    envoyProject={this.envoyProject}
-                    envoyExporter={this.envoyExporter}
+                    onExport={this.exportAs}
                     projectModel={this.state.projectModel}
                     envoyClient={this.envoyClient}
                     haiku={this.props.haiku}
@@ -2125,18 +1509,10 @@ export default class Creator extends React.Component {
                     project={this.state.projectObject}
                     createNotice={this.createNotice}
                     removeNotice={this.removeNotice}
-                    organizationName={this.state.organizationName}
-                    username={this.state.username}
                     isTimelineReady={this.state.isTimelineReady}
                     interactionMode={this.state.interactionMode}
                     onShowEventHandlerEditor={this.handleShowEventHandlersEditor}
                     onPreviewModeToggled={this.togglePreviewMode}
-                    privateProjectLimit={this.state.privateProjectLimit}
-                    updateProjectObject={(changes) => {
-                      this.setState({
-                        projectObject: Object.assign({}, this.state.projectObject, changes),
-                      });
-                    }}
                     artboardDimensions={this.state.artboardDimensions}
                     setGlassInteractionToPreviewMode={this.setGlassInteractionToPreviewMode}
                     setGlassInteractionToEditMode={this.setGlassInteractionToEditMode}
@@ -2182,7 +1558,6 @@ export default class Creator extends React.Component {
           </div>
         </div>}
         {this.state.tearingDown && <div style={DASH_STYLES.dashOverlay} />}
-        {this.state.showFailWhale && <FailWhale restart={this.restart} uniqueId={this.state.failWhaleUniqueId} />}
       </div>
     );
   }

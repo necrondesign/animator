@@ -1,10 +1,8 @@
-/* global Raven */
 import * as React from 'react';
 import * as lodash from 'lodash';
 import * as Radium from 'radium';
-import {shell, ipcRenderer} from 'electron';
+import {shell} from 'electron';
 import {UserSettings} from 'haiku-sdk-creator/lib/bll/User';
-import * as mixpanel from 'haiku-serialization/src/utils/Mixpanel';
 import {isMac} from 'haiku-common/lib/environments/os';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {LoadingTopBar} from 'haiku-ui-common/lib/react/LoadingTopBar';
@@ -18,7 +16,6 @@ import FileImporter from './FileImporter';
 import DesignFileCreator from './DesignFileCreator';
 import {statSync} from 'fs';
 import {basename, extname} from 'path';
-import {ExternalLink} from 'haiku-ui-common/lib/react/ExternalLink';
 
 const openWithDefaultProgram = (asset) => {
   shell.openPath(asset.getAbspath());
@@ -62,12 +59,6 @@ const STYLES = {
     padding: 24,
     textAlign: 'center',
   },
-  link: {
-    color: Palette.SUNSTONE,
-    textDecoration: 'underline',
-    cursor: 'pointer',
-    display: 'inline-block',
-  },
   loadingWrapper: {
     position: 'relative',
     width: '100%',
@@ -98,14 +89,13 @@ class Library extends React.Component {
     this.onAssetDoubleClick = this.onAssetDoubleClick.bind(this);
     this.handleAssetDeletion = this.handleAssetDeletion.bind(this);
     this.importFigmaAsset = this.importFigmaAsset.bind(this);
-    this.askForFigmaAuth = this.askForFigmaAuth.bind(this);
+    this.setFigmaToken = this.setFigmaToken.bind(this);
     this.onSketchDialogDismiss = this.onSketchDialogDismiss.bind(this);
 
     // Debounced to avoid 'flicker' when multiple updates are received quickly
     this.handleAssetsChanged = lodash.debounce(this.handleAssetsChanged.bind(this), 250);
 
     this.broadcastListener = this.broadcastListener.bind(this);
-    this.onAuthCallback = this.onAuthCallback.bind(this);
 
     // We call this here because this is an expensive operation and we want to avoid
     // executing it when the user tries to open a Sketch file. This first call
@@ -136,7 +126,6 @@ class Library extends React.Component {
     this.reloadAssetList();
 
     this.props.websocket.on('broadcast', this.broadcastListener);
-    ipcRenderer.on('open-url:oauth', this.onAuthCallback);
 
     // TODO: perform an actual check for Illustrator
     this.isIllustratorInstalled = true;
@@ -150,46 +139,15 @@ class Library extends React.Component {
 
   componentWillUnmount () {
     this.props.websocket.removeListener('broadcast', this.broadcastListener);
-    ipcRenderer.removeListener('open-url:oauth', this.onAuthCallback);
   }
 
-  figmaAuthCallback ({state, code}) {
-    if (!this.props.servicesEnvoyClient) {
-      return;
-    }
-
-    this.props.servicesEnvoyClient.figmaGetAccessToken({state, code, stateCheck: this.state.figmaState})
-      .then(({AccessToken}) => {
-        this.props.user.setConfig(UserSettings.FigmaToken, AccessToken);
-        this.state.figma.token = AccessToken;
-        return this.props.createNotice({
-          type: 'success',
-          title: 'Yay!',
-          message: 'You are authenticated with Figma',
-        });
-      })
-      .catch((error) => {
-        console.log(error);
-        this.props.createNotice({
-          type: 'danger',
-          title: 'Error',
-          message: 'You must host your own Figma authentication service to use the Figma integration.  See: github.com/HaikuTeam/figma-auth',
-        });
-      });
-  }
-
-  onAuthCallback (_, path, params) {
-    switch (path) {
-      case '/figma':
-        this.figmaAuthCallback(params);
-    }
-  }
-
-  askForFigmaAuth () {
-    const {state, url} = Figma.buildAuthenticationLink();
-    this.setState({figmaState: state});
-    mixpanel.haikuTrack('creator:figma:askAuthentication');
-    shell.openExternal(url);
+  /**
+   * Stores (or, with no argument, forgets) the Figma personal access token used for imports.
+   */
+  setFigmaToken (token) {
+    const figmaToken = token ? token.trim() : undefined;
+    this.props.user.setConfig(UserSettings.FigmaToken, figmaToken);
+    this.setState({figma: new Figma({token: figmaToken})});
   }
 
   reloadAssetList () {
@@ -218,40 +176,23 @@ class Library extends React.Component {
             message: (
               <span>
                 This project seems to be a complex project and we imported a limited amount of elements.
-                For more information please check this <ExternalLink style={{textDecoration: 'underline'}} href="https://help.haikuforteams.com/troubleshooting/troubleshooting-figma-imports">article</ExternalLink>.
               </span>
             ),
           });
-          mixpanel.haikuTrack('creator:figma:complex-design-warning-shown');
         }
       })
       .catch((error = {}) => {
         const message = error.err || 'We had a problem connecting with Figma. Please check your internet connection and try again.';
         const reportData = {url, message};
 
-        mixpanel.haikuTrack('creator:figma:fileImport:fail', reportData);
-        this.setState({isLoading: false, progress: null, speed: null});
+        this.setState({isLoading: false, loadingProgress: null, loadingSpeed: null, lockLoadingFromWatchers: false});
 
         if (error.status === 403) {
+          this.setFigmaToken();
           return this.props.createNotice({
             type: 'danger',
             title: 'Error',
-            message: (
-              <p>
-                We had problems importing your file.{' '}
-                If this problem persists, please click{' '}
-                <a
-                  href="#"
-                  style={STYLES.link}
-                  onClick={() => {
-                    this.askForFigmaAuth();
-                  }}
-                >
-                  here
-                </a>{' '}
-                to log in with Figma again.
-              </p>
-            ),
+            message: 'Figma rejected the access token. Open the Figma importer again to enter a new personal access token.',
           });
         }
 
@@ -259,22 +200,7 @@ class Library extends React.Component {
           return this.props.createNotice({
             type: 'danger',
             title: 'Error',
-            message: (
-              <p>
-                We couldn't access your file, please make sure that the file exists
-                and you have access to it.<br />
-                If you need to log in with another Figma account{' '}
-                <a
-                  href="#"
-                  style={STYLES.link}
-                  onClick={() => {
-                    this.askForFigmaAuth();
-                  }}
-                >
-                  click here.
-                </a>{' '}
-              </p>
-            ),
+            message: 'We could not access this file. Make sure it exists and that the account that created the token can open it.',
           });
         }
 
@@ -301,11 +227,9 @@ class Library extends React.Component {
   handleSketchLaunch (asset) {
     sketchUtils.checkIfInstalled().then((isSketchInstalled) => {
       if (Boolean(isSketchInstalled)) {
-        mixpanel.haikuTrack('creator:sketch:open-file');
         openWithDefaultProgram(asset);
         // On library Sketch asset double click, ask to download Sketch only if on mac
       } else if (isMac()) {
-        mixpanel.haikuTrack('creator:sketch:sketch-not-installed');
         this.setState({sketchDownloader: {...this.state.sketchDownloader, isVisible: true}});
       }
     });
@@ -313,10 +237,8 @@ class Library extends React.Component {
 
   handleIllustratorLaunch (asset) {
     if (this.isIllustratorInstalled) {
-      mixpanel.haikuTrack('creator:illustrator:open-file');
       openWithDefaultProgram(asset);
     } else {
-      mixpanel.haikuTrack('creator:illustrator:illustrator-not-installed');
       this.props.createNotice({type: 'error', title: 'Error', message: 'You need to have Adobe Illustrator installed to open that file.'});
     }
   }
@@ -393,7 +315,6 @@ class Library extends React.Component {
           title: 'Warning',
           message: `${basename(path)} is a large file, you may experience performance problems.`,
         });
-        mixpanel.haikuTrack(`creator:${extname(path)}:complex-design-warning-shown`);
       }
     });
   }
@@ -460,7 +381,7 @@ class Library extends React.Component {
             websocket={this.props.websocket}
             projectModel={this.props.projectModel}
             onImportFigmaAsset={this.importFigmaAsset}
-            onAskForFigmaAuth={this.askForFigmaAuth}
+            onSetFigmaToken={this.setFigmaToken}
             figma={this.state.figma}
             conglomerateComponent={this.props.conglomerateComponent}
             onFileDrop={this.handleFileDrop}
@@ -480,7 +401,7 @@ class Library extends React.Component {
                 figma={this.state.figma}
                 onImportFigmaAsset={this.importFigmaAsset}
                 onRefreshFigmaAsset={this.importFigmaAsset}
-                onAskForFigmaAuth={this.askForFigmaAuth}
+                onSetFigmaToken={this.setFigmaToken}
                 deleteAsset={this.handleAssetDeletion}
                 indent={0}
                 assets={this.state.assets}
@@ -492,7 +413,7 @@ class Library extends React.Component {
                   projectModel={this.props.projectModel}
                   websocket={this.props.websocket}
                   figma={this.state.figma}
-                  onAskForFigmaAuth={this.askForFigmaAuth}
+                  onSetFigmaToken={this.setFigmaToken}
                   onImportFigmaAsset={this.importFigmaAsset}
                   onRefreshFigmaAsset={this.importFigmaAsset}
                   onStart={this.onAssetCreatorStart}

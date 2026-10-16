@@ -1,5 +1,6 @@
 import * as Radium from 'radium';
 import * as React from 'react';
+import {handleWebviewConsoleMessage} from './webviewConsole';
 import * as qs from 'qs';
 import * as assign from 'lodash.assign';
 import * as path from 'path';
@@ -8,7 +9,6 @@ import StageTitleBar from './StageTitleBar';
 import ComponentMenu from './ComponentMenu/ComponentMenu';
 import CodeEditor from './CodeEditor/CodeEditor';
 import Palette from 'haiku-ui-common/lib/Palette';
-import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import {TOUR_CHANNEL} from 'haiku-sdk-creator/lib/tour';
 import {
   isPreviewMode,
@@ -185,23 +185,7 @@ class Stage extends React.Component {
     this.webview.style.height = '100%';
 
     this.webview.addEventListener('console-message', (event) => {
-      switch (event.level) {
-        case 0:
-          if (event.message.slice(0, 8) === '[notice]') {
-            const msg = event.message.replace('[notice]', '').trim();
-            this.props.createNotice({type: 'info', title: 'Notice', message: msg});
-          }
-          break;
-
-        case 2:
-          this.props.createNotice({
-            type: 'error',
-            title: 'Error',
-            message: event.message,
-          });
-
-          break;
-      }
+      handleWebviewConsoleMessage(event, this.props.createNotice, 'glass');
     });
 
     this.webview.addEventListener('dom-ready', () => {
@@ -287,20 +271,13 @@ class Stage extends React.Component {
           className="stage-box"
           style={STAGE_BOX_STYLE}>
           <StageTitleBar
-            explorePro={this.props.explorePro}
-            supportOfflineExport={this.props.supportOfflineExport}
             folder={this.props.folder}
-            envoyProject={this.props.envoyProject}
-            envoyExporter={this.props.envoyExporter}
+            onExport={this.props.onExport}
             projectModel={this.props.projectModel}
             project={this.props.project}
             websocket={this.props.websocket}
             createNotice={this.props.createNotice}
             removeNotice={this.props.removeNotice}
-            organizationName={this.props.organizationName}
-            username={this.props.username}
-            privateProjectLimit={this.props.privateProjectLimit}
-            updateProjectObject={this.props.updateProjectObject}
             onPreviewModeToggled={this.props.onPreviewModeToggled}
             isTimelineReady={this.props.isTimelineReady}
             envoyClient={this.props.envoyClient}
@@ -338,7 +315,7 @@ class Stage extends React.Component {
               [showGlassOnStage(this.props.interactionMode) && STAGE_FADE_IN], [!showGlassOnStage(this.props.interactionMode) && STAGE_FADE_OUT],
             ]}
           />
-          {experimentIsEnabled(Experiment.CodeEditor) && <div
+          {<div
             id="editor-mount"
             style={[{
               position: 'absolute',
@@ -381,7 +358,6 @@ Stage.propTypes = {
   removeNotice: React.PropTypes.func.isRequired,
   organizationName: React.PropTypes.string,
   username: React.PropTypes.string,
-  supportOfflineExport: React.PropTypes.bool,
 };
 
 export default Radium(Stage);

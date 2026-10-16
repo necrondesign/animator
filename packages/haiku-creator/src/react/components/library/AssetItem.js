@@ -28,7 +28,6 @@ import ControlText from 'haiku-ui-common/lib/react/icons/ControlText';
 import ControlHTML from 'haiku-ui-common/lib/react/icons/ControlHTML';
 // import ControlInput from 'haiku-ui-common/lib/react/icons/ControlInput'
 import FigmaPopover from './importers/FigmaPopover';
-import {experimentIsEnabled, Experiment} from 'haiku-common/lib/experiments';
 
 const ASSET_ICONS = {
   ControlImage: () => {
@@ -538,7 +537,7 @@ class AssetItem extends React.Component {
         <FigmaPopover
           onImportFigmaAsset={this.props.onImportFigmaAsset}
           onPopoverHide={this.props.onPopoverHide}
-          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+          onSetFigmaToken={this.props.onSetFigmaToken}
           figma={this.props.figma}
         >
           {displayName}
@@ -605,7 +604,7 @@ class AssetItem extends React.Component {
           assets={this.props.asset.getChildAssets()}
           onRefreshFigmaAsset={this.props.onRefreshFigmaAsset}
           onImportFigmaAsset={this.props.onImportFigmaAsset}
-          onAskForFigmaAuth={this.props.onAskForFigmaAuth}
+          onSetFigmaToken={this.props.onSetFigmaToken}
           figma={this.props.figma}
           indent={this.props.indent + 1}
         />
