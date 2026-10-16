@@ -1,4 +1,4 @@
-import * as remote from '@electron/remote';
+import {dialogs} from 'haiku-ui-common/lib/electron/bridge';
 import {isMac} from 'haiku-common/lib/environments/os';
 import {Experiment, experimentIsEnabled} from 'haiku-common/lib/experiments';
 import * as React from 'react';
@@ -30,7 +30,7 @@ class FileSystemImporter extends React.PureComponent<FileSystemImporterProps> {
       validExtensions.push('sketch');
     }
 
-    remote.dialog.showOpenDialog({
+    dialogs.showOpenDialog({
       title: 'Import to Library',
       filters: [{name: 'Valid Files', extensions: validExtensions}],
       properties: ['multiSelections', 'openFile'],

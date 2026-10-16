@@ -1,82 +1,53 @@
-import {BaseWindow, KeyboardEvent, Menu, MenuItem, MenuItemConstructorOptions} from 'electron';
 import {EventEmitter} from 'events';
-
-type Remote = typeof import('@electron/remote');
-
-// @electron/remote only works inside an Electron renderer (it throws when required in plain Node, e.g. unit tests
-// under JSDOM), so load it on first use; outside Electron the menu is simply unavailable.
-let cachedRemote: Remote | null | undefined;
-const getRemote = (): Remote | null => {
-  if (cachedRemote === undefined) {
-    try {
-      cachedRemote = require('@electron/remote');
-    } catch (exception) {
-      cachedRemote = null;
-    }
-  }
-  return cachedRemote;
-};
+import {ContextMenuItem, showContextMenu} from './bridge';
 
 const DISPLAY_HACK_TIMEOUT = 100;
 
 export interface MenuSpec {
-  type: ('normal' | 'separator' | 'submenu' | 'checkbox' | 'radio');
-  label: string;
-  enabled: boolean;
-  submenu: MenuSpec[];
-  onClick: (menuItem: MenuItem, browserWindow: BaseWindow | undefined, event: KeyboardEvent) => void;
+  type?: ('normal' | 'separator' | 'submenu' | 'checkbox' | 'radio');
+  label?: string;
+  enabled?: boolean;
+  submenu?: MenuSpec[] | false;
+  onClick?: (...args: any[]) => void;
 }
 
 export interface MenuItemLaunchConfig {
+  event?: any;
   items: MenuSpec[];
 }
 
-const buildMenuItem = (menu: Menu, {type, label, enabled, submenu, onClick}: MenuSpec) => {
-  const menuSpec: MenuItemConstructorOptions = {
-    type,
-    label,
-    enabled,
-    click: onClick,
-  };
-
-  if (submenu && submenu.length > 0) {
-    menuSpec.submenu = new (getRemote().Menu)();
-    submenu.forEach((subitem) => {
-      buildMenuItem(menuSpec.submenu as Menu, subitem);
-    });
-  }
-
-  const item = new (getRemote().MenuItem)(menuSpec);
-
-  menu.append(item);
-};
-
+/**
+ * Native context menu for the renderers. The main process shows the menu (see bridge.ts) and reports which item was
+ * chosen; the item's onClick then runs here, in the renderer that launched the menu.
+ */
 export class PopoverMenu extends EventEmitter {
-  menu: Menu = null;
-
   launch ({items}: MenuItemLaunchConfig) {
-    const remote = getRemote();
-    if (!remote) {
-      return;
-    }
+    const handlers = new Map<string, () => void>();
 
-    this.menu = new remote.Menu();
-
-    items.forEach((item) => {
-      buildMenuItem(this.menu as Menu, item);
+    const describe = (specs: MenuSpec[]): ContextMenuItem[] => specs.map((spec) => {
+      const item: ContextMenuItem = {type: spec.type, label: spec.label, enabled: spec.enabled};
+      if (spec.submenu && spec.submenu.length > 0) {
+        item.submenu = describe(spec.submenu);
+      }
+      if (spec.onClick) {
+        item.id = String(handlers.size);
+        handlers.set(item.id, spec.onClick);
+      }
+      return item;
     });
 
-    this.show();
-  }
-
-  show () {
-    if (!this.menu) {
-      return;
-    }
+    const template = describe(items);
 
     setTimeout(
       () => {
-        this.menu.popup({window: getRemote().getCurrentWindow()});
+        showContextMenu(template).then((chosenId) => {
+          const handler = chosenId === null ? undefined : handlers.get(chosenId);
+          if (handler) {
+            handler();
+          }
+        }, () => {
+          // Not running in Electron (e.g. unit tests under JSDOM): there is no menu to show.
+        });
       },
       DISPLAY_HACK_TIMEOUT,
     );

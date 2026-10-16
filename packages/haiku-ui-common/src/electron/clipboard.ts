@@ -1,7 +1,7 @@
 import {ipcRenderer} from 'electron';
 
 // Electron 44 no longer exposes `clipboard` to renderer processes and made it asynchronous, so renderers go through
-// the main process (see registerClipboardHandlers in haiku-creator's electron.js).
+// the main process (handlers in registerBridgeHandlers, ./bridge.ts).
 export const CLIPBOARD_READ_TEXT = 'clipboard:read-text';
 export const CLIPBOARD_WRITE_TEXT = 'clipboard:write-text';
 

@@ -5,8 +5,7 @@ import * as React from 'react';
 import Palette from 'haiku-ui-common/lib/Palette';
 import {ATTRIBUTION, PRODUCT_NAME} from 'haiku-common/lib/branding';
 
-// @electron/remote only works inside an Electron renderer, so load it when it's actually used.
-const getRemote = () => require('@electron/remote');
+import {dialogs} from 'haiku-ui-common/lib/electron/bridge';
 
 const RECENT_PROJECTS_KEY = 'motion-side:recent-projects';
 const MAX_RECENT_PROJECTS = 10;
@@ -166,7 +165,7 @@ const STYLES = {
  * Asks for a new project folder (it must not exist yet, or be empty) and creates it.
  * Resolves with the folder, or null if the user cancelled. Rejects with a user-facing message.
  */
-export const chooseNewProjectFolder = () => getRemote().dialog.showSaveDialog({
+export const chooseNewProjectFolder = () => dialogs.showSaveDialog({
   title: 'Create a new project',
   buttonLabel: 'Create',
   nameFieldLabel: 'Project name:',
@@ -190,7 +189,7 @@ export const chooseNewProjectFolder = () => getRemote().dialog.showSaveDialog({
 /**
  * Asks for an existing project folder. Resolves with the folder, or null if the user cancelled.
  */
-export const chooseExistingProjectFolder = () => getRemote().dialog.showOpenDialog({
+export const chooseExistingProjectFolder = () => dialogs.showOpenDialog({
   title: 'Open a project folder',
   buttonLabel: 'Open',
   properties: ['openDirectory', 'showHiddenFiles'],

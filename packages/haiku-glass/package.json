@@ -8,7 +8,6 @@
     "Taylor Poe <taylor@haiku.ai>"
   ],
   "dependencies": {
-    "@electron/remote": "2.1.3",
     "@haiku/core": "5.1.2",
     "color": "^2.0.1",
     "haiku-common": "5.1.2",

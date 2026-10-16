@@ -27,8 +27,8 @@ const query = qs.stringify(params);
 
 url = `${url}?${query}`;
 
-const remoteMain = require('@electron/remote/main');
-remoteMain.initialize();
+const {registerBridgeHandlers} = require('haiku-ui-common/lib/electron/bridge');
+registerBridgeHandlers(ipcMain);
 
 let mainWindow;
 
@@ -43,7 +43,6 @@ function createWindow () {
       sandbox: false,
     },
   });
-  remoteMain.enable(mainWindow.webContents);
   mainWindow.loadURL(url);
 
   if (process.env.DEV === '1' || process.env.DEV === 'glass') {

@@ -36,6 +36,15 @@ const IGNORED_ERRORS = [
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Screenshots are diagnostics: a slow capture must not fail the functional checks.
+const takeScreenshot = async (page, file) => {
+  try {
+    await page.screenshot({path: file});
+  } catch (exception) {
+    log.log(`could not take screenshot ${file}: ${exception.message.split('\n')[0]}`);
+  }
+};
+
 async function closeApp (app) {
   const pid = app.process().pid;
   await Promise.race([app.close().catch (() => {}), sleep(10 * 1000)]);
@@ -90,7 +99,7 @@ async function checkStartScreen (env, launchOptions, errors) {
     }
     await sleep(1500);
     const screenshot = path.join(OUTPUT, 'start-screen.png');
-    await window.screenshot({path: screenshot});
+    await takeScreenshot(window, screenshot);
     log.hat(`start screen screenshot: ${screenshot}`);
 
     // "New project…": answer the native save dialog with a fresh folder, click the button, and expect the editor to
@@ -106,7 +115,14 @@ async function checkStartScreen (env, launchOptions, errors) {
       errors.push(`[smoke] "New project" did not open the editor: ${JSON.stringify(opened.webviews)}`);
       return;
     }
-    const created = fse.existsSync(path.join(newProject, 'code', 'main', 'code.js'));
+    // The project files are written while the editor opens; give them a moment.
+    let created = false;
+    for (let waited = 0; waited < 10000 && !created; waited += 250) {
+      created = fse.existsSync(path.join(newProject, 'code', 'main', 'code.js'));
+      if (!created) {
+        await sleep(250);
+      }
+    }
     if (!created) {
       errors.push(`[smoke] "New project" did not create project files in ${newProject}`);
       return;
@@ -195,7 +211,7 @@ async function main () {
     await sleep(SETTLE_MS);
 
     const screenshot = path.join(OUTPUT, 'creator.png');
-    await window.screenshot({path: screenshot});
+    await takeScreenshot(window, screenshot);
     log.hat(`screenshot: ${screenshot}`);
 
     // Export button opens the local Export modal.
@@ -206,7 +222,7 @@ async function main () {
     await runInCreator('document.getElementById("export").click()');
     await sleep(1000);
     if (await runInCreator('!!document.getElementById("export-modal")')) {
-      await window.screenshot({path: path.join(OUTPUT, 'export-modal.png')});
+      await takeScreenshot(window, path.join(OUTPUT, 'export-modal.png'));
       log.log('export modal opened');
       const clipboardBefore = await app.evaluate(({clipboard}) => clipboard.readText());
       await runInCreator('Array.from(document.querySelectorAll("#export-modal button")).find((b) => b.textContent === "Copy").click()');
@@ -233,6 +249,83 @@ async function main () {
       log.log('uncaught error shown as a notice');
     } else {
       errors.push('[smoke] an uncaught error in Creator did not show up as a notice');
+    }
+
+    // Security guards: the privileged editor window can't open windows, navigate away or embed remote pages.
+    const guard = await app.evaluate(async ({BrowserWindow, shell}) => {
+      const opened = [];
+      const openExternal = shell.openExternal;
+      shell.openExternal = async (url) => {
+        opened.push(url);
+      };
+      const [creatorWindow] = BrowserWindow.getAllWindows().filter((browserWindow) => browserWindow.isVisible());
+      const urlBefore = creatorWindow.webContents.getURL();
+      const windowsBefore = BrowserWindow.getAllWindows().length;
+      await creatorWindow.webContents.executeJavaScript(`
+        window.open('https://example.com/popup');
+        location.href = 'https://example.com/navigate';
+      `);
+      const attached = await creatorWindow.webContents.executeJavaScript(`new Promise((resolve) => {
+        const webview = document.createElement('webview');
+        let didAttach = false;
+        webview.addEventListener('did-attach', () => {
+          didAttach = true;
+        });
+        webview.setAttribute('src', 'https://example.com/webview');
+        document.body.appendChild(webview);
+        setTimeout(() => {
+          webview.remove();
+          resolve(didAttach);
+        }, 1500);
+      })`);
+      shell.openExternal = openExternal;
+      return {
+        stayed: creatorWindow.webContents.getURL() === urlBefore,
+        newWindows: BrowserWindow.getAllWindows().length - windowsBefore,
+        opened,
+        attached,
+      };
+    });
+    if (guard.stayed && guard.newWindows === 0 && !guard.attached && guard.opened.length === 2) {
+      log.log('security guards: navigation, window.open and remote <webview> are blocked');
+    } else {
+      errors.push(`[smoke] security guards failed: ${JSON.stringify(guard)}`);
+    }
+
+    // Main-process services over IPC (no @electron/remote): context menus and dialogs, from Creator and from Glass.
+    const bridge = await app.evaluate(async ({BrowserWindow, Menu, dialog, webContents}) => {
+      const popup = Menu.prototype.popup;
+      const showOpenDialog = dialog.showOpenDialog;
+      Menu.prototype.popup = function (options) {
+        this.items[1].click();
+        if (options && options.callback) {
+          options.callback();
+        }
+      };
+      dialog.showOpenDialog = async (window) => ({canceled: true, filePaths: [], hasWindow: Boolean(window)});
+      const call = `(async () => {
+        const bridge = require('haiku-ui-common/lib/electron/bridge');
+        const chosen = await bridge.showContextMenu([{id: 'first', label: 'First'}, {id: 'second', label: 'Second'}]);
+        const opened = await bridge.dialogs.showOpenDialog({properties: ['openFile']});
+        return {chosen, dialogHasWindow: opened.hasWindow};
+      })()`;
+      const [creatorWindow] = BrowserWindow.getAllWindows().filter((browserWindow) => browserWindow.isVisible());
+      const glass = webContents.getAllWebContents().find((contents) => contents.getURL().includes('haiku-glass'));
+      const results = {
+        creator: await creatorWindow.webContents.executeJavaScript(call),
+        glass: await glass.executeJavaScript(call),
+      };
+      Menu.prototype.popup = popup;
+      dialog.showOpenDialog = showOpenDialog;
+      return results;
+    });
+    if (
+      bridge.creator.chosen === 'second' && bridge.glass.chosen === 'second' &&
+      bridge.creator.dialogHasWindow && bridge.glass.dialogHasWindow
+    ) {
+      log.log('IPC bridge: context menus and dialogs work from Creator and Glass');
+    } else {
+      errors.push(`[smoke] IPC bridge failed: ${JSON.stringify(bridge)}`);
     }
 
     // Edit > Paste with SVG markup on the system clipboard (e.g. Figma "Copy as SVG") adds it to the stage.
@@ -262,7 +355,7 @@ async function main () {
     }
     await app.evaluate(({clipboard}, text) => clipboard.writeText(text), previousClipboard);
     if (pasted) {
-      await window.screenshot({path: path.join(OUTPUT, 'pasted-svg.png')});
+      await takeScreenshot(window, path.join(OUTPUT, 'pasted-svg.png'));
       log.log('pasted SVG from the clipboard onto the stage');
     } else {
       errors.push('[smoke] pasting SVG from the clipboard did not add it to the stage');

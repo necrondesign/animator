@@ -28,8 +28,8 @@ const query = qs.stringify(params);
 
 const url = `file://${path.join(__dirname, '..', 'index.html')}?${query}`;
 
-const remoteMain = require('@electron/remote/main');
-remoteMain.initialize();
+const {registerBridgeHandlers} = require('haiku-ui-common/lib/electron/bridge');
+registerBridgeHandlers(ipcMain);
 
 let mainWindow = null;
 
@@ -49,7 +49,6 @@ function createWindow () {
   });
 
   mainWindow.maximize();
-  remoteMain.enable(mainWindow.webContents);
   mainWindow.loadURL(url);
 
   if (process.env.DEV === '1' || process.env.DEV === 'timeline') {

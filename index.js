@@ -29,10 +29,9 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
   const {app, dialog} = require('electron');
 
   // The editor's renderers (Creator window, and the Glass/Timeline <webview>s inside it) were written for
-  // Electron 2 defaults: Node integration, no context isolation, no sandbox, and the `remote` module.
-  // Keep those semantics explicitly until the renderers are moved to IPC + preload scripts.
-  const remoteMain = require('@electron/remote/main');
-  remoteMain.initialize();
+  // Electron 2 defaults: Node integration, no context isolation, no sandbox. Keep those semantics explicitly until
+  // the project model moves out of the renderers; main-process services are reached over IPC (see
+  // haiku-ui-common/src/electron/bridge.ts).
 
   const LEGACY_RENDERER_PREFERENCES = {
     nodeIntegration: true,
@@ -40,12 +39,11 @@ if (process.env.HAIKU_APP_LAUNCH_CLI === '1') {
     sandbox: false,
   };
 
-  app.on('web-contents-created', (_, webContents) => {
-    remoteMain.enable(webContents);
+  // Navigation, new-window, <webview> and permission guards (see haiku-common/src/electron/security.ts).
+  const {secureWebContents} = require('haiku-common/lib/electron/security');
 
-    webContents.on('will-attach-webview', (__, webPreferences) => {
-      Object.assign(webPreferences, LEGACY_RENDERER_PREFERENCES);
-    });
+  app.on('web-contents-created', (_, webContents) => {
+    secureWebContents(webContents, LEGACY_RENDERER_PREFERENCES);
   });
 
   if (process.env.NODE_ENV === 'production' && os.platform() === 'darwin' && !app.isInApplicationsFolder()) {

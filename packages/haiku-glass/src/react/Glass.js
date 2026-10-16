@@ -42,16 +42,13 @@ import {splitSegmentInSVGPoints, distance} from '@haiku/core/lib/helpers/PathUti
 import Globals from 'haiku-ui-common/lib/Globals';
 import {shell, ipcRenderer} from 'electron';
 import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
+import {devTools} from 'haiku-ui-common/lib/electron/bridge';
 
 import * as fse from 'haiku-fs-extra';
 import * as moment from 'moment';
 import {HOMEDIR_PATH} from 'haiku-serialization/src/utils/HaikuHomeDir';
 import EnvoyClient from 'haiku-sdk-creator/lib/envoy/EnvoyClient';
 import {extractSvgMarkup, nextPastedSvgRelpath} from '../utils/clipboardSvg';
-
-// @electron/remote only works inside an Electron renderer (it throws on require in plain Node, e.g. unit tests
-// under JSDOM), so load it when it's actually used.
-const getRemote = () => require('@electron/remote');
 
 // #FIXME: Why is this the responsibility of Glass???
 fse.mkdirpSync(HOMEDIR_PATH);
@@ -562,13 +559,11 @@ export class Glass extends React.Component {
 
       switch (message.name) {
         case 'global-menu:open-dev-tools':
-          getRemote().getCurrentWebContents().openDevTools();
+          devTools.open();
           break;
 
         case 'global-menu:close-dev-tools':
-          if (getRemote().getCurrentWebContents().isDevToolsFocused()) {
-            getRemote().getCurrentWebContents().closeDevTools();
-          }
+          devTools.closeIfFocused();
           break;
 
         case 'global-menu:zoom-in': {

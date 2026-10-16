@@ -1,6 +1,6 @@
 import {shell, ipcRenderer, webFrame} from 'electron';
 import {clipboard} from 'haiku-ui-common/lib/electron/clipboard';
-import * as remote from '@electron/remote';
+import {devTools, dialogs} from 'haiku-ui-common/lib/electron/bridge';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {CSSTransition} from 'react-transition-group';
@@ -45,8 +45,6 @@ import Globals from 'haiku-ui-common/lib/Globals';
 process.env.HAIKU_SUBPROCESS = 'creator';
 
 const pkg = require('./../../package.json');
-
-const {dialog} = remote;
 
 const isNumeric = (n) => {
   return !isNaN(parseFloat(n)) && isFinite(n);
@@ -134,7 +132,7 @@ export default class Creator extends React.Component {
     this.fileOptions = {};
 
     if (process.env.DEV === '1' || process.env.DEV === 'creator') {
-      remote.getCurrentWebContents().openDevTools();
+      devTools.open();
     }
 
     // Uncaught errors and unhandled rejections in this window are shown as notices; they are never sent anywhere.
@@ -179,7 +177,7 @@ export default class Creator extends React.Component {
     });
 
     ipcRenderer.on('global-menu:open-dev-tools', lodash.debounce(() => {
-      remote.getCurrentWebContents().openDevTools();
+      devTools.open();
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -195,9 +193,7 @@ export default class Creator extends React.Component {
     }, MENU_ACTION_DEBOUNCE_TIME, {leading: true, trailing: false}));
 
     ipcRenderer.on('global-menu:close-dev-tools', lodash.debounce(() => {
-      if (remote.getCurrentWebContents().isDevToolsFocused()) {
-        remote.getCurrentWebContents().closeDevTools();
-      }
+      devTools.closeIfFocused();
       this.props.websocket.send({
         type: 'relay',
         from: 'creator',
@@ -1107,7 +1103,7 @@ export default class Creator extends React.Component {
         break;
     }
 
-    dialog.showSaveDialog({
+    dialogs.showSaveDialog({
       defaultPath: this.state.projectObject ? this.state.projectObject.projectName : undefined,
       filters: [{
         name: request.format, extensions: [extension],

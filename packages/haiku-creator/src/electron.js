@@ -3,11 +3,11 @@ import * as path from 'path';
 import {parse, pathToFileURL} from 'url';
 import {inherits} from 'util';
 
-import {BrowserWindow, app, clipboard, ipcMain, net, protocol, systemPreferences} from 'electron';
+import {BrowserWindow, app, ipcMain, net, protocol, systemPreferences} from 'electron';
 import * as qs from 'qs';
 
 import TopMenu from 'haiku-common/lib/electron/TopMenu';
-import {CLIPBOARD_READ_TEXT, CLIPBOARD_WRITE_TEXT} from 'haiku-ui-common/lib/electron/clipboard';
+import {registerBridgeHandlers} from 'haiku-ui-common/lib/electron/bridge';
 import {PRODUCT_NAME, PRODUCT_PROTOCOL} from 'haiku-common/lib/branding';
 import * as ensureTrailingSlash from 'haiku-serialization/src/utils/ensureTrailingSlash';
 import * as logger from 'haiku-serialization/src/utils/LoggerInstance';
@@ -119,9 +119,8 @@ function createWindow () {
 
   topmenu.create(topmenuOptions);
 
-  // Renderers (Creator, Glass, Timeline) reach the clipboard through these handlers.
-  ipcMain.handle(CLIPBOARD_READ_TEXT, () => clipboard.readText());
-  ipcMain.handle(CLIPBOARD_WRITE_TEXT, (_, text) => clipboard.writeText(String(text)));
+  // Clipboard, dialogs, context menus and DevTools for the renderers (Creator, Glass, Timeline).
+  registerBridgeHandlers(ipcMain);
 
   ipcMain.on('topmenu:update', (_, nextTopmenuOptions) => {
     topmenu.update(nextTopmenuOptions);

@@ -3,7 +3,7 @@ import {render} from 'react-dom';
 import * as Websocket from 'haiku-serialization/src/ws/Websocket';
 import Creator from './react/Creator';
 
-const remote = require('@electron/remote');
+import {currentWindow} from 'haiku-ui-common/lib/electron/bridge';
 
 function _fixPlumbingUrl (url) {
   return url.replace(/^http/, 'ws');
@@ -30,10 +30,7 @@ export default function dom (haiku) {
   );
 
   websocket.on('close', () => {
-    const currentWindow = remote.getCurrentWindow();
-    if (currentWindow) {
-      currentWindow.destroy();
-    }
+    currentWindow.destroy();
   });
 
   render(
